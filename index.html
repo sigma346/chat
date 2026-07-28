@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="A simple realtime chat room powered by Supabase."
+    >
+
+    <title>Quick Chat</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main class="page">
+
+        <!-- Nickname screen -->
+        <section id="join-screen" class="panel join-panel">
+            <p class="eyebrow">SUPABASE REALTIME</p>
+
+            <h1>Quick Chat</h1>
+
+            <p class="description">
+                Choose a nickname to enter the chat room.
+            </p>
+
+            <form id="join-form">
+                <label for="nickname-input">
+                    Nickname
+                </label>
+
+                <input
+                    id="nickname-input"
+                    type="text"
+                    minlength="1"
+                    maxlength="24"
+                    autocomplete="nickname"
+                    placeholder="Enter a nickname"
+                    required
+                >
+
+                <button id="join-button" type="submit">
+                    Enter chat
+                </button>
+            </form>
+
+            <p
+                id="join-error"
+                class="error-message"
+                role="alert"
+            ></p>
+        </section>
+
+        <!-- Chat screen -->
+        <section
+            id="chat-screen"
+            class="panel chat-panel hidden"
+        >
+            <header class="chat-header">
+                <div>
+                    <p class="eyebrow">PUBLIC ROOM</p>
+                    <h1>Quick Chat</h1>
+                </div>
+
+                <div class="user-controls">
+                    <span id="current-user" class="user-badge"></span>
+
+                    <button
+                        id="change-name-button"
+                        class="secondary-button"
+                        type="button"
+                    >
+                        Change name
+                    </button>
+                </div>
+            </header>
+
+            <div
+                id="connection-status"
+                class="connection-status"
+                aria-live="polite"
+            >
+                Connecting...
+            </div>
+
+            <ol
+                id="message-list"
+                class="message-list"
+                aria-live="polite"
+            ></ol>
+
+            <form id="message-form" class="message-form">
+                <label class="screen-reader-only" for="message-input">
+                    Message
+                </label>
+
+                <input
+                    id="message-input"
+                    type="text"
+                    maxlength="500"
+                    autocomplete="off"
+                    placeholder="Write a message..."
+                    required
+                >
+
+                <button id="send-button" type="submit">
+                    Send
+                </button>
+            </form>
+
+            <p
+                id="chat-error"
+                class="error-message chat-error"
+                role="alert"
+            ></p>
+        </section>
+
+    </main>
+
+    <!-- Supabase JavaScript library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Our files -->
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
