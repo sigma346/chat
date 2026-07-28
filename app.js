@@ -136,11 +136,25 @@ function displayMessage(message, forceScroll = false) {
         forceScroll || isNearBottomOfMessages();
 
     displayedMessageIds.add(message.id);
-
     removeEmptyMessage();
 
-    const messageElement = document.createElement("li");
+    /*
+        Check whether the previous visible message
+        was sent by the same user.
+    */
+
+    const previousMessage =
+        messageList.lastElementChild;
+
+    const isGroupedMessage =
+        previousMessage?.classList.contains("message") &&
+        previousMessage.dataset.userId === message.user_id;
+
+    const messageElement =
+        document.createElement("li");
+
     messageElement.className = "message";
+    messageElement.dataset.userId = message.user_id;
 
     const isOwnMessage =
         currentSession?.user?.id === message.user_id;
@@ -149,56 +163,64 @@ function displayMessage(message, forceScroll = false) {
         messageElement.classList.add("own-message");
     }
 
-    const messageInformation =
-        document.createElement("div");
+    if (isGroupedMessage) {
+        messageElement.classList.add("grouped-message");
+    }
 
-    messageInformation.className =
-        "message-information";
+    /*
+        Only display the username and time when this
+        is the first message in a group.
+    */
 
-    const authorElement =
-        document.createElement("span");
+    if (!isGroupedMessage) {
+        const messageInformation =
+            document.createElement("div");
 
-    authorElement.className = "message-author";
-    authorElement.textContent = message.username;
+        messageInformation.className =
+            "message-information";
 
-    const timeElement =
-        document.createElement("time");
+        const authorElement =
+            document.createElement("span");
 
-    timeElement.dateTime = message.created_at;
-    timeElement.textContent =
-        formatTime(message.created_at);
+        authorElement.className = "message-author";
+        authorElement.textContent = message.username;
+
+        const timeElement =
+            document.createElement("time");
+
+        timeElement.dateTime = message.created_at;
+        timeElement.textContent =
+            formatTime(message.created_at);
+
+        messageInformation.append(
+            authorElement,
+            timeElement
+        );
+
+        messageElement.append(messageInformation);
+    }
 
     const contentElement =
         document.createElement("p");
 
     contentElement.className = "message-content";
-
-    /*
-        textContent is important here.
-
-        It displays text without treating messages as HTML,
-        preventing users from inserting scripts into the page.
-    */
-
     contentElement.textContent = message.content;
 
-    messageInformation.append(
-        authorElement,
-        timeElement
-    );
+    /*
+        Hovering over any message still reveals its
+        username and exact time.
+    */
 
-    messageElement.append(
-        messageInformation,
-        contentElement
-    );
+    contentElement.title =
+        `${message.username} • ${formatTime(message.created_at)}`;
 
+    messageElement.append(contentElement);
     messageList.append(messageElement);
 
     if (shouldScroll) {
         scrollToBottom();
     }
 }
-
 /*
     Supabase authentication
 */

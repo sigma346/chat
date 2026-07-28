@@ -331,6 +331,20 @@ button:disabled {
     text-align: center;
 }
 
+/* Consecutive messages from the same user */
+
+.message.grouped-message {
+    margin-top: -10px;
+}
+
+.message.grouped-message .message-content {
+    border-radius: 6px 15px 15px 6px;
+}
+
+.message.own-message.grouped-message .message-content {
+    border-radius: 15px 6px 6px 15px;
+}
+
 /* Message input */
 
 .message-form {
