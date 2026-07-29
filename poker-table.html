@@ -48,7 +48,7 @@
                 <header class="live-poker-header">
                     <div>
                         <p class="eyebrow">
-                            HEADS-UP TEXAS HOLD'EM
+                            MULTIPLAYER TEXAS HOLD'EM
                         </p>
 
                         <h1 id="table-name">
@@ -75,6 +75,13 @@
 
                 <div class="game-information-bar">
                     <span>
+                        Players:
+                        <strong id="player-count-label">
+                            0/0
+                        </strong>
+                    </span>
+
+                    <span>
                         Street:
                         <strong id="street-label">
                             Waiting
@@ -99,8 +106,9 @@
                 <div class="holdem-table">
 
                     <section
-                        id="opponent-seat"
-                        class="live-player-seat opponent-seat"
+                        id="opponent-seats"
+                        class="opponent-seats"
+                        aria-label="Other poker players"
                     ></section>
 
                     <section class="community-board">
@@ -124,7 +132,9 @@
 
                 <section class="own-hand-panel">
                     <div>
-                        <p class="eyebrow">YOUR HAND</p>
+                        <p class="eyebrow">
+                            YOUR HAND
+                        </p>
 
                         <div
                             id="own-hole-cards"
@@ -146,7 +156,7 @@
                     class="poker-control-panel"
                 >
                     <p id="waiting-text">
-                        Waiting for two players.
+                        Waiting for players.
                     </p>
 
                     <button

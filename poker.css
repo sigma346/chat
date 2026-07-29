@@ -501,9 +501,8 @@ select:focus {
         flex-direction: column;
     }
 }
-
 /* =========================================================
-   LIVE HEADS-UP POKER GAME
+   LIVE MULTI-PLAYER POKER GAME
    ========================================================= */
 
 .live-poker-panel {
@@ -521,7 +520,7 @@ select:focus {
 .game-information-bar {
     display: grid;
     grid-template-columns:
-        repeat(3, minmax(0, 1fr));
+        repeat(4, minmax(0, 1fr));
 
     gap: 10px;
 
@@ -550,16 +549,16 @@ select:focus {
     display: grid;
     grid-template-rows:
         auto
-        minmax(190px, 1fr)
+        minmax(180px, 1fr)
         auto;
 
-    gap: 18px;
+    gap: 20px;
 
-    min-height: 540px;
-    padding: 24px;
+    min-height: 620px;
+    padding: 25px;
 
     border: 12px solid #39261b;
-    border-radius: 44%;
+    border-radius: 38%;
 
     background:
         radial-gradient(
@@ -574,12 +573,25 @@ select:focus {
         0 16px 40px rgba(0, 0, 0, 0.26);
 }
 
-.live-player-seat {
-    width: min(390px, 88%);
-    min-height: 126px;
+.opponent-seats {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(180px, 1fr)
+        );
 
-    margin: 0 auto;
-    padding: 14px;
+    align-items: start;
+    gap: 10px;
+
+    width: 100%;
+}
+
+.live-player-seat {
+    min-width: 0;
+    min-height: 122px;
+
+    padding: 13px;
 
     border: 1px solid #3d485b;
     border-radius: 15px;
@@ -592,6 +604,11 @@ select:focus {
         opacity 160ms ease;
 }
 
+.own-live-seat {
+    width: min(430px, 100%);
+    margin: 0 auto;
+}
+
 .live-player-seat.active-turn-seat {
     border-color: var(--accent);
 
@@ -601,7 +618,11 @@ select:focus {
 }
 
 .live-player-seat.folded-seat {
-    opacity: 0.56;
+    opacity: 0.52;
+}
+
+.live-player-seat.waiting-seat {
+    border-style: dashed;
 }
 
 .empty-live-seat {
@@ -611,14 +632,15 @@ select:focus {
     border-style: dashed;
 
     color: var(--muted);
+    text-align: center;
 }
 
 .live-seat-heading {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
 
-    gap: 12px;
+    gap: 9px;
 }
 
 .live-seat-heading > div:first-child {
@@ -633,31 +655,34 @@ select:focus {
     display: flex;
     justify-content: space-between;
 
-    gap: 12px;
+    gap: 10px;
 
     margin-top: 8px;
 
     color: var(--muted);
 
-    font-size: 0.77rem;
+    font-size: 0.74rem;
     text-transform: capitalize;
 }
 
 .seat-current-bet {
     display: block;
 
-    min-height: 20px;
+    min-height: 19px;
     margin-top: 6px;
 
     color: #ffe192;
 
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 800;
 }
 
 .poker-badge-row {
     display: flex;
-    gap: 5px;
+    justify-content: flex-end;
+
+    gap: 4px;
+    flex-wrap: wrap;
 }
 
 .dealer-badge,
@@ -665,13 +690,13 @@ select:focus {
     display: grid;
     place-items: center;
 
-    min-width: 27px;
-    min-height: 27px;
-    padding: 3px 6px;
+    min-width: 25px;
+    min-height: 25px;
+    padding: 3px 5px;
 
     border-radius: 999px;
 
-    font-size: 0.64rem;
+    font-size: 0.61rem;
     font-weight: 900;
 }
 
@@ -762,6 +787,15 @@ select:focus {
     font-size: 1.8rem;
 }
 
+.playing-card.card-placeholder {
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.18);
+
+    background: rgba(0, 0, 0, 0.12);
+
+    box-shadow: none;
+}
+
 .card-corner {
     position: absolute;
     top: 6px;
@@ -785,29 +819,30 @@ select:focus {
 .miniature-card-row {
     justify-content: flex-start;
 
-    margin-top: 9px;
+    min-height: 48px;
+    margin-top: 8px;
 }
 
 .miniature-card-row .playing-card {
-    width: 41px;
-    border-radius: 6px;
+    width: 38px;
+    border-radius: 5px;
 }
 
 .miniature-card-row .card-corner {
-    top: 4px;
-    left: 4px;
+    top: 3px;
+    left: 3px;
 
-    font-size: 0.58rem;
+    font-size: 0.52rem;
 }
 
 .miniature-card-row .card-suit {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
 }
 
 .miniature-card-row .playing-card.face-down {
     border-width: 2px;
 
-    font-size: 1rem;
+    font-size: 0.9rem;
 }
 
 .own-hand-panel {
@@ -941,7 +976,7 @@ select:focus {
     display: grid;
     gap: 6px;
 
-    max-height: 155px;
+    max-height: 185px;
     margin: 10px 0 0;
     padding: 0;
 
@@ -979,30 +1014,42 @@ select:focus {
     gap: 8px;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 950px) {
+    .opponent-seats {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .game-information-bar {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .holdem-table {
+        border-radius: 40px;
+    }
+}
+
+@media (max-width: 680px) {
     .live-poker-header {
         align-items: flex-start;
         flex-direction: column;
     }
 
-    .game-information-bar {
+    .holdem-table {
+        min-height: 560px;
+        padding: 16px 10px;
+
+        border-width: 8px;
+        border-radius: 28px;
+    }
+
+    .opponent-seats {
         grid-template-columns: 1fr;
     }
 
-    .holdem-table {
-        min-height: 500px;
-        padding: 18px 12px;
-
-        border-width: 8px;
-        border-radius: 34px;
-    }
-
-    .live-player-seat {
-        width: 100%;
-    }
-
     .playing-card {
-        width: 55px;
+        width: 52px;
     }
 
     .poker-control-panel {
@@ -1038,8 +1085,12 @@ select:focus {
         padding: 14px 10px;
     }
 
+    .game-information-bar {
+        grid-template-columns: 1fr;
+    }
+
     .playing-card {
-        width: 47px;
+        width: 45px;
     }
 
     .own-hand-panel {

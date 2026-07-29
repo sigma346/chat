@@ -15,6 +15,9 @@ const currentUsernameLabel =
 const walletBalanceLabel =
     document.querySelector("#wallet-balance");
 
+const playerCountLabel =
+    document.querySelector("#player-count-label");
+
 const streetLabel =
     document.querySelector("#street-label");
 
@@ -30,8 +33,8 @@ const communityCardsElement =
 const ownHoleCardsElement =
     document.querySelector("#own-hole-cards");
 
-const opponentSeatElement =
-    document.querySelector("#opponent-seat");
+const opponentSeatsElement =
+    document.querySelector("#opponent-seats");
 
 const ownSeatElement =
     document.querySelector("#own-seat");
@@ -152,11 +155,9 @@ function suitSymbol(suit) {
 
 
 function rankLabel(rank) {
-    if (rank === "T") {
-        return "10";
-    }
-
-    return rank;
+    return rank === "T"
+        ? "10"
+        : rank;
 }
 
 
@@ -167,33 +168,50 @@ function createPlayingCard(
     const cardElement =
         document.createElement("div");
 
-    cardElement.className = "playing-card";
+    cardElement.className =
+        "playing-card";
 
 
-    if (faceDown || !cardCode) {
-        cardElement.classList.add("face-down");
+    if (!cardCode && !faceDown) {
+        cardElement.classList.add(
+            "card-placeholder"
+        );
+
+        return cardElement;
+    }
+
+
+    if (faceDown) {
+        cardElement.classList.add(
+            "face-down"
+        );
+
         cardElement.textContent = "♠";
 
         return cardElement;
     }
 
 
-    const rank = cardCode.slice(0, 1);
-    const suit = cardCode.slice(1, 2);
+    const rank =
+        cardCode.slice(0, 1);
 
-    const redSuit =
-        suit === "H" || suit === "D";
+    const suit =
+        cardCode.slice(1, 2);
 
 
-    if (redSuit) {
-        cardElement.classList.add("red-card");
+    if (suit === "H" || suit === "D") {
+        cardElement.classList.add(
+            "red-card"
+        );
     }
 
 
     const topCorner =
         document.createElement("span");
 
-    topCorner.className = "card-corner";
+    topCorner.className =
+        "card-corner";
+
     topCorner.textContent =
         `${rankLabel(rank)}${suitSymbol(suit)}`;
 
@@ -201,7 +219,9 @@ function createPlayingCard(
     const centreSuit =
         document.createElement("span");
 
-    centreSuit.className = "card-suit";
+    centreSuit.className =
+        "card-suit";
+
     centreSuit.textContent =
         suitSymbol(suit);
 
@@ -234,7 +254,8 @@ function renderCardRow(
         index < totalCards;
         index += 1
     ) {
-        const card = suppliedCards[index];
+        const card =
+            suppliedCards[index];
 
         container.append(
             createPlayingCard(
@@ -247,52 +268,44 @@ function renderCardRow(
 
 
 function playerStatusText(player) {
-    if (!gameState?.hand) {
-        return "Waiting";
+    if (!player.in_hand) {
+        return Number(player.stack) > 0
+            ? "Waiting"
+            : "Busted";
     }
+
 
     if (player.folded) {
         return "Folded";
     }
 
+
     if (player.all_in) {
         return "All in";
     }
 
-    if (
-        gameState.hand.current_turn_seat
-        === player.seat_number
-    ) {
+
+    if (player.is_turn) {
         return "Thinking";
     }
+
 
     if (player.last_action) {
         return player.last_action
             .replaceAll("_", " ");
     }
 
+
     return "In hand";
 }
 
 
-function renderPlayerSeat(
-    container,
+function createPlayerSeat(
     player,
     isOwnPlayer
 ) {
-    container.replaceChildren();
-
-
-    if (!player) {
-        container.className =
-            "live-player-seat empty-live-seat";
-
-        container.textContent =
-            "Waiting for player";
-
-        return;
-    }
-
+    const container =
+        document.createElement("article");
 
     container.className =
         isOwnPlayer
@@ -300,23 +313,32 @@ function renderPlayerSeat(
             : "live-player-seat opponent-seat";
 
 
-    if (
-        gameState?.hand?.current_turn_seat
-        === player.seat_number
-    ) {
-        container.classList.add("active-turn-seat");
+    if (player.is_turn) {
+        container.classList.add(
+            "active-turn-seat"
+        );
     }
 
 
     if (player.folded) {
-        container.classList.add("folded-seat");
+        container.classList.add(
+            "folded-seat"
+        );
+    }
+
+
+    if (!player.in_hand) {
+        container.classList.add(
+            "waiting-seat"
+        );
     }
 
 
     const heading =
         document.createElement("div");
 
-    heading.className = "live-seat-heading";
+    heading.className =
+        "live-seat-heading";
 
 
     const nameGroup =
@@ -326,32 +348,40 @@ function renderPlayerSeat(
     const username =
         document.createElement("strong");
 
-    username.textContent = player.username;
+    username.textContent =
+        player.username;
 
 
     const userId =
         document.createElement("span");
 
-    userId.className = "user-id";
+    userId.className =
+        "user-id";
 
     userId.textContent =
         `#${shortUserId(player.user_id)}`;
 
 
-    nameGroup.append(username, userId);
+    nameGroup.append(
+        username,
+        userId
+    );
 
 
     const badges =
         document.createElement("div");
 
-    badges.className = "poker-badge-row";
+    badges.className =
+        "poker-badge-row";
 
 
     if (player.is_dealer) {
         const dealerBadge =
             document.createElement("span");
 
-        dealerBadge.className = "dealer-badge";
+        dealerBadge.className =
+            "dealer-badge";
+
         dealerBadge.textContent = "D";
 
         badges.append(dealerBadge);
@@ -362,10 +392,15 @@ function renderPlayerSeat(
         const smallBlindBadge =
             document.createElement("span");
 
-        smallBlindBadge.className = "blind-badge";
-        smallBlindBadge.textContent = "SB";
+        smallBlindBadge.className =
+            "blind-badge";
 
-        badges.append(smallBlindBadge);
+        smallBlindBadge.textContent =
+            "SB";
+
+        badges.append(
+            smallBlindBadge
+        );
     }
 
 
@@ -373,14 +408,36 @@ function renderPlayerSeat(
         const bigBlindBadge =
             document.createElement("span");
 
-        bigBlindBadge.className = "blind-badge";
-        bigBlindBadge.textContent = "BB";
+        bigBlindBadge.className =
+            "blind-badge";
 
-        badges.append(bigBlindBadge);
+        bigBlindBadge.textContent =
+            "BB";
+
+        badges.append(
+            bigBlindBadge
+        );
     }
 
 
-    heading.append(nameGroup, badges);
+    if (player.is_host) {
+        const hostBadge =
+            document.createElement("span");
+
+        hostBadge.className =
+            "host-badge";
+
+        hostBadge.textContent =
+            "Host";
+
+        badges.append(hostBadge);
+    }
+
+
+    heading.append(
+        nameGroup,
+        badges
+    );
 
 
     const information =
@@ -413,10 +470,11 @@ function renderPlayerSeat(
     const betText =
         document.createElement("span");
 
-    betText.className = "seat-current-bet";
+    betText.className =
+        "seat-current-bet";
 
     betText.textContent =
-        player.bet_this_street > 0
+        Number(player.bet_this_street) > 0
             ? `Bet: ${formatChips(player.bet_this_street)}`
             : "";
 
@@ -428,15 +486,7 @@ function renderPlayerSeat(
         "playing-card-row miniature-card-row";
 
 
-    if (isOwnPlayer) {
-        renderCardRow(
-            cardRow,
-            player.hole_cards,
-            2,
-            false
-        );
-
-    } else if (
+    if (
         Array.isArray(player.hole_cards)
     ) {
         renderCardRow(
@@ -446,7 +496,7 @@ function renderPlayerSeat(
             false
         );
 
-    } else if (gameState?.hand) {
+    } else if (player.in_hand) {
         renderCardRow(
             cardRow,
             [],
@@ -462,6 +512,87 @@ function renderPlayerSeat(
         betText,
         cardRow
     );
+
+
+    return container;
+}
+
+
+function renderSeats(players) {
+    opponentSeatsElement.replaceChildren();
+    ownSeatElement.replaceChildren();
+
+
+    const ownPlayer =
+        players.find(
+            (player) =>
+                player.user_id
+                === gameState.you.user_id
+        );
+
+
+    const opponents =
+        players.filter(
+            (player) =>
+                player.user_id
+                !== gameState.you.user_id
+        );
+
+
+    for (const opponent of opponents) {
+        opponentSeatsElement.append(
+            createPlayerSeat(
+                opponent,
+                false
+            )
+        );
+    }
+
+
+    if (opponents.length === 0) {
+        const emptySeat =
+            document.createElement("article");
+
+        emptySeat.className =
+            "live-player-seat empty-live-seat";
+
+        emptySeat.textContent =
+            "Waiting for more players";
+
+        opponentSeatsElement.append(
+            emptySeat
+        );
+    }
+
+
+    if (!ownPlayer) {
+        ownSeatElement.className =
+            "live-player-seat own-live-seat empty-live-seat";
+
+        ownSeatElement.textContent =
+            "Your seat is unavailable";
+
+        return;
+    }
+
+
+    const renderedOwnSeat =
+        createPlayerSeat(
+            ownPlayer,
+            true
+        );
+
+
+    ownSeatElement.className =
+        renderedOwnSeat.className;
+
+
+    for (
+        const child
+        of [...renderedOwnSeat.childNodes]
+    ) {
+        ownSeatElement.append(child);
+    }
 }
 
 
@@ -479,7 +610,9 @@ function renderActionHistory(actions) {
         emptyItem.textContent =
             "No actions yet.";
 
-        actionHistory.append(emptyItem);
+        actionHistory.append(
+            emptyItem
+        );
 
         return;
     }
@@ -501,11 +634,14 @@ function renderActionHistory(actions) {
             document.createElement("span");
 
         const readableAction =
-            action.action.replaceAll("_", " ");
+            action.action.replaceAll(
+                "_",
+                " "
+            );
 
 
         actionText.textContent =
-            action.amount > 0
+            Number(action.amount) > 0
                 ? `${readableAction} ${formatChips(action.amount)}`
                 : readableAction;
 
@@ -521,14 +657,24 @@ function renderActionHistory(actions) {
 
 
 function configureActions() {
-    const hand = gameState.hand;
-    const you = gameState.you;
+    const hand =
+        gameState.hand;
+
+    const you =
+        gameState.you;
 
 
-    waitingControls.classList.add("hidden");
-    actionControls.classList.add("hidden");
+    waitingControls.classList.add(
+        "hidden"
+    );
 
-    startHandButton.classList.add("hidden");
+    actionControls.classList.add(
+        "hidden"
+    );
+
+    startHandButton.classList.add(
+        "hidden"
+    );
 
     turnMessage.textContent = "";
 
@@ -538,39 +684,37 @@ function configureActions() {
         || hand.status === "complete"
         || gameState.table.status === "waiting"
     ) {
-        waitingControls.classList.remove("hidden");
+        waitingControls.classList.remove(
+            "hidden"
+        );
 
 
         if (you.can_start) {
-            startHandButton.classList.remove("hidden");
+            startHandButton.classList.remove(
+                "hidden"
+            );
 
             waitingText.textContent =
                 hand?.status === "complete"
-                    ? "The hand is complete. Start the next hand when ready."
-                    : "Both players are ready.";
+                    ? "The hand is complete. Start the next hand when everyone is ready."
+                    : `${gameState.table.active_player_count} players are ready.`;
+
+        } else if (
+            gameState.table.active_player_count < 2
+        ) {
+            waitingText.textContent =
+                "At least two players need chips before a hand can start.";
+
+        } else if (
+            gameState.table.host_id
+            !== you.user_id
+        ) {
+            waitingText.textContent =
+                "Waiting for the host to start the hand.";
 
         } else {
-            const activePlayers =
-                gameState.players.filter(
-                    (player) => player.stack > 0
-                ).length;
-
-
-            if (activePlayers < 2) {
-                waitingText.textContent =
-                    "Waiting for a second player with chips.";
-
-            } else if (
-                gameState.table.host_id
-                !== you.user_id
-            ) {
-                waitingText.textContent =
-                    "Waiting for the host to start the hand.";
-
-            } else {
-                waitingText.textContent =
-                    "The hand cannot currently be started.";
-            }
+            waitingText.textContent =
+                "The hand cannot currently be started.";
         }
 
         return;
@@ -595,22 +739,24 @@ function configureActions() {
 
     if (!you.is_turn) {
         turnMessage.textContent =
-            "Waiting for the other player.";
+            "Waiting for another player.";
 
         return;
     }
 
 
-    actionControls.classList.remove("hidden");
+    actionControls.classList.remove(
+        "hidden"
+    );
+
 
     turnMessage.textContent =
-        "Your turn";
+        you.can_raise
+            ? "Your turn"
+            : "Your turn. Betting was not fully reopened, so you may only call or fold.";
 
 
-    foldButton.disabled = requestInProgress;
-
-
-    if (you.to_call > 0) {
+    if (Number(you.to_call) > 0) {
         const actualCallAmount =
             Math.min(
                 Number(you.to_call),
@@ -622,7 +768,6 @@ function configureActions() {
                 === Number(you.stack)
                 ? `Call all in ${formatChips(actualCallAmount)}`
                 : `Call ${formatChips(actualCallAmount)}`;
-
     } else {
         checkCallButton.textContent =
             "Check";
@@ -656,13 +801,18 @@ function configureActions() {
         maximumAmount;
 
 
-    if (
-        !raiseAmountInput.value
-        || Number(raiseAmountInput.value)
-            < Number(raiseAmountInput.min)
+    const currentInputValue =
+        Number(
+            raiseAmountInput.value
+        );
 
-        || Number(raiseAmountInput.value)
-            > maximumAmount
+
+    if (
+        !Number.isFinite(currentInputValue)
+        || currentInputValue <
+            Number(raiseAmountInput.min)
+        || currentInputValue >
+            maximumAmount
     ) {
         raiseAmountInput.value =
             Math.min(
@@ -672,13 +822,30 @@ function configureActions() {
     }
 
 
+    const allInWouldRaise =
+        maximumAmount >
+        Number(hand.current_bet);
+
+
     betRaiseButton.disabled =
         requestInProgress
-        || maximumAmount <= Number(hand.current_bet);
+        || !you.can_raise
+        || maximumAmount <=
+            Number(hand.current_bet);
+
+
+    raiseAmountInput.disabled =
+        requestInProgress
+        || !you.can_raise;
+
 
     allInButton.disabled =
         requestInProgress
-        || Number(you.stack) <= 0;
+        || Number(you.stack) <= 0
+        || (
+            !you.can_raise
+            && allInWouldRaise
+        );
 }
 
 
@@ -699,11 +866,17 @@ function renderGameState(state) {
 
 
     walletBalanceLabel.textContent =
-        formatChips(state.you.wallet_chips);
+        formatChips(
+            state.you.wallet_chips
+        );
 
 
     ownStackLabel.textContent =
         `${formatChips(state.you.stack)} chips`;
+
+
+    playerCountLabel.textContent =
+        `${state.table.seated_player_count}/${state.table.max_players}`;
 
 
     streetLabel.textContent =
@@ -744,33 +917,8 @@ function renderGameState(state) {
     );
 
 
-    const ownPlayer =
-        state.players.find(
-            (player) =>
-                player.user_id
-                === state.you.user_id
-        );
-
-
-    const opponent =
-        state.players.find(
-            (player) =>
-                player.user_id
-                !== state.you.user_id
-        );
-
-
-    renderPlayerSeat(
-        ownSeatElement,
-        ownPlayer,
-        true
-    );
-
-
-    renderPlayerSeat(
-        opponentSeatElement,
-        opponent,
-        false
+    renderSeats(
+        state.players
     );
 
 
@@ -809,7 +957,7 @@ async function loadGameState() {
         data,
         error
     } = await window.supabaseClient.rpc(
-        "get_heads_up_poker_state",
+        "get_poker_state",
         {
             p_table_id: tableId
         }
@@ -843,7 +991,7 @@ async function performPokerAction(
             data,
             error
         } = await window.supabaseClient.rpc(
-            "play_heads_up_action",
+            "play_poker_action",
             {
                 p_table_id: tableId,
                 p_action: action,
@@ -894,7 +1042,7 @@ startHandButton.addEventListener(
                 data,
                 error
             } = await window.supabaseClient.rpc(
-                "start_heads_up_hand",
+                "start_poker_hand",
                 {
                     p_table_id: tableId
                 }
@@ -968,7 +1116,9 @@ betRaiseButton.addEventListener(
 
 
         const action =
-            Number(gameState.hand.current_bet) > 0
+            Number(
+                gameState.hand.current_bet
+            ) > 0
                 ? "raise"
                 : "bet";
 
@@ -1066,23 +1216,26 @@ logoutButton.addEventListener(
 
 
 function scheduleRefresh() {
-    window.clearTimeout(refreshTimer);
-
-
-    refreshTimer = window.setTimeout(
-        async () => {
-            if (requestInProgress) {
-                return;
-            }
-
-            try {
-                await loadGameState();
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        120
+    window.clearTimeout(
+        refreshTimer
     );
+
+
+    refreshTimer =
+        window.setTimeout(
+            async () => {
+                if (requestInProgress) {
+                    return;
+                }
+
+                try {
+                    await loadGameState();
+                } catch (error) {
+                    console.error(error);
+                }
+            },
+            120
+        );
 }
 
 
@@ -1090,7 +1243,7 @@ function subscribeToGameChanges() {
     tableChannel =
         window.supabaseClient
             .channel(
-                `heads-up-poker-${tableId}`
+                `multiplayer-poker-${tableId}`
             )
 
             .on(
