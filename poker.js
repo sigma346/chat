@@ -171,9 +171,22 @@ function createMatchCard(
     title.textContent = pokerTable.name;
 
 
-    const status = document.createElement("span");
-    status.className = "match-status";
-    status.textContent = "Waiting";
+    const matchIsPlaying =
+        pokerTable.status === "playing";
+
+
+    const status =
+        document.createElement("span");
+
+    status.className =
+        matchIsPlaying
+            ? "match-status playing"
+            : "match-status waiting";
+
+    status.textContent =
+        matchIsPlaying
+            ? "In progress"
+            : "Waiting";
 
 
     headingText.append(title);
@@ -184,20 +197,39 @@ function createMatchCard(
     information.className = "match-information";
 
 
+    const queuedPlayerCount =
+        seatsAtTable.filter(
+            (seat) =>
+                seat.queued_for_next_hand
+        ).length;
+
+
     const informationItems = [
         [
-            "Players",
+            "Seats",
             `${seatsAtTable.length}/${pokerTable.max_players}`
         ],
+
         [
             "Blinds",
             `${formatChips(pokerTable.small_blind)} / ${formatChips(pokerTable.big_blind)}`
         ],
+
         [
             "Buy-in",
             `${formatChips(pokerTable.min_buy_in)}–${formatChips(pokerTable.max_buy_in)}`
         ]
     ];
+
+
+    if (matchIsPlaying) {
+        informationItems.push([
+            "Next-hand queue",
+            queuedPlayerCount === 1
+                ? "1 player"
+                : `${queuedPlayerCount} players`
+        ]);
+    }
 
 
     for (const [label, value] of informationItems) {
@@ -252,7 +284,10 @@ function createMatchCard(
         const buyInLabel =
             document.createElement("label");
 
-        buyInLabel.textContent = "Buy-in";
+        buyInLabel.textContent =
+            matchIsPlaying
+                ? "Next-hand buy-in"
+                : "Buy-in";
 
 
         const buyInInput =
@@ -269,7 +304,11 @@ function createMatchCard(
             document.createElement("button");
 
         joinButton.type = "button";
-        joinButton.textContent = "Join";
+
+        joinButton.textContent =
+            matchIsPlaying
+                ? "Join next hand"
+                : "Join";
 
 
         const tableIsFull =
@@ -389,7 +428,7 @@ async function loadMatches() {
         window.supabaseClient
             .from("poker_seats")
             .select(
-                "table_id, seat_number, user_id, stack"
+                "table_id, seat_number, user_id, stack, queued_for_next_hand"
             )
     ]);
 
@@ -465,8 +504,17 @@ async function loadMatches() {
             const details =
                 document.createElement("span");
 
+            const matchStateText =
+                ownSeat.queued_for_next_hand
+                    ? "Queued for next hand"
+
+                    : activeTable.status === "playing"
+                        ? "In progress"
+                        : "Waiting";
+
+
             details.textContent =
-                `${activeTable.status} · ${formatChips(ownSeat.stack)} chips`;
+                `${matchStateText} · ${formatChips(ownSeat.stack)} chips`;
 
 
             link.append(
@@ -492,20 +540,22 @@ async function loadMatches() {
     matchList.replaceChildren();
 
 
-    const waitingTables =
+    const availableTables =
         pokerTables.filter(
-            (table) => table.status === "waiting"
+            (table) =>
+                table.status === "waiting"
+                || table.status === "playing"
         );
 
 
-    if (waitingTables.length === 0) {
+    if (availableTables.length === 0) {
         const empty =
             document.createElement("p");
 
         empty.className = "empty-match-list";
 
         empty.textContent =
-            "There are no open poker matches.";
+            "There are no available poker matches.";
 
         matchList.append(empty);
 
@@ -513,7 +563,28 @@ async function loadMatches() {
     }
 
 
-    for (const pokerTable of waitingTables) {
+    /*
+        Waiting games appear first, followed by games that are
+        already in progress.
+    */
+
+    availableTables.sort(
+        (firstTable, secondTable) => {
+            if (
+                firstTable.status
+                === secondTable.status
+            ) {
+                return 0;
+            }
+
+            return firstTable.status === "waiting"
+                ? -1
+                : 1;
+        }
+    );
+
+
+    for (const pokerTable of availableTables) {
         const seatsAtTable =
             pokerSeats.filter(
                 (seat) =>

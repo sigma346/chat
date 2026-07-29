@@ -18,6 +18,12 @@ const walletBalanceLabel =
 const playerCountLabel =
     document.querySelector("#player-count-label");
 
+const joinQueuePanel =
+    document.querySelector("#join-queue-panel");
+
+const joinQueueList =
+    document.querySelector("#join-queue-list");
+
 const streetLabel =
     document.querySelector("#street-label");
 
@@ -291,6 +297,10 @@ function renderCardRow(
 
 
 function playerStatusText(player) {
+    if (player.queued_for_next_hand) {
+        return "Queued for next hand";
+    }
+
     if (!player.in_hand) {
         return Number(player.stack) > 0
             ? "Waiting"
@@ -353,6 +363,12 @@ function createPlayerSeat(
     if (!player.in_hand) {
         container.classList.add(
             "waiting-seat"
+        );
+    }
+
+    if (player.queued_for_next_hand) {
+        container.classList.add(
+            "queued-seat"
         );
     }
 
@@ -454,6 +470,19 @@ function createPlayerSeat(
             "Host";
 
         badges.append(hostBadge);
+    }
+
+    if (player.queued_for_next_hand) {
+        const queueBadge =
+            document.createElement("span");
+
+        queueBadge.className =
+            "queue-badge";
+
+        queueBadge.textContent =
+            "Next hand";
+
+        badges.append(queueBadge);
     }
 
 
@@ -752,6 +781,28 @@ function configureActions() {
 
     turnMessage.textContent = "";
 
+    /*
+        A queued player can watch the active hand but cannot
+        perform actions until the following hand starts.
+    */
+
+    if (
+        you.queued_for_next_hand
+        && gameState.table.status === "playing"
+    ) {
+        waitingControls.classList.remove(
+            "hidden"
+        );
+
+        waitingText.textContent =
+            "You are queued for the next hand. Your reserved table stack is ready.";
+
+        turnMessage.textContent =
+            "Watching the current hand";
+
+        return;
+    }
+
 
     if (
         !hand
@@ -923,8 +974,83 @@ function configureActions() {
 }
 
 
+function renderJoinQueue(state) {
+    const queuedPlayers =
+        state.players.filter(
+            (player) =>
+                player.queued_for_next_hand
+        );
+
+
+    joinQueueList.replaceChildren();
+
+
+    if (queuedPlayers.length === 0) {
+        joinQueuePanel.classList.add(
+            "hidden"
+        );
+
+        return;
+    }
+
+
+    joinQueuePanel.classList.remove(
+        "hidden"
+    );
+
+
+    for (const player of queuedPlayers) {
+        const queuePlayer =
+            document.createElement("div");
+
+        queuePlayer.className =
+            "queue-player-chip";
+
+
+        const name =
+            document.createElement("strong");
+
+        name.textContent =
+            player.username;
+
+
+        const playerId =
+            document.createElement("span");
+
+        playerId.className =
+            "user-id";
+
+        playerId.textContent =
+            `#${shortUserId(player.user_id)}`;
+
+
+        const stack =
+            document.createElement("span");
+
+        stack.className =
+            "queue-player-stack";
+
+        stack.textContent =
+            `${formatChips(player.stack)} chips`;
+
+
+        queuePlayer.append(
+            name,
+            playerId,
+            stack
+        );
+
+
+        joinQueueList.append(
+            queuePlayer
+        );
+    }
+}
+
 function renderGameState(state) {
     gameState = state;
+
+    renderJoinQueue(state);
 
 
     tableNameLabel.textContent =
@@ -1020,18 +1146,31 @@ function renderGameState(state) {
     );
 
 
+    const isQueuedDuringHand =
+        state.table.status === "playing"
+        && state.you.queued_for_next_hand;
+
+
     const canLeave =
-        state.table.status === "waiting";
+        state.table.status === "waiting"
+        || isQueuedDuringHand;
 
 
     leaveMatchButton.disabled =
         requestInProgress || !canLeave;
 
 
+    leaveMatchButton.textContent =
+        isQueuedDuringHand
+            ? "Leave queue"
+            : "Leave match";
+
+
     leaveMatchButton.title =
         canLeave
             ? ""
-            : "You cannot leave during an active hand.";
+
+            : "You cannot leave while participating in an active hand.";
 
 
     configureActions();
@@ -1176,14 +1315,24 @@ async function repairPokerTable() {
 
 
 async function kickPlayer(player) {
+
+
+    const playerIsQueued =
+    player.queued_for_next_hand;
+
+
     const handIsActive =
         gameState.table.status === "playing";
 
 
     const confirmationMessage =
-        handIsActive
-            ? `${player.username} will be folded immediately and removed after this hand.`
-            : `${player.username} will be removed and their table stack returned to their wallet.`;
+        playerIsQueued
+            ? `${player.username} will be removed from the next-hand queue and their reserved stack will return to their wallet.`
+
+            : handIsActive
+                ? `${player.username} will be folded immediately and removed after this hand.`
+
+                : `${player.username} will be removed and their table stack returned to their wallet.`;
 
 
     const confirmed =
@@ -1202,11 +1351,16 @@ async function kickPlayer(player) {
 
 
     try {
+        const rpcFunction =
+            playerIsQueued
+                ? "kick_queued_poker_player"
+                : "kick_poker_player";
+
+
         const {
-            data,
             error
         } = await window.supabaseClient.rpc(
-            "kick_poker_player",
+            rpcFunction,
             {
                 p_table_id: tableId,
                 p_user_id: player.user_id
@@ -1219,7 +1373,20 @@ async function kickPlayer(player) {
         }
 
 
-        renderGameState(data);
+        /*
+            Load a fresh player-specific state instead of relying
+            on two RPC functions with different return formats.
+        */
+
+        await loadGameState();
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        // renderGameState(data);
 
     } catch (error) {
         console.error(error);
@@ -1246,27 +1413,31 @@ async function loadGameState() {
     }
 
 
-    const {
-        data,
-        error
-    } = await window.supabaseClient.rpc(
-        "get_poker_state",
-        {
-            p_table_id: tableId
-        }
-    );
+    const [
+        gameStateResult,
+        seatQueueResult
+    ] = await Promise.all([
+        window.supabaseClient.rpc(
+            "get_poker_state",
+            {
+                p_table_id: tableId
+            }
+        ),
 
-
-    if (error) {
-        /*
-            A kicked player is redirected after their seat
-            is removed.
-        */
-
-        if (
-            error.message?.includes(
-                "not seated"
+        window.supabaseClient
+            .from("poker_seats")
+            .select(
+                "user_id, queued_for_next_hand"
             )
+            .eq("table_id", tableId)
+    ]);
+
+
+    if (gameStateResult.error) {
+        if (
+            gameStateResult.error.message
+                ?.toLowerCase()
+                .includes("not seated")
         ) {
             window.location.href =
                 "poker.html";
@@ -1274,24 +1445,68 @@ async function loadGameState() {
             return;
         }
 
-
-        throw error;
+        throw gameStateResult.error;
     }
 
 
-    /*
-        Repair old database damage automatically when the
-        turn references a missing, folded or all-in player.
-    */
+    if (seatQueueResult.error) {
+        throw seatQueueResult.error;
+    }
 
-    if (pokerStateNeedsRepair(data)) {
+
+    const state =
+        gameStateResult.data;
+
+
+    const queuedUserIds =
+        new Set(
+            seatQueueResult.data
+
+                .filter(
+                    (seat) =>
+                        seat.queued_for_next_hand
+                )
+
+                .map(
+                    (seat) =>
+                        seat.user_id
+                )
+        );
+
+
+    state.players =
+        state.players.map(
+            (player) => ({
+                ...player,
+
+                queued_for_next_hand:
+                    queuedUserIds.has(
+                        player.user_id
+                    )
+            })
+        );
+
+
+    state.you.queued_for_next_hand =
+        queuedUserIds.has(
+            state.you.user_id
+        );
+
+
+    if (pokerStateNeedsRepair(state)) {
         const repairedState =
             await repairPokerTable();
 
 
         if (repairedState) {
-            renderGameState(
-                repairedState
+            /*
+                Reload once more so the repaired state also
+                receives current queue information.
+            */
+
+            window.setTimeout(
+                loadGameState,
+                50
             );
         }
 
@@ -1299,7 +1514,7 @@ async function loadGameState() {
     }
 
 
-    renderGameState(data);
+    renderGameState(state);
 }
 
 async function performPokerAction(
@@ -1528,21 +1743,37 @@ repairTableButton.addEventListener(
 leaveMatchButton.addEventListener(
     "click",
     async () => {
+        const leavingQueue =
+            gameState?.table?.status === "playing"
+            && gameState?.you?.queued_for_next_hand;
+
+
+        const leavingWaitingTable =
+            gameState?.table?.status === "waiting";
+
+
         if (
-            gameState?.table?.status
-            !== "waiting"
+            !leavingQueue
+            && !leavingWaitingTable
         ) {
             showError(
-                "You cannot leave during an active hand."
+                "You cannot leave while participating in an active hand."
             );
 
             return;
         }
 
 
+        const confirmationText =
+            leavingQueue
+                ? "Leave the next-hand queue and return your reserved table stack to your wallet?"
+
+                : "Leave this match and return your table stack to your wallet?";
+
+
         const confirmed =
             window.confirm(
-                "Leave this match and return your table stack to your wallet?"
+                confirmationText
             );
 
 
@@ -1556,10 +1787,16 @@ leaveMatchButton.addEventListener(
 
 
         try {
+            const rpcFunction =
+                leavingQueue
+                    ? "leave_poker_queue"
+                    : "leave_poker_table";
+
+
             const {
                 error
             } = await window.supabaseClient.rpc(
-                "leave_poker_table",
+                rpcFunction,
                 {
                     p_table_id: tableId
                 }
@@ -1705,14 +1942,20 @@ window.addEventListener(
 
 async function initialisePokerGame() {
     try {
+        showError("");
+
         const {
             data: {
                 user
-            }
+            },
+            error: userError
         } =
             await window.supabaseClient.auth
                 .getUser();
 
+        if (userError) {
+            throw userError;
+        }
 
         if (!user) {
             window.location.href =
@@ -1721,16 +1964,21 @@ async function initialisePokerGame() {
             return;
         }
 
-
         await loadGameState();
 
         subscribeToGameChanges();
 
     } catch (error) {
-        console.error(error);
+        console.error(
+            "Poker initialization failed:",
+            error
+        );
 
         tableNameLabel.textContent =
-            "Poker match unavailable";
+            "Match failed to load";
+
+        tableDescriptionLabel.textContent =
+            "The poker page encountered an error.";
 
         showError(
             error.message ||

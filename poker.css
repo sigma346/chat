@@ -1203,3 +1203,123 @@ select:focus {
 .kick-player-button:disabled {
     opacity: 0.5;
 }
+
+/* =========================================================
+   ACTIVE MATCHES AND NEXT-HAND QUEUE
+   ========================================================= */
+
+.match-status.waiting {
+    background: var(--accent-dark);
+    color: #a7f2d9;
+}
+
+.match-status.playing {
+    border: 1px solid #8b6f24;
+
+    background: rgba(139, 111, 36, 0.26);
+    color: #ffe192;
+}
+
+.match-information {
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(110px, 1fr)
+        );
+}
+
+.join-queue-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 18px;
+
+    margin: 0 0 16px;
+    padding: 13px 15px;
+
+    border: 1px solid #53658a;
+    border-radius: 12px;
+
+    background:
+        rgba(48, 66, 103, 0.2);
+}
+
+.join-queue-panel.hidden {
+    display: none;
+}
+
+.join-queue-panel .eyebrow {
+    margin-bottom: 3px;
+}
+
+.join-queue-list {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 7px;
+    flex-wrap: wrap;
+}
+
+.queue-player-chip {
+    display: flex;
+    align-items: baseline;
+
+    gap: 3px;
+
+    padding: 7px 9px;
+
+    border: 1px solid #53658a;
+    border-radius: 999px;
+
+    background: rgba(20, 28, 44, 0.88);
+}
+
+.queue-player-chip strong {
+    font-size: 0.77rem;
+}
+
+.queue-player-stack {
+    margin-left: 4px;
+
+    color: #a9b9d9;
+
+    font-size: 0.65rem;
+}
+
+.live-player-seat.queued-seat {
+    border-color: #53658a;
+    border-style: dashed;
+
+    background:
+        linear-gradient(
+            rgba(48, 66, 103, 0.18),
+            rgba(14, 19, 27, 0.96)
+        );
+}
+
+.queue-badge {
+    padding: 3px 6px;
+
+    border: 1px solid #53658a;
+    border-radius: 999px;
+
+    background: rgba(48, 66, 103, 0.32);
+    color: #c2d0ed;
+
+    font-size: 0.57rem;
+    font-weight: 800;
+
+    text-transform: uppercase;
+}
+
+@media (max-width: 680px) {
+    .join-queue-panel {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .join-queue-list {
+        justify-content: flex-start;
+    }
+}
