@@ -1038,6 +1038,206 @@ function renderGameState(state) {
 }
 
 
+
+
+async function repairPokerTable() {
+    if (repairInProgress) {
+        return null;
+    }
+
+    repairInProgress = true;
+
+    try {
+        const {
+            data,
+            error
+        } = await window.supabaseClient.rpc(
+            "repair_poker_table",
+            {
+                p_table_id: tableId
+            }
+        );
+
+        if (error) {
+            throw error;
+        }
+
+        /*
+            The current player may have been kicked or
+            removed during the repair.
+        */
+
+        if (data?.removed) {
+            window.location.href = "poker.html";
+            return null;
+        }
+
+        return data;
+    } finally {
+        repairInProgress = false;
+    }
+}
+
+function updateHideCardsButton() {
+    const hasCards =
+        Array.isArray(
+            gameState?.you?.hole_cards
+        )
+
+        && gameState.you.hole_cards.length > 0;
+
+
+    hideCardsButton.disabled =
+        !hasCards;
+
+
+    hideCardsButton.textContent =
+        cardsHidden
+            ? "Show cards"
+            : "Hide cards";
+}
+
+
+function pokerStateNeedsRepair(state) {
+    if (
+        state?.table?.status !== "playing"
+        || state?.hand?.status !== "betting"
+    ) {
+        return false;
+    }
+
+
+    const currentTurnSeat =
+        state.hand.current_turn_seat;
+
+
+    if (currentTurnSeat === null) {
+        return true;
+    }
+
+
+    const currentPlayer =
+        state.players.find(
+            (player) =>
+                player.seat_number
+                === currentTurnSeat
+        );
+
+
+    return (
+        !currentPlayer
+        || !currentPlayer.in_hand
+        || currentPlayer.folded
+        || currentPlayer.all_in
+    );
+}
+
+
+async function repairPokerTable() {
+    if (repairInProgress) {
+        return null;
+    }
+
+
+    repairInProgress = true;
+
+
+    try {
+        const {
+            data,
+            error
+        } = await window.supabaseClient.rpc(
+            "repair_poker_table",
+            {
+                p_table_id: tableId
+            }
+        );
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        if (data?.removed) {
+            window.location.href =
+                "poker.html";
+
+            return null;
+        }
+
+
+        return data;
+
+    } finally {
+        repairInProgress = false;
+    }
+}
+
+
+async function kickPlayer(player) {
+    const handIsActive =
+        gameState.table.status === "playing";
+
+
+    const confirmationMessage =
+        handIsActive
+            ? `${player.username} will be folded immediately and removed after this hand.`
+            : `${player.username} will be removed and their table stack returned to their wallet.`;
+
+
+    const confirmed =
+        window.confirm(
+            confirmationMessage
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    setRequestInProgress(true);
+    showError();
+
+
+    try {
+        const {
+            data,
+            error
+        } = await window.supabaseClient.rpc(
+            "kick_poker_player",
+            {
+                p_table_id: tableId,
+                p_user_id: player.user_id
+            }
+        );
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        renderGameState(data);
+
+    } catch (error) {
+        console.error(error);
+
+        showError(
+            error.message ||
+            "The player could not be kicked."
+        );
+
+    } finally {
+        setRequestInProgress(false);
+
+        if (gameState) {
+            configureActions();
+        }
+    }
+}
+
 async function loadGameState() {
     if (!tableId) {
         throw new Error(
