@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Blackjack</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="poker.css">
+    <link rel="stylesheet" href="blackjack.css">
+</head>
+
+<body>
+    <main class="page blackjack-page">
+        <div class="blackjack-layout">
+            <div id="site-navbar"></div>
+
+            <header class="panel blackjack-header">
+                <div>
+                    <p class="eyebrow">MULTIPLAYER BLACKJACK</p>
+                    <h1 id="table-name">Loading game...</h1>
+                    <p
+                        id="table-description"
+                        class="description"
+                    ></p>
+                </div>
+
+                <div class="blackjack-balances">
+                    <div>
+                        <span>Wallet</span>
+                        <strong id="wallet-balance">0</strong>
+                    </div>
+
+                    <div>
+                        <span>Table stack</span>
+                        <strong id="table-stack">0</strong>
+                    </div>
+                </div>
+            </header>
+
+            <section
+                id="queue-panel"
+                class="panel blackjack-queue-panel hidden"
+            >
+                <div>
+                    <p class="eyebrow">NEXT ROUND</p>
+                    <strong>Players waiting for this round to finish</strong>
+                </div>
+
+                <div id="queue-list" class="blackjack-queue-list"></div>
+            </section>
+
+            <section class="panel blackjack-game-panel">
+                <div class="blackjack-status-bar">
+                    <span>
+                        Status:
+                        <strong id="round-status">Waiting</strong>
+                    </span>
+
+                    <span>
+                        Round:
+                        <strong id="round-number">0</strong>
+                    </span>
+
+                    <span>
+                        Bet limits:
+                        <strong id="bet-limits">0–0</strong>
+                    </span>
+                </div>
+
+                <section class="dealer-area">
+                    <div class="blackjack-area-heading">
+                        <div>
+                            <p class="eyebrow">DEALER</p>
+                            <h2>
+                                Dealer
+                                <span id="dealer-total"></span>
+                            </h2>
+                        </div>
+                    </div>
+
+                    <div
+                        id="dealer-cards"
+                        class="blackjack-card-row"
+                    ></div>
+                </section>
+
+                <section class="player-area">
+                    <div class="blackjack-area-heading">
+                        <div>
+                            <p class="eyebrow">TABLE</p>
+                            <h2>Players</h2>
+                        </div>
+                    </div>
+
+                    <div
+                        id="blackjack-player-list"
+                        class="blackjack-player-list"
+                    ></div>
+                </section>
+
+                <p
+                    id="round-result"
+                    class="blackjack-round-result"
+                ></p>
+
+                <section
+                    id="bet-controls"
+                    class="blackjack-controls hidden"
+                >
+                    <div>
+                        <label for="bet-input">Your next bet</label>
+
+                        <input
+                            id="bet-input"
+                            type="number"
+                            min="1"
+                            step="1"
+                        >
+                    </div>
+
+                    <button id="set-bet-button" type="button">
+                        Set bet
+                    </button>
+
+                    <button
+                        id="clear-bet-button"
+                        type="button"
+                        class="secondary-button"
+                    >
+                        Sit out
+                    </button>
+                </section>
+
+                <section
+                    id="action-controls"
+                    class="blackjack-controls hidden"
+                >
+                    <button id="hit-button" type="button">
+                        Hit
+                    </button>
+
+                    <button id="stand-button" type="button">
+                        Stand
+                    </button>
+
+                    <button id="double-button" type="button">
+                        Double
+                    </button>
+                </section>
+
+                <section class="blackjack-host-controls">
+                    <p id="turn-message"></p>
+
+                    <button
+                        id="start-round-button"
+                        type="button"
+                        class="hidden"
+                    >
+                        Deal round
+                    </button>
+                </section>
+
+                <div class="blackjack-footer-controls">
+                    <button
+                        id="leave-game-button"
+                        type="button"
+                        class="danger-button"
+                    >
+                        Leave game
+                    </button>
+                </div>
+
+                <p
+                    id="blackjack-message"
+                    class="form-message"
+                    role="alert"
+                ></p>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="blackjack-table.js"></script>
+</body>
+</html>

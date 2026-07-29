@@ -1323,3 +1323,119 @@ select:focus {
         justify-content: flex-start;
     }
 }
+
+/* Add this to the bottom of poker.css */
+
+.poker-lobby-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    padding: 24px;
+}
+
+.create-game-panel,
+.game-browser-panel {
+    padding: 22px;
+}
+
+.create-game-form {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.form-field {
+    display: grid;
+    gap: 6px;
+}
+
+.form-field.wide-field {
+    grid-column: span 2;
+}
+
+.game-specific-settings {
+    display: contents;
+}
+
+.game-specific-settings.hidden {
+    display: none;
+}
+
+.create-game-form button[type="submit"] {
+    min-height: 42px;
+}
+
+.match-card-heading > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.game-type-badge {
+    padding: 4px 7px;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.game-type-badge.poker {
+    border: 1px solid #53658a;
+    background: rgba(48, 66, 103, 0.28);
+    color: #c2d0ed;
+}
+
+.game-type-badge.blackjack {
+    border: 1px solid #8b6f24;
+    background: rgba(139, 111, 36, 0.23);
+    color: #ffe192;
+}
+
+.match-card-controls {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 13px;
+}
+
+.join-buy-in-group {
+    display: grid;
+    gap: 5px;
+    min-width: 145px;
+}
+
+.join-buy-in-group label {
+    color: var(--muted);
+    font-size: 0.7rem;
+}
+
+@media (max-width: 900px) {
+    .create-game-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 620px) {
+    .poker-lobby-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .create-game-form {
+        grid-template-columns: 1fr;
+    }
+
+    .form-field.wide-field {
+        grid-column: auto;
+    }
+
+    .match-card-controls {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

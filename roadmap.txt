@@ -1,0 +1,14 @@
+POTENTIAL FEATURES:
+
+-XP and Leveling system
+
+Card Game Variants:
+
+-Texas Hold'em - ADDED
+-Blackjack - ADDED
+-Five Card Draw - IN PROGRESS
+-Hearts - IN PROGRESS
+-Spades - Future
+-Baccarat - Future
+-Gin Rummy - Future
+-Solitaire - Future
