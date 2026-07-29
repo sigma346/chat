@@ -8,7 +8,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Poker Match</title>
+    <title>Texas Hold'em</title>
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="poker.css">
@@ -23,7 +23,10 @@
                     Chat
                 </a>
 
-                <a href="poker.html" class="nav-link active">
+                <a
+                    href="poker.html"
+                    class="nav-link active"
+                >
                     Poker
                 </a>
 
@@ -40,19 +43,22 @@
                 </button>
             </nav>
 
-            <section class="panel poker-table-panel">
+            <section class="panel live-poker-panel">
 
-                <header class="poker-table-heading">
+                <header class="live-poker-header">
                     <div>
-                        <p class="eyebrow">MATCH WAITING ROOM</p>
+                        <p class="eyebrow">
+                            HEADS-UP TEXAS HOLD'EM
+                        </p>
 
                         <h1 id="table-name">
                             Loading match...
                         </h1>
 
-                        <p id="table-details" class="description">
-                            Loading match settings...
-                        </p>
+                        <p
+                            id="table-description"
+                            class="description"
+                        ></p>
                     </div>
 
                     <div class="poker-user-summary">
@@ -61,58 +67,185 @@
                         </span>
 
                         <span class="balance-badge">
-                            <span id="current-balance">0</span>
-                            wallet chips
+                            <span id="wallet-balance">0</span>
+                            wallet
                         </span>
                     </div>
                 </header>
 
-                <div class="table-status-bar">
+                <div class="game-information-bar">
                     <span>
-                        Status:
-                        <strong id="table-status">
-                            Loading
+                        Street:
+                        <strong id="street-label">
+                            Waiting
                         </strong>
                     </span>
 
                     <span>
-                        Players:
-                        <strong id="player-count">
-                            0/0
+                        Pot:
+                        <strong id="pot-label">
+                            0
+                        </strong>
+                    </span>
+
+                    <span>
+                        Current bet:
+                        <strong id="current-bet-label">
+                            0
                         </strong>
                     </span>
                 </div>
 
-                <div
-                    id="poker-seat-grid"
-                    class="poker-seat-grid"
-                ></div>
+                <div class="holdem-table">
 
-                <div class="waiting-room-actions">
-                    <a
-                        href="poker.html"
-                        class="button-link secondary-link"
-                    >
-                        Return to lobby
-                    </a>
+                    <section
+                        id="opponent-seat"
+                        class="live-player-seat opponent-seat"
+                    ></section>
+
+                    <section class="community-board">
+                        <div
+                            id="community-cards"
+                            class="playing-card-row"
+                        ></div>
+
+                        <p
+                            id="winner-message"
+                            class="winner-message"
+                        ></p>
+                    </section>
+
+                    <section
+                        id="own-seat"
+                        class="live-player-seat own-live-seat"
+                    ></section>
+
+                </div>
+
+                <section class="own-hand-panel">
+                    <div>
+                        <p class="eyebrow">YOUR HAND</p>
+
+                        <div
+                            id="own-hole-cards"
+                            class="playing-card-row"
+                        ></div>
+                    </div>
+
+                    <div class="own-stack-summary">
+                        <span>Table stack</span>
+
+                        <strong id="own-stack-label">
+                            0
+                        </strong>
+                    </div>
+                </section>
+
+                <section
+                    id="waiting-controls"
+                    class="poker-control-panel"
+                >
+                    <p id="waiting-text">
+                        Waiting for two players.
+                    </p>
 
                     <button
-                        id="leave-match-button"
-                        class="danger-button hidden"
+                        id="start-hand-button"
                         type="button"
+                        class="hidden"
                     >
-                        Leave match
+                        Start hand
                     </button>
-                </div>
+                </section>
 
-                <p class="waiting-room-note">
-                    Once this waiting-room system is working,
-                    the next stage adds ready states, starting
-                    the hand, dealing cards and betting.
-                </p>
+                <section
+                    id="action-controls"
+                    class="poker-control-panel hidden"
+                >
+                    <div class="primary-actions">
+                        <button
+                            id="fold-button"
+                            type="button"
+                            class="danger-button"
+                        >
+                            Fold
+                        </button>
+
+                        <button
+                            id="check-call-button"
+                            type="button"
+                        >
+                            Check
+                        </button>
+
+                        <button
+                            id="all-in-button"
+                            type="button"
+                        >
+                            All in
+                        </button>
+                    </div>
+
+                    <div class="raise-controls">
+                        <label for="raise-amount-input">
+                            Total bet
+                        </label>
+
+                        <input
+                            id="raise-amount-input"
+                            type="number"
+                            min="1"
+                            step="1"
+                        >
+
+                        <button
+                            id="bet-raise-button"
+                            type="button"
+                        >
+                            Bet
+                        </button>
+                    </div>
+                </section>
 
                 <p
-                    id="table-message"
+                    id="turn-message"
+                    class="turn-message"
+                ></p>
+
+                <div class="poker-bottom-layout">
+
+                    <section class="action-history-panel">
+                        <p class="eyebrow">
+                            HAND HISTORY
+                        </p>
+
+                        <ol
+                            id="action-history"
+                            class="action-history"
+                        ></ol>
+                    </section>
+
+                    <section class="match-management-panel">
+                        <a
+                            href="poker.html"
+                            class="button-link secondary-link"
+                        >
+                            Lobby
+                        </a>
+
+                        <button
+                            id="leave-match-button"
+                            type="button"
+                            class="danger-button"
+                        >
+                            Leave match
+                        </button>
+                    </section>
+
+                </div>
+
+                <p
+                    id="table-error"
                     class="form-message"
                     role="alert"
                 ></p>

@@ -1,49 +1,100 @@
-const tableNameLabel =
-    document.querySelector("#table-name");
-
-const tableDetailsLabel =
-    document.querySelector("#table-details");
-
-const tableStatusLabel =
-    document.querySelector("#table-status");
-
-const playerCountLabel =
-    document.querySelector("#player-count");
-
-const currentUsernameLabel =
-    document.querySelector("#current-username");
-
-const currentBalanceLabel =
-    document.querySelector("#current-balance");
-
-const pokerSeatGrid =
-    document.querySelector("#poker-seat-grid");
-
-const leaveMatchButton =
-    document.querySelector("#leave-match-button");
-
-const tableMessage =
-    document.querySelector("#table-message");
-
-const logoutButton =
-    document.querySelector("#logout-button");
-
-
 const tableId =
     new URLSearchParams(window.location.search)
         .get("id");
 
 
-let currentUser = null;
-let currentProfile = null;
-let currentTable = null;
+const tableNameLabel =
+    document.querySelector("#table-name");
 
+const tableDescriptionLabel =
+    document.querySelector("#table-description");
+
+const currentUsernameLabel =
+    document.querySelector("#current-username");
+
+const walletBalanceLabel =
+    document.querySelector("#wallet-balance");
+
+const streetLabel =
+    document.querySelector("#street-label");
+
+const potLabel =
+    document.querySelector("#pot-label");
+
+const currentBetLabel =
+    document.querySelector("#current-bet-label");
+
+const communityCardsElement =
+    document.querySelector("#community-cards");
+
+const ownHoleCardsElement =
+    document.querySelector("#own-hole-cards");
+
+const opponentSeatElement =
+    document.querySelector("#opponent-seat");
+
+const ownSeatElement =
+    document.querySelector("#own-seat");
+
+const ownStackLabel =
+    document.querySelector("#own-stack-label");
+
+const winnerMessage =
+    document.querySelector("#winner-message");
+
+const waitingControls =
+    document.querySelector("#waiting-controls");
+
+const waitingText =
+    document.querySelector("#waiting-text");
+
+const startHandButton =
+    document.querySelector("#start-hand-button");
+
+const actionControls =
+    document.querySelector("#action-controls");
+
+const foldButton =
+    document.querySelector("#fold-button");
+
+const checkCallButton =
+    document.querySelector("#check-call-button");
+
+const allInButton =
+    document.querySelector("#all-in-button");
+
+const raiseAmountInput =
+    document.querySelector("#raise-amount-input");
+
+const betRaiseButton =
+    document.querySelector("#bet-raise-button");
+
+const turnMessage =
+    document.querySelector("#turn-message");
+
+const actionHistory =
+    document.querySelector("#action-history");
+
+const leaveMatchButton =
+    document.querySelector("#leave-match-button");
+
+const tableError =
+    document.querySelector("#table-error");
+
+const logoutButton =
+    document.querySelector("#logout-button");
+
+
+let gameState = null;
 let tableChannel = null;
 let refreshTimer = null;
+let requestInProgress = false;
 
 
 function formatChips(value) {
-    return new Intl.NumberFormat("en-GB").format(value);
+    return new Intl.NumberFormat("en-GB").format(
+        Number(value ?? 0)
+    );
 }
 
 
@@ -55,69 +106,698 @@ function shortUserId(userId) {
 }
 
 
-function showTableMessage(
-    message = "",
-    type = "error"
-) {
-    tableMessage.textContent = message;
-    tableMessage.className =
-        `form-message ${type}`.trim();
+function showError(message = "") {
+    tableError.textContent = message;
 }
 
 
-async function loadCurrentAccount() {
-    const {
-        data: {
-            user
-        },
-        error: userError
-    } = await window.supabaseClient.auth.getUser();
+function setRequestInProgress(value) {
+    requestInProgress = value;
+
+    const buttons = [
+        startHandButton,
+        foldButton,
+        checkCallButton,
+        allInButton,
+        betRaiseButton,
+        leaveMatchButton
+    ];
+
+    for (const button of buttons) {
+        button.disabled = value;
+    }
+
+    raiseAmountInput.disabled = value;
+}
 
 
-    if (userError || !user) {
-        window.location.href = "login.html";
-        return false;
+function suitSymbol(suit) {
+    switch (suit) {
+        case "S":
+            return "♠";
+
+        case "H":
+            return "♥";
+
+        case "D":
+            return "♦";
+
+        case "C":
+            return "♣";
+
+        default:
+            return "";
+    }
+}
+
+
+function rankLabel(rank) {
+    if (rank === "T") {
+        return "10";
+    }
+
+    return rank;
+}
+
+
+function createPlayingCard(
+    cardCode,
+    faceDown = false
+) {
+    const cardElement =
+        document.createElement("div");
+
+    cardElement.className = "playing-card";
+
+
+    if (faceDown || !cardCode) {
+        cardElement.classList.add("face-down");
+        cardElement.textContent = "♠";
+
+        return cardElement;
     }
 
 
-    currentUser = user;
+    const rank = cardCode.slice(0, 1);
+    const suit = cardCode.slice(1, 2);
+
+    const redSuit =
+        suit === "H" || suit === "D";
 
 
-    const {
-        data: profile,
-        error: profileError
-    } = await window.supabaseClient
-        .from("profiles")
-        .select("id, username, chips")
-        .eq("id", user.id)
-        .maybeSingle();
-
-
-    if (profileError) {
-        throw profileError;
+    if (redSuit) {
+        cardElement.classList.add("red-card");
     }
 
 
-    if (!profile) {
-        throw new Error(
-            "Your player profile could not be found."
+    const topCorner =
+        document.createElement("span");
+
+    topCorner.className = "card-corner";
+    topCorner.textContent =
+        `${rankLabel(rank)}${suitSymbol(suit)}`;
+
+
+    const centreSuit =
+        document.createElement("span");
+
+    centreSuit.className = "card-suit";
+    centreSuit.textContent =
+        suitSymbol(suit);
+
+
+    cardElement.append(
+        topCorner,
+        centreSuit
+    );
+
+    return cardElement;
+}
+
+
+function renderCardRow(
+    container,
+    cards,
+    totalCards,
+    faceDownMissing = false
+) {
+    container.replaceChildren();
+
+    const suppliedCards =
+        Array.isArray(cards)
+            ? cards
+            : [];
+
+
+    for (
+        let index = 0;
+        index < totalCards;
+        index += 1
+    ) {
+        const card = suppliedCards[index];
+
+        container.append(
+            createPlayingCard(
+                card,
+                !card && faceDownMissing
+            )
+        );
+    }
+}
+
+
+function playerStatusText(player) {
+    if (!gameState?.hand) {
+        return "Waiting";
+    }
+
+    if (player.folded) {
+        return "Folded";
+    }
+
+    if (player.all_in) {
+        return "All in";
+    }
+
+    if (
+        gameState.hand.current_turn_seat
+        === player.seat_number
+    ) {
+        return "Thinking";
+    }
+
+    if (player.last_action) {
+        return player.last_action
+            .replaceAll("_", " ");
+    }
+
+    return "In hand";
+}
+
+
+function renderPlayerSeat(
+    container,
+    player,
+    isOwnPlayer
+) {
+    container.replaceChildren();
+
+
+    if (!player) {
+        container.className =
+            "live-player-seat empty-live-seat";
+
+        container.textContent =
+            "Waiting for player";
+
+        return;
+    }
+
+
+    container.className =
+        isOwnPlayer
+            ? "live-player-seat own-live-seat"
+            : "live-player-seat opponent-seat";
+
+
+    if (
+        gameState?.hand?.current_turn_seat
+        === player.seat_number
+    ) {
+        container.classList.add("active-turn-seat");
+    }
+
+
+    if (player.folded) {
+        container.classList.add("folded-seat");
+    }
+
+
+    const heading =
+        document.createElement("div");
+
+    heading.className = "live-seat-heading";
+
+
+    const nameGroup =
+        document.createElement("div");
+
+
+    const username =
+        document.createElement("strong");
+
+    username.textContent = player.username;
+
+
+    const userId =
+        document.createElement("span");
+
+    userId.className = "user-id";
+
+    userId.textContent =
+        `#${shortUserId(player.user_id)}`;
+
+
+    nameGroup.append(username, userId);
+
+
+    const badges =
+        document.createElement("div");
+
+    badges.className = "poker-badge-row";
+
+
+    if (player.is_dealer) {
+        const dealerBadge =
+            document.createElement("span");
+
+        dealerBadge.className = "dealer-badge";
+        dealerBadge.textContent = "D";
+
+        badges.append(dealerBadge);
+    }
+
+
+    if (player.is_small_blind) {
+        const smallBlindBadge =
+            document.createElement("span");
+
+        smallBlindBadge.className = "blind-badge";
+        smallBlindBadge.textContent = "SB";
+
+        badges.append(smallBlindBadge);
+    }
+
+
+    if (player.is_big_blind) {
+        const bigBlindBadge =
+            document.createElement("span");
+
+        bigBlindBadge.className = "blind-badge";
+        bigBlindBadge.textContent = "BB";
+
+        badges.append(bigBlindBadge);
+    }
+
+
+    heading.append(nameGroup, badges);
+
+
+    const information =
+        document.createElement("div");
+
+    information.className =
+        "live-seat-information";
+
+
+    const stackText =
+        document.createElement("span");
+
+    stackText.textContent =
+        `${formatChips(player.stack)} chips`;
+
+
+    const statusText =
+        document.createElement("span");
+
+    statusText.textContent =
+        playerStatusText(player);
+
+
+    information.append(
+        stackText,
+        statusText
+    );
+
+
+    const betText =
+        document.createElement("span");
+
+    betText.className = "seat-current-bet";
+
+    betText.textContent =
+        player.bet_this_street > 0
+            ? `Bet: ${formatChips(player.bet_this_street)}`
+            : "";
+
+
+    const cardRow =
+        document.createElement("div");
+
+    cardRow.className =
+        "playing-card-row miniature-card-row";
+
+
+    if (isOwnPlayer) {
+        renderCardRow(
+            cardRow,
+            player.hole_cards,
+            2,
+            false
+        );
+
+    } else if (
+        Array.isArray(player.hole_cards)
+    ) {
+        renderCardRow(
+            cardRow,
+            player.hole_cards,
+            2,
+            false
+        );
+
+    } else if (gameState?.hand) {
+        renderCardRow(
+            cardRow,
+            [],
+            2,
+            true
         );
     }
 
 
-    currentProfile = profile;
-
-    currentUsernameLabel.textContent =
-        profile.username;
-
-    currentBalanceLabel.textContent =
-        formatChips(profile.chips);
-
-    return true;
+    container.append(
+        heading,
+        information,
+        betText,
+        cardRow
+    );
 }
 
 
-async function loadPokerTable() {
+function renderActionHistory(actions) {
+    actionHistory.replaceChildren();
+
+
+    if (!actions || actions.length === 0) {
+        const emptyItem =
+            document.createElement("li");
+
+        emptyItem.className =
+            "empty-action-history";
+
+        emptyItem.textContent =
+            "No actions yet.";
+
+        actionHistory.append(emptyItem);
+
+        return;
+    }
+
+
+    for (const action of actions) {
+        const item =
+            document.createElement("li");
+
+
+        const playerName =
+            document.createElement("strong");
+
+        playerName.textContent =
+            action.username;
+
+
+        const actionText =
+            document.createElement("span");
+
+        const readableAction =
+            action.action.replaceAll("_", " ");
+
+
+        actionText.textContent =
+            action.amount > 0
+                ? `${readableAction} ${formatChips(action.amount)}`
+                : readableAction;
+
+
+        item.append(
+            playerName,
+            actionText
+        );
+
+        actionHistory.append(item);
+    }
+}
+
+
+function configureActions() {
+    const hand = gameState.hand;
+    const you = gameState.you;
+
+
+    waitingControls.classList.add("hidden");
+    actionControls.classList.add("hidden");
+
+    startHandButton.classList.add("hidden");
+
+    turnMessage.textContent = "";
+
+
+    if (
+        !hand
+        || hand.status === "complete"
+        || gameState.table.status === "waiting"
+    ) {
+        waitingControls.classList.remove("hidden");
+
+
+        if (you.can_start) {
+            startHandButton.classList.remove("hidden");
+
+            waitingText.textContent =
+                hand?.status === "complete"
+                    ? "The hand is complete. Start the next hand when ready."
+                    : "Both players are ready.";
+
+        } else {
+            const activePlayers =
+                gameState.players.filter(
+                    (player) => player.stack > 0
+                ).length;
+
+
+            if (activePlayers < 2) {
+                waitingText.textContent =
+                    "Waiting for a second player with chips.";
+
+            } else if (
+                gameState.table.host_id
+                !== you.user_id
+            ) {
+                waitingText.textContent =
+                    "Waiting for the host to start the hand.";
+
+            } else {
+                waitingText.textContent =
+                    "The hand cannot currently be started.";
+            }
+        }
+
+        return;
+    }
+
+
+    if (you.folded) {
+        turnMessage.textContent =
+            "You folded. Waiting for the hand to finish.";
+
+        return;
+    }
+
+
+    if (you.all_in) {
+        turnMessage.textContent =
+            "You are all in.";
+
+        return;
+    }
+
+
+    if (!you.is_turn) {
+        turnMessage.textContent =
+            "Waiting for the other player.";
+
+        return;
+    }
+
+
+    actionControls.classList.remove("hidden");
+
+    turnMessage.textContent =
+        "Your turn";
+
+
+    foldButton.disabled = requestInProgress;
+
+
+    if (you.to_call > 0) {
+        const actualCallAmount =
+            Math.min(
+                Number(you.to_call),
+                Number(you.stack)
+            );
+
+        checkCallButton.textContent =
+            actualCallAmount
+                === Number(you.stack)
+                ? `Call all in ${formatChips(actualCallAmount)}`
+                : `Call ${formatChips(actualCallAmount)}`;
+
+    } else {
+        checkCallButton.textContent =
+            "Check";
+    }
+
+
+    const handHasBet =
+        Number(hand.current_bet) > 0;
+
+
+    betRaiseButton.textContent =
+        handHasBet
+            ? "Raise to"
+            : "Bet";
+
+
+    const minimumAmount =
+        Number(you.minimum_raise_to);
+
+    const maximumAmount =
+        Number(you.maximum_total_bet);
+
+
+    raiseAmountInput.min =
+        Math.min(
+            minimumAmount,
+            maximumAmount
+        );
+
+    raiseAmountInput.max =
+        maximumAmount;
+
+
+    if (
+        !raiseAmountInput.value
+        || Number(raiseAmountInput.value)
+            < Number(raiseAmountInput.min)
+
+        || Number(raiseAmountInput.value)
+            > maximumAmount
+    ) {
+        raiseAmountInput.value =
+            Math.min(
+                minimumAmount,
+                maximumAmount
+            );
+    }
+
+
+    betRaiseButton.disabled =
+        requestInProgress
+        || maximumAmount <= Number(hand.current_bet);
+
+    allInButton.disabled =
+        requestInProgress
+        || Number(you.stack) <= 0;
+}
+
+
+function renderGameState(state) {
+    gameState = state;
+
+
+    tableNameLabel.textContent =
+        state.table.name;
+
+
+    tableDescriptionLabel.textContent =
+        `Blinds ${formatChips(state.table.small_blind)} / ${formatChips(state.table.big_blind)}`;
+
+
+    currentUsernameLabel.textContent =
+        state.you.username;
+
+
+    walletBalanceLabel.textContent =
+        formatChips(state.you.wallet_chips);
+
+
+    ownStackLabel.textContent =
+        `${formatChips(state.you.stack)} chips`;
+
+
+    streetLabel.textContent =
+        state.hand
+            ? state.hand.street
+            : "waiting";
+
+
+    potLabel.textContent =
+        formatChips(
+            state.hand?.pot ?? 0
+        );
+
+
+    currentBetLabel.textContent =
+        formatChips(
+            state.hand?.current_bet ?? 0
+        );
+
+
+    winnerMessage.textContent =
+        state.hand?.winner_text ?? "";
+
+
+    renderCardRow(
+        communityCardsElement,
+        state.hand?.community_cards ?? [],
+        5,
+        false
+    );
+
+
+    renderCardRow(
+        ownHoleCardsElement,
+        state.you.hole_cards ?? [],
+        2,
+        Boolean(state.hand)
+    );
+
+
+    const ownPlayer =
+        state.players.find(
+            (player) =>
+                player.user_id
+                === state.you.user_id
+        );
+
+
+    const opponent =
+        state.players.find(
+            (player) =>
+                player.user_id
+                !== state.you.user_id
+        );
+
+
+    renderPlayerSeat(
+        ownSeatElement,
+        ownPlayer,
+        true
+    );
+
+
+    renderPlayerSeat(
+        opponentSeatElement,
+        opponent,
+        false
+    );
+
+
+    renderActionHistory(
+        state.actions
+    );
+
+
+    const canLeave =
+        state.table.status === "waiting";
+
+
+    leaveMatchButton.disabled =
+        requestInProgress || !canLeave;
+
+
+    leaveMatchButton.title =
+        canLeave
+            ? ""
+            : "You cannot leave during an active hand.";
+
+
+    configureActions();
+}
+
+
+async function loadGameState() {
     if (!tableId) {
         throw new Error(
             "No poker match ID was supplied."
@@ -126,290 +806,14 @@ async function loadPokerTable() {
 
 
     const {
-        data: pokerTable,
-        error: tableError
-    } = await window.supabaseClient
-        .from("poker_tables")
-        .select(
-            "id, host_id, name, small_blind, big_blind, min_buy_in, max_buy_in, max_players, status"
-        )
-        .eq("id", tableId)
-        .maybeSingle();
-
-
-    if (tableError) {
-        throw tableError;
-    }
-
-
-    if (!pokerTable) {
-        throw new Error(
-            "This poker match no longer exists."
-        );
-    }
-
-
-    currentTable = pokerTable;
-
-
-    const {
-        data: seats,
-        error: seatError
-    } = await window.supabaseClient
-        .from("poker_seats")
-        .select(
-            "table_id, seat_number, user_id, stack, joined_at"
-        )
-        .eq("table_id", tableId)
-        .order("seat_number", {
-            ascending: true
-        });
-
-
-    if (seatError) {
-        throw seatError;
-    }
-
-
-    const userIds = [
-        ...new Set(
-            seats.map(
-                (seat) => seat.user_id
-            )
-        )
-    ];
-
-
-    let profiles = [];
-
-
-    if (userIds.length > 0) {
-        const {
-            data,
-            error
-        } = await window.supabaseClient
-            .from("profiles")
-            .select("id, username")
-            .in("id", userIds);
-
-
-        if (error) {
-            throw error;
-        }
-
-
-        profiles = data ?? [];
-    }
-
-
-    const profileById =
-        new Map(
-            profiles.map(
-                (profile) => [
-                    profile.id,
-                    profile
-                ]
-            )
-        );
-
-
-    renderPokerTable(
-        pokerTable,
-        seats,
-        profileById
-    );
-}
-
-
-function renderPokerTable(
-    pokerTable,
-    seats,
-    profileById
-) {
-    tableNameLabel.textContent =
-        pokerTable.name;
-
-
-    tableDetailsLabel.textContent =
-        `Blinds ${formatChips(pokerTable.small_blind)} / ${formatChips(pokerTable.big_blind)} · Buy-in ${formatChips(pokerTable.min_buy_in)}–${formatChips(pokerTable.max_buy_in)}`;
-
-
-    tableStatusLabel.textContent =
-        pokerTable.status;
-
-
-    playerCountLabel.textContent =
-        `${seats.length}/${pokerTable.max_players}`;
-
-
-    const ownSeat =
-        seats.find(
-            (seat) =>
-                seat.user_id === currentUser.id
-        );
-
-
-    if (
-        ownSeat &&
-        pokerTable.status === "waiting"
-    ) {
-        leaveMatchButton.classList.remove("hidden");
-    } else {
-        leaveMatchButton.classList.add("hidden");
-    }
-
-
-    pokerSeatGrid.replaceChildren();
-
-
-    for (
-        let seatNumber = 1;
-        seatNumber <= pokerTable.max_players;
-        seatNumber += 1
-    ) {
-        const seat =
-            seats.find(
-                (candidate) =>
-                    candidate.seat_number ===
-                    seatNumber
-            );
-
-
-        const seatElement =
-            document.createElement("article");
-
-        seatElement.className = "poker-seat";
-
-
-        const seatNumberLabel =
-            document.createElement("span");
-
-        seatNumberLabel.className =
-            "seat-number";
-
-        seatNumberLabel.textContent =
-            `Seat ${seatNumber}`;
-
-
-        seatElement.append(seatNumberLabel);
-
-
-        if (!seat) {
-            seatElement.classList.add("empty-seat");
-
-
-            const emptyLabel =
-                document.createElement("strong");
-
-            emptyLabel.textContent = "Empty";
-
-
-            const emptyDescription =
-                document.createElement("span");
-
-            emptyDescription.textContent =
-                "Waiting for player";
-
-
-            seatElement.append(
-                emptyLabel,
-                emptyDescription
-            );
-
-
-            pokerSeatGrid.append(seatElement);
-
-            continue;
-        }
-
-
-        const profile =
-            profileById.get(seat.user_id);
-
-
-        const username =
-            profile?.username ??
-            "Unknown player";
-
-
-        if (seat.user_id === currentUser.id) {
-            seatElement.classList.add("own-seat");
-        }
-
-
-        if (seat.user_id === pokerTable.host_id) {
-            seatElement.classList.add("host-seat");
-        }
-
-
-        const playerHeading =
-            document.createElement("div");
-
-        playerHeading.className =
-            "seat-player-heading";
-
-
-        const usernameLabel =
-            document.createElement("strong");
-
-        usernameLabel.textContent = username;
-
-
-        const userIdLabel =
-            document.createElement("span");
-
-        userIdLabel.className = "user-id";
-
-        userIdLabel.textContent =
-            `#${shortUserId(seat.user_id)}`;
-
-
-        playerHeading.append(
-            usernameLabel,
-            userIdLabel
-        );
-
-
-        if (seat.user_id === pokerTable.host_id) {
-            const hostBadge =
-                document.createElement("span");
-
-            hostBadge.className = "host-badge";
-            hostBadge.textContent = "Host";
-
-            playerHeading.append(hostBadge);
-        }
-
-
-        const stackLabel =
-            document.createElement("span");
-
-        stackLabel.className = "seat-stack";
-
-        stackLabel.textContent =
-            `${formatChips(seat.stack)} chips`;
-
-
-        seatElement.append(
-            playerHeading,
-            stackLabel
-        );
-
-
-        pokerSeatGrid.append(seatElement);
-    }
-}
-
-
-async function refreshAccountBalance() {
-    const {
-        data: profile,
+        data,
         error
-    } = await window.supabaseClient
-        .from("profiles")
-        .select("chips")
-        .eq("id", currentUser.id)
-        .maybeSingle();
+    } = await window.supabaseClient.rpc(
+        "get_heads_up_poker_state",
+        {
+            p_table_id: tableId
+        }
+    );
 
 
     if (error) {
@@ -417,98 +821,84 @@ async function refreshAccountBalance() {
     }
 
 
-    if (profile) {
-        currentBalanceLabel.textContent =
-            formatChips(profile.chips);
+    renderGameState(data);
+}
+
+
+async function performPokerAction(
+    action,
+    amount = null
+) {
+    if (requestInProgress) {
+        return;
+    }
+
+
+    setRequestInProgress(true);
+    showError();
+
+
+    try {
+        const {
+            data,
+            error
+        } = await window.supabaseClient.rpc(
+            "play_heads_up_action",
+            {
+                p_table_id: tableId,
+                p_action: action,
+                p_amount: amount
+            }
+        );
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        renderGameState(data);
+
+    } catch (error) {
+        console.error(error);
+
+        showError(
+            error.message ||
+            "The poker action could not be completed."
+        );
+
+    } finally {
+        setRequestInProgress(false);
+
+        if (gameState) {
+            configureActions();
+        }
     }
 }
 
 
-function scheduleTableRefresh() {
-    window.clearTimeout(refreshTimer);
-
-
-    refreshTimer = window.setTimeout(
-        async () => {
-            try {
-                await Promise.all([
-                    loadPokerTable(),
-                    refreshAccountBalance()
-                ]);
-            } catch (error) {
-                console.error(error);
-
-                showTableMessage(
-                    error.message ||
-                    "The poker match could not be refreshed."
-                );
-            }
-        },
-        150
-    );
-}
-
-
-function subscribeToTableChanges() {
-    tableChannel =
-        window.supabaseClient
-            .channel(
-                `poker-table-${tableId}`
-            )
-
-            .on(
-                "postgres_changes",
-                {
-                    event: "*",
-                    schema: "public",
-                    table: "poker_tables",
-                    filter: `id=eq.${tableId}`
-                },
-                scheduleTableRefresh
-            )
-
-            .on(
-                "postgres_changes",
-                {
-                    event: "*",
-                    schema: "public",
-                    table: "poker_seats",
-                    filter: `table_id=eq.${tableId}`
-                },
-                scheduleTableRefresh
-            )
-
-            .subscribe();
-}
-
-
-leaveMatchButton.addEventListener(
+startHandButton.addEventListener(
     "click",
     async () => {
-        const confirmed = window.confirm(
-            "Leave this match and return your table stack to your wallet?"
-        );
-
-
-        if (!confirmed) {
+        if (requestInProgress) {
             return;
         }
 
 
-        leaveMatchButton.disabled = true;
-        showTableMessage();
+        setRequestInProgress(true);
+        showError();
 
 
         try {
             const {
+                data,
                 error
-            } = await window.supabaseClient
-                .rpc(
-                    "leave_poker_table",
-                    {
-                        p_table_id: tableId
-                    }
-                );
+            } = await window.supabaseClient.rpc(
+                "start_heads_up_hand",
+                {
+                    p_table_id: tableId
+                }
+            );
 
 
             if (error) {
@@ -516,17 +906,147 @@ leaveMatchButton.addEventListener(
             }
 
 
-            window.location.href = "poker.html";
+            renderGameState(data);
 
         } catch (error) {
             console.error(error);
 
-            showTableMessage(
+            showError(
+                error.message ||
+                "The hand could not be started."
+            );
+
+        } finally {
+            setRequestInProgress(false);
+
+            if (gameState) {
+                configureActions();
+            }
+        }
+    }
+);
+
+
+foldButton.addEventListener(
+    "click",
+    () => {
+        performPokerAction("fold");
+    }
+);
+
+
+checkCallButton.addEventListener(
+    "click",
+    () => {
+        const action =
+            Number(gameState.you.to_call) > 0
+                ? "call"
+                : "check";
+
+        performPokerAction(action);
+    }
+);
+
+
+betRaiseButton.addEventListener(
+    "click",
+    () => {
+        const amount =
+            Number.parseInt(
+                raiseAmountInput.value,
+                10
+            );
+
+
+        if (!Number.isSafeInteger(amount)) {
+            showError(
+                "Enter a valid whole-number bet."
+            );
+
+            return;
+        }
+
+
+        const action =
+            Number(gameState.hand.current_bet) > 0
+                ? "raise"
+                : "bet";
+
+
+        performPokerAction(
+            action,
+            amount
+        );
+    }
+);
+
+
+allInButton.addEventListener(
+    "click",
+    () => {
+        performPokerAction("all_in");
+    }
+);
+
+
+leaveMatchButton.addEventListener(
+    "click",
+    async () => {
+        if (
+            gameState?.table?.status
+            !== "waiting"
+        ) {
+            showError(
+                "You cannot leave during an active hand."
+            );
+
+            return;
+        }
+
+
+        const confirmed =
+            window.confirm(
+                "Leave this match and return your table stack to your wallet?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        setRequestInProgress(true);
+        showError();
+
+
+        try {
+            const {
+                error
+            } = await window.supabaseClient.rpc(
+                "leave_poker_table",
+                {
+                    p_table_id: tableId
+                }
+            );
+
+
+            if (error) {
+                throw error;
+            }
+
+
+            window.location.href =
+                "poker.html";
+
+        } catch (error) {
+            console.error(error);
+
+            showError(
                 error.message ||
                 "The poker match could not be left."
             );
 
-            leaveMatchButton.disabled = false;
+            setRequestInProgress(false);
         }
     }
 );
@@ -539,9 +1059,97 @@ logoutButton.addEventListener(
             scope: "local"
         });
 
-        window.location.href = "login.html";
+        window.location.href =
+            "login.html";
     }
 );
+
+
+function scheduleRefresh() {
+    window.clearTimeout(refreshTimer);
+
+
+    refreshTimer = window.setTimeout(
+        async () => {
+            if (requestInProgress) {
+                return;
+            }
+
+            try {
+                await loadGameState();
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        120
+    );
+}
+
+
+function subscribeToGameChanges() {
+    tableChannel =
+        window.supabaseClient
+            .channel(
+                `heads-up-poker-${tableId}`
+            )
+
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "poker_tables",
+                    filter: `id=eq.${tableId}`
+                },
+                scheduleRefresh
+            )
+
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "poker_seats",
+                    filter: `table_id=eq.${tableId}`
+                },
+                scheduleRefresh
+            )
+
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "poker_hands",
+                    filter: `table_id=eq.${tableId}`
+                },
+                scheduleRefresh
+            )
+
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "poker_hand_players",
+                    filter: `table_id=eq.${tableId}`
+                },
+                scheduleRefresh
+            )
+
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "poker_actions",
+                    filter: `table_id=eq.${tableId}`
+                },
+                scheduleRefresh
+            )
+
+            .subscribe();
+}
 
 
 window.addEventListener(
@@ -556,35 +1164,41 @@ window.addEventListener(
 );
 
 
-async function initialisePokerTable() {
+async function initialisePokerGame() {
     try {
-        const accountLoaded =
-            await loadCurrentAccount();
+        const {
+            data: {
+                user
+            }
+        } =
+            await window.supabaseClient.auth
+                .getUser();
 
 
-        if (!accountLoaded) {
+        if (!user) {
+            window.location.href =
+                "login.html";
+
             return;
         }
 
 
-        await loadPokerTable();
+        await loadGameState();
 
-        subscribeToTableChanges();
+        subscribeToGameChanges();
 
     } catch (error) {
         console.error(error);
 
         tableNameLabel.textContent =
-            "Match unavailable";
+            "Poker match unavailable";
 
-        tableDetailsLabel.textContent = "";
-
-        showTableMessage(
+        showError(
             error.message ||
-            "The poker match could not be loaded."
+            "The poker game could not be loaded."
         );
     }
 }
 
 
-initialisePokerTable();
+initialisePokerGame();
