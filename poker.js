@@ -19,6 +19,21 @@ const gameTypeInput =
 const gameNameInput =
     document.querySelector("#game-name-input");
 
+const friendlyModeInput =
+    document.querySelector("#friendly-mode-input");
+
+const minimumBuyInLabel =
+    document.querySelector("#minimum-buy-in-label");
+
+const maximumBuyInLabel =
+    document.querySelector("#maximum-buy-in-label");
+
+const creatorBuyInLabel =
+    document.querySelector("#creator-buy-in-label");
+
+const heartsEntryStakeLabel =
+    document.querySelector("#hearts-entry-stake-label");
+
 const blindSettings =
     document.querySelector("#blind-settings");
 
@@ -137,6 +152,11 @@ function gameUsesBlinds(gameType) {
 }
 
 
+function isFriendlyGame(gameTable) {
+    return gameTable?.friendly_mode === true;
+}
+
+
 function rebuildPlayerOptions() {
     const gameType = gameTypeInput.value;
 
@@ -180,6 +200,7 @@ function updateGameTypeFields() {
     const usesBlinds = gameUsesBlinds(gameType);
     const isBlackjack = gameType === "blackjack";
     const isHearts = gameType === "hearts";
+    const isFriendly = friendlyModeInput.checked;
 
     blindSettings.classList.toggle("hidden", !usesBlinds);
     blackjackSettings.classList.toggle("hidden", !isBlackjack);
@@ -195,8 +216,25 @@ function updateGameTypeFields() {
     creatorBuyInInput.required = !isHearts;
     heartsEntryStakeInput.required = isHearts;
 
+    minimumBuyInLabel.textContent = isFriendly
+        ? "Minimum practice stack"
+        : "Minimum buy-in";
+
+    maximumBuyInLabel.textContent = isFriendly
+        ? "Maximum practice stack"
+        : "Maximum buy-in";
+
+    creatorBuyInLabel.textContent = isFriendly
+        ? "Your practice stack"
+        : "Your buy-in";
+
+    heartsEntryStakeLabel.textContent = isFriendly
+        ? "Practice stake per player"
+        : "Entry stake per player";
+
     rebuildPlayerOptions();
 }
+
 
 
 function parseWholeNumber(input, fieldName) {
@@ -257,6 +295,13 @@ function createGameCard(gameTable, seatsAtTable) {
 
     titleGroup.append(title, mode);
 
+    if (isFriendlyGame(gameTable)) {
+        const friendlyBadge = document.createElement("span");
+        friendlyBadge.className = "friendly-game-badge";
+        friendlyBadge.textContent = "Friendly";
+        titleGroup.append(friendlyBadge);
+    }
+
     const status = document.createElement("span");
     status.className =
         `match-status ${gameTable.status === "playing" ? "playing" : "waiting"}`;
@@ -280,7 +325,9 @@ function createGameCard(gameTable, seatsAtTable) {
     if (gameTable.game_type === "hearts") {
         information.append(
             createInformationItem(
-                "Entry stake",
+                isFriendlyGame(gameTable)
+                    ? "Practice stake"
+                    : "Entry stake",
                 `${formatChips(gameTable.min_buy_in)} each`
             ),
             createInformationItem(
@@ -291,7 +338,9 @@ function createGameCard(gameTable, seatsAtTable) {
     } else {
         information.append(
             createInformationItem(
-                "Buy-in",
+                isFriendlyGame(gameTable)
+                    ? "Practice stack"
+                    : "Buy-in",
                 `${formatChips(gameTable.min_buy_in)}–${formatChips(gameTable.max_buy_in)}`
             )
         );
@@ -325,6 +374,15 @@ function createGameCard(gameTable, seatsAtTable) {
         );
     }
 
+    information.append(
+        createInformationItem(
+            "Rewards",
+            isFriendlyGame(gameTable)
+                ? "No wallet changes or XP"
+                : "Wallet chips and XP eligible"
+        )
+    );
+
     const controls = document.createElement("div");
     controls.className = "match-card-controls";
 
@@ -349,11 +407,17 @@ function createGameCard(gameTable, seatsAtTable) {
         buyInGroup.className = "join-buy-in-group";
 
         const label = document.createElement("label");
-        label.textContent = gameTable.status === "playing"
-            ? "Next-round buy-in"
-            : gameTable.game_type === "hearts"
-                ? "Entry stake"
-                : "Buy-in";
+        label.textContent = isFriendlyGame(gameTable)
+            ? gameTable.status === "playing"
+                ? "Next-round practice stack"
+                : gameTable.game_type === "hearts"
+                    ? "Practice stake"
+                    : "Practice stack"
+            : gameTable.status === "playing"
+                ? "Next-round buy-in"
+                : gameTable.game_type === "hearts"
+                    ? "Entry stake"
+                    : "Buy-in";
 
         const input = document.createElement("input");
         input.type = "number";
@@ -464,8 +528,12 @@ function renderActiveGames(gameTables, seats) {
                 ? "In progress"
                 : "Waiting";
 
+        const economyText = isFriendlyGame(gameTable)
+            ? "Friendly"
+            : "Competitive";
+
         details.textContent =
-            `${gameLabel(gameTable.game_type)} · ${stateText} · ${formatChips(ownSeat.stack)} chips`;
+            `${gameLabel(gameTable.game_type)} · ${economyText} · ${stateText} · ${formatChips(ownSeat.stack)} chips`;
 
         link.append(title, details);
         activeMatchList.append(link);
@@ -534,7 +602,7 @@ async function loadGames() {
             window.supabaseClient
                 .from("poker_tables")
                 .select(
-                    "id, host_id, name, status, game_type, small_blind, big_blind, blackjack_min_bet, blackjack_max_bet, min_buy_in, max_buy_in, max_players, created_at"
+                    "id, host_id, name, status, game_type, friendly_mode, small_blind, big_blind, blackjack_min_bet, blackjack_max_bet, min_buy_in, max_buy_in, max_players, created_at"
                 )
                 .in("status", ["waiting", "playing"])
                 .order("created_at", { ascending: false }),
@@ -667,7 +735,8 @@ createGameForm.addEventListener("submit", async (event) => {
                     p_min_buy_in: minimumBuyIn,
                     p_max_buy_in: maximumBuyIn,
                     p_max_players: maximumPlayers,
-                    p_buy_in: creatorBuyIn
+                    p_buy_in: creatorBuyIn,
+                    p_friendly_mode: friendlyModeInput.checked
                 }
             );
 
@@ -688,6 +757,12 @@ createGameForm.addEventListener("submit", async (event) => {
 
 
 gameTypeInput.addEventListener(
+    "change",
+    updateGameTypeFields
+);
+
+
+friendlyModeInput.addEventListener(
     "change",
     updateGameTypeFields
 );

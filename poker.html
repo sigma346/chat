@@ -7,7 +7,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Card Games</title>
+    <title>Education Perfect</title>
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="poker.css">
@@ -23,8 +23,8 @@
                     <p class="eyebrow">CARD GAMES</p>
                     <h1>Card-game lobby</h1>
                     <p class="description">
-                        Create Texas Hold'em, Five-Card Draw,
-                        Blackjack or Hearts matches from one lobby.
+                        Create competitive matches using wallet chips,
+                        or friendly matches using practice-only stacks.
                     </p>
                 </div>
 
@@ -100,6 +100,21 @@
                         >
                     </div>
 
+                    <label class="friendly-mode-option">
+                        <input
+                            id="friendly-mode-input"
+                            type="checkbox"
+                        >
+
+                        <span class="friendly-mode-copy">
+                            <strong>Friendly mode</strong>
+                            <small>
+                                Uses practice stacks. Wallet chips cannot be
+                                won or lost, and the match awards no XP.
+                            </small>
+                        </span>
+                    </label>
+
                     <div
                         id="blind-settings"
                         class="game-specific-settings"
@@ -171,7 +186,7 @@
                         class="game-specific-settings"
                     >
                         <div class="form-field">
-                            <label for="minimum-buy-in-input">
+                            <label id="minimum-buy-in-label" for="minimum-buy-in-input">
                                 Minimum buy-in
                             </label>
 
@@ -185,7 +200,7 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="maximum-buy-in-input">
+                            <label id="maximum-buy-in-label" for="maximum-buy-in-input">
                                 Maximum buy-in
                             </label>
 
@@ -199,7 +214,7 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="creator-buy-in-input">
+                            <label id="creator-buy-in-label" for="creator-buy-in-input">
                                 Your buy-in
                             </label>
 
@@ -218,7 +233,7 @@
                         class="game-specific-settings hidden"
                     >
                         <div class="form-field">
-                            <label for="hearts-entry-stake-input">
+                            <label id="hearts-entry-stake-label" for="hearts-entry-stake-input">
                                 Entry stake per player
                             </label>
 

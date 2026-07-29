@@ -1461,3 +1461,72 @@ select:focus {
 .create-game-form .game-specific-settings {
     align-items: end;
 }
+
+/* =========================================================
+   FRIENDLY MODE LOBBY CONTROLS
+   Append to the bottom of poker.css
+   ========================================================= */
+
+.friendly-mode-option {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 11px;
+
+    grid-column: 1 / -1;
+
+    padding: 13px 14px;
+
+    border: 1px solid #53658a;
+    border-radius: 11px;
+
+    background: rgba(48, 66, 103, 0.16);
+
+    cursor: pointer;
+}
+
+.friendly-mode-option input {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+
+    accent-color: var(--accent);
+}
+
+.friendly-mode-copy {
+    display: grid;
+    gap: 3px;
+}
+
+.friendly-mode-copy strong {
+    color: #c2d0ed;
+}
+
+.friendly-mode-copy small {
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.match-card-heading > div:first-child {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+    flex-wrap: wrap;
+}
+
+.friendly-game-badge {
+    padding: 4px 7px;
+
+    border: 1px solid #53658a;
+    border-radius: 999px;
+
+    background: rgba(48, 66, 103, 0.28);
+    color: #c2d0ed;
+
+    font-size: 0.61rem;
+    font-weight: 850;
+
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}

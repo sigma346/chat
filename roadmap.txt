@@ -6,8 +6,8 @@ Card Game Variants:
 
 -Texas Hold'em - ADDED
 -Blackjack - ADDED
--Five Card Draw - IN PROGRESS
--Hearts - IN PROGRESS
+-Five Card Draw - ADDED
+-Hearts - ADDED
 -Spades - Future
 -Baccarat - Future
 -Gin Rummy - Future
@@ -20,4 +20,8 @@ Global stock trading, completely random changes to each stock every day.
 Cosmetic items available for puchase with chips
 
 Emotes in Game
+
+Friendly mode
+
+Chat notifications
 
