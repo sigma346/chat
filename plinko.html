@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Plinko</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="plinko.css">
+</head>
+
+<body>
+    <main class="page plinko-page">
+        <div class="plinko-layout">
+
+            <nav class="site-nav">
+                <a href="index.html" class="nav-link">
+                    Chat
+                </a>
+
+                <a href="poker.html" class="nav-link">
+                    Poker
+                </a>
+
+                <a href="recovery.html" class="nav-link">
+                    Recovery
+                </a>
+
+                <a
+                    href="plinko.html"
+                    class="nav-link active"
+                >
+                    Plinko
+                </a>
+
+                <a href="account.html" class="nav-link">
+                    Account
+                </a>
+
+                <button
+                    id="logout-button"
+                    class="nav-button"
+                    type="button"
+                >
+                    Log out
+                </button>
+            </nav>
+
+            <header class="panel plinko-header">
+                <div>
+                    <p class="eyebrow">
+                        SINGLE-PLAYER GAME
+                    </p>
+
+                    <h1>Plinko</h1>
+
+                    <p class="description">
+                        Drop a ball through ten fair bounces.
+                        Profitable outcomes occur 50% of the time.
+                    </p>
+                </div>
+
+                <div class="plinko-wallet">
+                    <span>Wallet chips</span>
+
+                    <strong id="wallet-balance">
+                        0
+                    </strong>
+                </div>
+            </header>
+
+            <section class="panel plinko-panel">
+
+                <div class="plinko-odds-banner">
+                    <div>
+                        <strong>50% profit chance</strong>
+
+                        <span>
+                            Each bounce is decided securely
+                            by Supabase.
+                        </span>
+                    </div>
+
+                    <div>
+                        <strong>10–500 chips</strong>
+
+                        <span>
+                            Per drop
+                        </span>
+                    </div>
+                </div>
+
+                <div class="plinko-controls">
+                    <div class="plinko-bet-control">
+                        <label for="plinko-bet-input">
+                            Bet
+                        </label>
+
+                        <input
+                            id="plinko-bet-input"
+                            type="number"
+                            min="10"
+                            max="500"
+                            step="1"
+                            value="50"
+                        >
+                    </div>
+
+                    <div class="quick-bet-buttons">
+                        <button
+                            type="button"
+                            class="secondary-button quick-bet"
+                            data-bet="10"
+                        >
+                            10
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button quick-bet"
+                            data-bet="50"
+                        >
+                            50
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button quick-bet"
+                            data-bet="100"
+                        >
+                            100
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button quick-bet"
+                            data-bet="250"
+                        >
+                            250
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button quick-bet"
+                            data-bet="500"
+                        >
+                            500
+                        </button>
+                    </div>
+
+                    <button
+                        id="drop-ball-button"
+                        type="button"
+                    >
+                        Drop ball
+                    </button>
+                </div>
+
+                <div class="plinko-board-shell">
+                    <canvas
+                        id="plinko-canvas"
+                        aria-label="Interactive Plinko board"
+                    ></canvas>
+                </div>
+
+                <div
+                    id="plinko-result"
+                    class="plinko-result"
+                >
+                    <span>Last result</span>
+
+                    <strong>
+                        Drop a ball to begin
+                    </strong>
+                </div>
+
+                <p
+                    id="plinko-message"
+                    class="form-message"
+                    role="alert"
+                ></p>
+
+                <section class="plinko-history-section">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">
+                                RECENT DROPS
+                            </p>
+
+                            <h2>History</h2>
+                        </div>
+                    </div>
+
+                    <div
+                        id="plinko-history"
+                        class="plinko-history"
+                    >
+                        <p class="empty-plinko-history">
+                            No drops yet.
+                        </p>
+                    </div>
+                </section>
+
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="plinko.js"></script>
+</body>
+</html>

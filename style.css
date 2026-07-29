@@ -547,3 +547,7 @@ button:disabled {
         height: calc(100vh - 72px);
     }
 }
+
+.site-nav {
+    flex-wrap: wrap;
+}
