@@ -1,0 +1,326 @@
+.recovery-page {
+    align-items: start;
+}
+
+.recovery-layout {
+    display: grid;
+    gap: 12px;
+
+    width: min(1000px, 100%);
+}
+
+.recovery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 24px;
+
+    padding: 24px;
+}
+
+.recovery-balances {
+    display: flex;
+    gap: 10px;
+}
+
+.recovery-balances > div {
+    display: grid;
+    gap: 4px;
+
+    min-width: 125px;
+    padding: 11px 13px;
+
+    border: 1px solid var(--border);
+    border-radius: 11px;
+
+    background: var(--panel-light);
+
+    text-align: right;
+}
+
+.recovery-balances span {
+    color: var(--muted);
+
+    font-size: 0.68rem;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.recovery-balances strong {
+    color: #ffe192;
+
+    font-size: 1.05rem;
+}
+
+.recovery-panel {
+    padding: 22px;
+}
+
+.recovery-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 14px;
+}
+
+.recovery-status-row p {
+    margin: 0;
+
+    color: var(--text);
+
+    font-weight: 750;
+}
+
+.recovery-limit {
+    color: var(--muted);
+
+    font-size: 0.78rem;
+}
+
+.recovery-limit strong {
+    color: var(--text);
+}
+
+.recovery-stat-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 9px;
+
+    margin-bottom: 14px;
+}
+
+.recovery-stat-grid > div {
+    display: grid;
+    gap: 4px;
+
+    padding: 10px;
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    background: var(--panel-light);
+
+    text-align: center;
+}
+
+.recovery-stat-grid span {
+    color: var(--muted);
+
+    font-size: 0.68rem;
+    font-weight: 700;
+
+    text-transform: uppercase;
+}
+
+.recovery-stat-grid strong {
+    color: var(--text);
+
+    font-size: 1.08rem;
+}
+
+.recovery-game-shell {
+    position: relative;
+
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    min-height: 360px;
+
+    overflow: hidden;
+
+    border: 1px solid var(--border);
+    border-radius: 17px;
+
+    background: #070a11;
+
+    box-shadow:
+        inset 0 0 50px rgba(0, 0, 0, 0.6);
+}
+
+#recovery-canvas {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    touch-action: none;
+    cursor: crosshair;
+}
+
+.game-overlay {
+    position: absolute;
+    inset: 0;
+
+    display: grid;
+    place-content: center;
+    justify-items: center;
+
+    gap: 11px;
+
+    padding: 24px;
+
+    background:
+        rgba(7, 10, 17, 0.76);
+
+    backdrop-filter: blur(4px);
+
+    text-align: center;
+}
+
+.game-overlay.hidden {
+    display: none;
+}
+
+.game-overlay h2 {
+    margin: 0;
+
+    font-size: 1.7rem;
+}
+
+.game-overlay p {
+    max-width: 430px;
+    margin: 0;
+
+    color: var(--muted);
+
+    line-height: 1.5;
+}
+
+.game-overlay button {
+    margin-top: 7px;
+}
+
+.recovery-instructions {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 9px;
+
+    margin-top: 14px;
+}
+
+.recovery-instructions > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+
+    padding: 10px;
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    background: var(--panel-light);
+}
+
+.recovery-instructions p {
+    margin: 0;
+
+    color: var(--muted);
+
+    font-size: 0.78rem;
+}
+
+.recovery-instructions strong {
+    color: var(--text);
+}
+
+.target-example {
+    width: 24px;
+    height: 24px;
+
+    border-radius: 44%;
+}
+
+.asteroid-example {
+    border: 2px solid #c4ccd7;
+
+    background: #7d8796;
+}
+
+.gold-example {
+    border: 2px solid #fff0a8;
+
+    background: #e6b94a;
+}
+
+.mine-example {
+    border: 2px solid #ff9da6;
+    border-radius: 50%;
+
+    background: #9d2f3b;
+}
+
+.recovery-rules {
+    margin: 14px 0 0;
+
+    color: var(--muted);
+
+    font-size: 0.76rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+    .recovery-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .recovery-balances {
+        width: 100%;
+    }
+
+    .recovery-balances > div {
+        flex: 1;
+
+        text-align: left;
+    }
+
+    .recovery-stat-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .recovery-game-shell {
+        min-height: 310px;
+    }
+}
+
+@media (max-width: 520px) {
+    .recovery-panel,
+    .recovery-header {
+        padding: 16px;
+    }
+
+    .recovery-status-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .recovery-balances {
+        flex-direction: column;
+    }
+
+    .recovery-stat-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .recovery-game-shell {
+        aspect-ratio: auto;
+        height: 400px;
+        min-height: 0;
+    }
+
+    .recovery-instructions {
+        grid-template-columns: 1fr;
+    }
+}

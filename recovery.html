@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Asteroid Salvage</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="recovery.css">
+</head>
+
+<body>
+    <main class="page recovery-page">
+        <div class="recovery-layout">
+
+            <nav class="site-nav">
+                <a href="index.html" class="nav-link">
+                    Chat
+                </a>
+
+                <a href="poker.html" class="nav-link">
+                    Poker
+                </a>
+
+                <a
+                    href="recovery.html"
+                    class="nav-link active"
+                >
+                    Recovery
+                </a>
+
+                <a href="account.html" class="nav-link">
+                    Account
+                </a>
+
+                <button
+                    id="logout-button"
+                    class="nav-button"
+                    type="button"
+                >
+                    Log out
+                </button>
+            </nav>
+
+            <header class="panel recovery-header">
+                <div>
+                    <p class="eyebrow">
+                        CHIP RECOVERY
+                    </p>
+
+                    <h1>Asteroid Salvage</h1>
+
+                    <p class="description">
+                        Recover a small bankroll by collecting
+                        moving asteroids.
+                    </p>
+                </div>
+
+                <div class="recovery-balances">
+                    <div>
+                        <span>Wallet</span>
+
+                        <strong id="wallet-balance">
+                            0
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Total bankroll</span>
+
+                        <strong id="total-bankroll">
+                            0
+                        </strong>
+                    </div>
+                </div>
+            </header>
+
+            <section class="panel recovery-panel">
+
+                <div class="recovery-status-row">
+                    <p id="eligibility-message">
+                        Checking eligibility...
+                    </p>
+
+                    <span class="recovery-limit">
+                        Recovery limit:
+                        <strong>1,000 chips</strong>
+                    </span>
+                </div>
+
+                <div class="recovery-stat-grid">
+                    <div>
+                        <span>Time</span>
+
+                        <strong id="time-label">
+                            45
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Score</span>
+
+                        <strong id="score-label">
+                            0
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Minimum</span>
+
+                        <strong id="minimum-score-label">
+                            8
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Estimated reward</span>
+
+                        <strong id="reward-estimate-label">
+                            0
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="recovery-game-shell">
+                    <canvas
+                        id="recovery-canvas"
+                        aria-label="Asteroid Salvage minigame"
+                    ></canvas>
+
+                    <div
+                        id="game-overlay"
+                        class="game-overlay"
+                    >
+                        <h2 id="overlay-title">
+                            Salvage run
+                        </h2>
+
+                        <p id="overlay-text">
+                            Click grey and gold asteroids.
+                            Avoid the red mines.
+                        </p>
+
+                        <button
+                            id="start-game-button"
+                            type="button"
+                            disabled
+                        >
+                            Start salvage run
+                        </button>
+                    </div>
+                </div>
+
+                <div class="recovery-instructions">
+                    <div>
+                        <span class="target-example asteroid-example">
+                        </span>
+
+                        <p>
+                            Grey asteroid:
+                            <strong>+1</strong>
+                        </p>
+                    </div>
+
+                    <div>
+                        <span class="target-example gold-example">
+                        </span>
+
+                        <p>
+                            Gold asteroid:
+                            <strong>+3</strong>
+                        </p>
+                    </div>
+
+                    <div>
+                        <span class="target-example mine-example">
+                        </span>
+
+                        <p>
+                            Red mine:
+                            <strong>−2</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <p class="recovery-rules">
+                    A successful reward has a six-hour cooldown.
+                    Recovery cannot raise your combined wallet
+                    and poker-table bankroll above 1,000 chips.
+                </p>
+
+                <p
+                    id="recovery-message"
+                    class="form-message"
+                    role="alert"
+                ></p>
+
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="recovery.js"></script>
+</body>
+</html>
