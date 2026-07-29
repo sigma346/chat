@@ -33,6 +33,9 @@ const communityCardsElement =
 const ownHoleCardsElement =
     document.querySelector("#own-hole-cards");
 
+const hideCardsButton =
+    document.querySelector("#hide-cards-button");
+
 const opponentSeatsElement =
     document.querySelector("#opponent-seats");
 
@@ -81,6 +84,9 @@ const actionHistory =
 const leaveMatchButton =
     document.querySelector("#leave-match-button");
 
+const repairTableButton =
+    document.querySelector("#repair-table-button");
+
 const tableError =
     document.querySelector("#table-error");
 
@@ -92,7 +98,12 @@ let gameState = null;
 let tableChannel = null;
 let refreshTimer = null;
 let requestInProgress = false;
+let repairInProgress = false;
 
+let cardsHidden =
+    sessionStorage.getItem(
+        `poker-cards-hidden-${tableId}`
+    ) === "true";
 
 function formatChips(value) {
     return new Intl.NumberFormat("en-GB").format(
@@ -123,16 +134,28 @@ function setRequestInProgress(value) {
         checkCallButton,
         allInButton,
         betRaiseButton,
-        leaveMatchButton
+        leaveMatchButton,
+        repairTableButton
     ];
+
 
     for (const button of buttons) {
         button.disabled = value;
     }
 
+
+    for (
+        const button
+        of document.querySelectorAll(
+            ".kick-player-button"
+        )
+    ) {
+        button.disabled = value;
+    }
+
+
     raiseAmountInput.disabled = value;
 }
-
 
 function suitSymbol(suit) {
     switch (suit) {
@@ -487,6 +510,18 @@ function createPlayerSeat(
 
 
     if (
+        isOwnPlayer
+        && cardsHidden
+        && player.in_hand
+    ) {
+        renderCardRow(
+            cardRow,
+            [],
+            2,
+            true
+        );
+
+    } else if (
         Array.isArray(player.hole_cards)
     ) {
         renderCardRow(
@@ -514,9 +549,48 @@ function createPlayerSeat(
     );
 
 
+    const currentUserIsHost =
+        gameState.table.host_id
+        === gameState.you.user_id;
+
+
+    if (
+        currentUserIsHost
+        && !isOwnPlayer
+    ) {
+        const kickButton =
+            document.createElement("button");
+
+        kickButton.type = "button";
+
+        kickButton.className =
+            "kick-player-button danger-button";
+
+        kickButton.textContent =
+            player.last_action === "kicked"
+                ? "Removal pending"
+                : "Kick";
+
+
+        kickButton.disabled =
+            requestInProgress
+            || player.last_action === "kicked";
+
+
+        kickButton.addEventListener(
+            "click",
+            () => {
+                kickPlayer(player);
+            }
+        );
+
+
+        container.append(kickButton);
+    }
+
+
     return container;
 }
-
 
 function renderSeats(players) {
     opponentSeatsElement.replaceChildren();
@@ -909,12 +983,31 @@ function renderGameState(state) {
     );
 
 
-    renderCardRow(
-        ownHoleCardsElement,
-        state.you.hole_cards ?? [],
-        2,
-        Boolean(state.hand)
-    );
+    const ownCards =
+        state.you.hole_cards ?? [];
+
+
+    if (
+        cardsHidden
+        && ownCards.length > 0
+    ) {
+        renderCardRow(
+            ownHoleCardsElement,
+            [],
+            2,
+            true
+        );
+    } else {
+        renderCardRow(
+            ownHoleCardsElement,
+            ownCards,
+            2,
+            Boolean(state.hand)
+        );
+    }
+
+
+    updateHideCardsButton();
 
 
     renderSeats(
@@ -965,13 +1058,49 @@ async function loadGameState() {
 
 
     if (error) {
+        /*
+            A kicked player is redirected after their seat
+            is removed.
+        */
+
+        if (
+            error.message?.includes(
+                "not seated"
+            )
+        ) {
+            window.location.href =
+                "poker.html";
+
+            return;
+        }
+
+
         throw error;
+    }
+
+
+    /*
+        Repair old database damage automatically when the
+        turn references a missing, folded or all-in player.
+    */
+
+    if (pokerStateNeedsRepair(data)) {
+        const repairedState =
+            await repairPokerTable();
+
+
+        if (repairedState) {
+            renderGameState(
+                repairedState
+            );
+        }
+
+        return;
     }
 
 
     renderGameState(data);
 }
-
 
 async function performPokerAction(
     action,
@@ -1138,6 +1267,63 @@ allInButton.addEventListener(
     }
 );
 
+hideCardsButton.addEventListener(
+    "click",
+    () => {
+        cardsHidden =
+            !cardsHidden;
+
+
+        sessionStorage.setItem(
+            `poker-cards-hidden-${tableId}`,
+            String(cardsHidden)
+        );
+
+
+        if (gameState) {
+            renderGameState(
+                gameState
+            );
+        }
+    }
+);
+
+
+repairTableButton.addEventListener(
+    "click",
+    async () => {
+        setRequestInProgress(true);
+        showError();
+
+
+        try {
+            const repairedState =
+                await repairPokerTable();
+
+
+            if (repairedState) {
+                renderGameState(
+                    repairedState
+                );
+            }
+
+        } catch (error) {
+            console.error(error);
+
+            showError(
+                error.message ||
+                "The poker table could not be repaired."
+            );
+
+        } finally {
+            setRequestInProgress(false);
+
+            if (gameState) {
+                configureActions();
+            }
+        }
+    }
+);
 
 leaveMatchButton.addEventListener(
     "click",

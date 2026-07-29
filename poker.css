@@ -1114,3 +1114,92 @@ select:focus {
         flex-direction: column;
     }
 }
+
+.active-match-panel {
+    align-items: flex-start;
+}
+
+.active-match-list {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.active-match-link {
+    display: grid;
+    gap: 3px;
+
+    min-width: 150px;
+    padding: 10px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    background: var(--panel-light);
+    color: var(--text);
+
+    text-decoration: none;
+}
+
+.active-match-link:hover {
+    border-color: var(--accent);
+}
+
+.active-match-link span {
+    color: var(--muted);
+
+    font-size: 0.7rem;
+    text-transform: capitalize;
+}
+
+@media (max-width: 650px) {
+    .active-match-panel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .active-match-list {
+        justify-content: stretch;
+    }
+
+    .active-match-link {
+        flex: 1;
+    }
+}
+
+.own-hand-cards {
+    display: grid;
+    gap: 10px;
+}
+
+.own-hand-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 14px;
+}
+
+.own-hand-heading .eyebrow {
+    margin: 0;
+}
+
+.own-hand-heading .secondary-button {
+    padding: 6px 9px;
+
+    font-size: 0.7rem;
+}
+
+.kick-player-button {
+    width: 100%;
+    margin-top: 9px;
+    padding: 7px 9px;
+
+    font-size: 0.7rem;
+}
+
+.kick-player-button:disabled {
+    opacity: 0.5;
+}

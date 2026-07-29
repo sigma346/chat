@@ -7,11 +7,8 @@ const currentBalanceLabel =
 const activeMatchPanel =
     document.querySelector("#active-match-panel");
 
-const activeMatchText =
-    document.querySelector("#active-match-text");
-
-const returnToMatchButton =
-    document.querySelector("#return-to-match-button");
+const activeMatchList =
+    document.querySelector("#active-match-list");
 
 const createMatchForm =
     document.querySelector("#create-match-form");
@@ -38,7 +35,7 @@ const logoutButton =
 let currentUser = null;
 let currentProfile = null;
 
-let activeTableId = null;
+let activeTableIds = new Set();
 let lobbyChannel = null;
 let refreshTimer = null;
 
@@ -280,10 +277,7 @@ function createMatchCard(
             pokerTable.max_players;
 
 
-        if (activeTableId) {
-            joinButton.disabled = true;
-            joinButton.textContent = "Already seated";
-        } else if (tableIsFull) {
+        if (tableIsFull) {
             joinButton.disabled = true;
             joinButton.textContent = "Full";
         }
@@ -417,41 +411,82 @@ async function loadMatches() {
         seatResult.data ?? [];
 
 
-    const ownSeat = pokerSeats.find(
+    const ownSeats = pokerSeats.filter(
         (seat) => seat.user_id === currentUser.id
     );
 
 
-    activeTableId =
-        ownSeat?.table_id ?? null;
+    activeTableIds = new Set(
+        ownSeats.map(
+            (seat) => seat.table_id
+        )
+    );
 
 
-    if (activeTableId) {
-        const activeTable =
-            pokerTables.find(
-                (table) =>
-                    table.id === activeTableId
+    activeMatchList.replaceChildren();
+
+
+    if (ownSeats.length === 0) {
+        activeMatchPanel.classList.add("hidden");
+    } else {
+        activeMatchPanel.classList.remove("hidden");
+
+
+        for (const ownSeat of ownSeats) {
+            const activeTable =
+                pokerTables.find(
+                    (table) =>
+                        table.id === ownSeat.table_id
+                );
+
+
+            if (!activeTable) {
+                continue;
+            }
+
+
+            const link =
+                document.createElement("a");
+
+            link.className =
+                "active-match-link";
+
+            link.href =
+                `poker-table.html?id=${encodeURIComponent(activeTable.id)}`;
+
+
+            const name =
+                document.createElement("strong");
+
+            name.textContent =
+                activeTable.name;
+
+
+            const details =
+                document.createElement("span");
+
+            details.textContent =
+                `${activeTable.status} · ${formatChips(ownSeat.stack)} chips`;
+
+
+            link.append(
+                name,
+                details
             );
 
 
-        activeMatchPanel.classList.remove("hidden");
-
-        activeMatchText.textContent =
-            activeTable
-                ? `You are seated at ${activeTable.name}.`
-                : "Return to your active poker match.";
-
-        returnToMatchButton.onclick = () => {
-            window.location.href =
-                `poker-table.html?id=${encodeURIComponent(activeTableId)}`;
-        };
-
-
-        createMatchButton.disabled = true;
-    } else {
-        activeMatchPanel.classList.add("hidden");
-        createMatchButton.disabled = false;
+            activeMatchList.append(link);
+        }
     }
+
+
+    /*
+        Creating another table is allowed, provided the account
+        still has enough wallet chips.
+    */
+
+    createMatchButton.disabled = false;
+
 
 
     matchList.replaceChildren();
