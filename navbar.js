@@ -17,7 +17,9 @@
             files: [
                 "poker.html",
                 "poker-table.html",
-                "blackjack-table.html"
+                "blackjack-table.html",
+                "five-card-draw-table.html",
+                "hearts-table.html"
             ]
         },
         {
@@ -75,7 +77,6 @@
         });
 
         navbar.append(logoutButton);
-
         return navbar;
     }
 
@@ -83,8 +84,6 @@
         const navbar = buildNavbar();
         const mount = document.querySelector("#site-navbar");
 
-        // Remove old copied navbars. Existing pages can be
-        // migrated gradually without displaying two navbars.
         document
             .querySelectorAll(".site-nav")
             .forEach((oldNavbar) => oldNavbar.remove());
@@ -96,7 +95,7 @@
 
         const layout =
             document.querySelector(
-                ".poker-layout, .plinko-layout, .recovery-layout"
+                ".poker-layout, .plinko-layout, .recovery-layout, .draw-layout, .hearts-layout, .blackjack-layout"
             )
             || document.querySelector("main > div")
             || document.querySelector("main")

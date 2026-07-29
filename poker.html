@@ -7,7 +7,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Education Perfect</title>
+    <title>Card Games</title>
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="poker.css">
@@ -21,11 +21,10 @@
             <header class="panel poker-lobby-header">
                 <div>
                     <p class="eyebrow">CARD GAMES</p>
-                    <h1>Poker and Blackjack</h1>
+                    <h1>Card-game lobby</h1>
                     <p class="description">
-                        Create a Texas Hold'em or Blackjack table,
-                        or queue for the next round of a game already
-                        in progress.
+                        Create Texas Hold'em, Five-Card Draw,
+                        Blackjack or Hearts matches from one lobby.
                     </p>
                 </div>
 
@@ -46,8 +45,8 @@
                 <div>
                     <strong>Your active games</strong>
                     <p>
-                        Open each game in its own tab. Humans finally
-                        discover multitasking, with predictable results.
+                        Each game can remain open in a separate tab,
+                        because apparently one source of chaos was insufficient.
                     </p>
                 </div>
 
@@ -74,8 +73,16 @@
                                 Texas Hold'em
                             </option>
 
+                            <option value="five_card_draw">
+                                Five-Card Draw
+                            </option>
+
                             <option value="blackjack">
                                 Blackjack
+                            </option>
+
+                            <option value="hearts">
+                                Hearts
                             </option>
                         </select>
                     </div>
@@ -94,7 +101,7 @@
                     </div>
 
                     <div
-                        id="poker-settings"
+                        id="blind-settings"
                         class="game-specific-settings"
                     >
                         <div class="form-field">
@@ -159,34 +166,70 @@
                         </div>
                     </div>
 
-                    <div class="form-field">
-                        <label for="minimum-buy-in-input">
-                            Minimum buy-in
-                        </label>
+                    <div
+                        id="standard-buy-in-settings"
+                        class="game-specific-settings"
+                    >
+                        <div class="form-field">
+                            <label for="minimum-buy-in-input">
+                                Minimum buy-in
+                            </label>
 
-                        <input
-                            id="minimum-buy-in-input"
-                            type="number"
-                            min="1"
-                            step="1"
-                            value="500"
-                            required
-                        >
+                            <input
+                                id="minimum-buy-in-input"
+                                type="number"
+                                min="1"
+                                step="1"
+                                value="500"
+                            >
+                        </div>
+
+                        <div class="form-field">
+                            <label for="maximum-buy-in-input">
+                                Maximum buy-in
+                            </label>
+
+                            <input
+                                id="maximum-buy-in-input"
+                                type="number"
+                                min="1"
+                                step="1"
+                                value="5000"
+                            >
+                        </div>
+
+                        <div class="form-field">
+                            <label for="creator-buy-in-input">
+                                Your buy-in
+                            </label>
+
+                            <input
+                                id="creator-buy-in-input"
+                                type="number"
+                                min="1"
+                                step="1"
+                                value="1000"
+                            >
+                        </div>
                     </div>
 
-                    <div class="form-field">
-                        <label for="maximum-buy-in-input">
-                            Maximum buy-in
-                        </label>
+                    <div
+                        id="hearts-settings"
+                        class="game-specific-settings hidden"
+                    >
+                        <div class="form-field">
+                            <label for="hearts-entry-stake-input">
+                                Entry stake per player
+                            </label>
 
-                        <input
-                            id="maximum-buy-in-input"
-                            type="number"
-                            min="1"
-                            step="1"
-                            value="5000"
-                            required
-                        >
+                            <input
+                                id="hearts-entry-stake-input"
+                                type="number"
+                                min="1"
+                                step="1"
+                                value="500"
+                            >
+                        </div>
                     </div>
 
                     <div class="form-field">
@@ -195,21 +238,6 @@
                         </label>
 
                         <select id="maximum-players-input" required></select>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="creator-buy-in-input">
-                            Your buy-in
-                        </label>
-
-                        <input
-                            id="creator-buy-in-input"
-                            type="number"
-                            min="1"
-                            step="1"
-                            value="1000"
-                            required
-                        >
                     </div>
 
                     <button

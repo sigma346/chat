@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Five-Card Draw</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="poker.css">
+    <link rel="stylesheet" href="five-card-draw.css">
+</head>
+
+<body>
+    <main class="page draw-page">
+        <div class="draw-layout">
+            <div id="site-navbar"></div>
+
+            <section class="panel draw-panel">
+                <header class="draw-header">
+                    <div>
+                        <p class="eyebrow">FIVE-CARD DRAW</p>
+                        <h1 id="table-name">Loading game...</h1>
+                        <p
+                            id="table-description"
+                            class="description"
+                        ></p>
+                    </div>
+
+                    <div class="poker-user-summary">
+                        <span id="current-username">Loading...</span>
+
+                        <span class="balance-badge">
+                            <span id="wallet-balance">0</span>
+                            wallet
+                        </span>
+                    </div>
+                </header>
+
+                <div class="game-information-bar">
+                    <span>
+                        Players:
+                        <strong id="player-count-label">0/0</strong>
+                    </span>
+
+                    <span>
+                        Phase:
+                        <strong id="street-label">Waiting</strong>
+                    </span>
+
+                    <span>
+                        Pot:
+                        <strong id="pot-label">0</strong>
+                    </span>
+
+                    <span>
+                        Current bet:
+                        <strong id="current-bet-label">0</strong>
+                    </span>
+                </div>
+
+                <section
+                    id="join-queue-panel"
+                    class="join-queue-panel hidden"
+                >
+                    <div>
+                        <p class="eyebrow">NEXT HAND</p>
+                        <strong>Players waiting to enter</strong>
+                    </div>
+
+                    <div
+                        id="join-queue-list"
+                        class="join-queue-list"
+                    ></div>
+                </section>
+
+                <div class="draw-table-surface">
+                    <section
+                        id="draw-player-grid"
+                        class="draw-player-grid"
+                    ></section>
+
+                    <section class="draw-centre">
+                        <p class="eyebrow">TABLE</p>
+
+                        <strong id="draw-centre-message">
+                            Waiting for a hand
+                        </strong>
+
+                        <p
+                            id="winner-message"
+                            class="winner-message"
+                        ></p>
+                    </section>
+                </div>
+
+                <section class="draw-own-hand-panel">
+                    <div class="draw-own-hand-heading">
+                        <div>
+                            <p class="eyebrow">YOUR HAND</p>
+                            <p id="draw-selection-message">
+                                Your cards will appear when the hand begins.
+                            </p>
+                        </div>
+
+                        <button
+                            id="hide-cards-button"
+                            type="button"
+                            class="secondary-button"
+                            disabled
+                        >
+                            Hide cards
+                        </button>
+                    </div>
+
+                    <div
+                        id="own-cards"
+                        class="draw-own-cards"
+                    ></div>
+                </section>
+
+                <section
+                    id="waiting-controls"
+                    class="poker-control-panel"
+                >
+                    <p id="waiting-text">Waiting for players.</p>
+
+                    <button
+                        id="start-hand-button"
+                        type="button"
+                        class="hidden"
+                    >
+                        Start hand
+                    </button>
+                </section>
+
+                <section
+                    id="betting-controls"
+                    class="poker-control-panel hidden"
+                >
+                    <div class="primary-actions">
+                        <button
+                            id="fold-button"
+                            type="button"
+                            class="danger-button"
+                        >
+                            Fold
+                        </button>
+
+                        <button
+                            id="check-call-button"
+                            type="button"
+                        >
+                            Check
+                        </button>
+
+                        <button
+                            id="all-in-button"
+                            type="button"
+                        >
+                            All in
+                        </button>
+                    </div>
+
+                    <div class="raise-controls">
+                        <label for="raise-amount-input">
+                            Total bet
+                        </label>
+
+                        <input
+                            id="raise-amount-input"
+                            type="number"
+                            min="1"
+                            step="1"
+                        >
+
+                        <button
+                            id="bet-raise-button"
+                            type="button"
+                        >
+                            Bet
+                        </button>
+                    </div>
+                </section>
+
+                <section
+                    id="draw-controls"
+                    class="poker-control-panel draw-controls hidden"
+                >
+                    <p>
+                        Select up to three cards, then draw replacements.
+                    </p>
+
+                    <button
+                        id="submit-draw-button"
+                        type="button"
+                    >
+                        Stand pat
+                    </button>
+                </section>
+
+                <p
+                    id="turn-message"
+                    class="turn-message"
+                ></p>
+
+                <div class="poker-bottom-layout">
+                    <section class="action-history-panel">
+                        <p class="eyebrow">HAND HISTORY</p>
+
+                        <ol
+                            id="action-history"
+                            class="action-history"
+                        ></ol>
+                    </section>
+
+                    <section class="match-management-panel">
+                        <button
+                            id="repair-table-button"
+                            type="button"
+                            class="secondary-button"
+                        >
+                            Repair table
+                        </button>
+
+                        <a
+                            href="poker.html"
+                            class="button-link secondary-link"
+                        >
+                            Lobby
+                        </a>
+
+                        <button
+                            id="leave-game-button"
+                            type="button"
+                            class="danger-button"
+                        >
+                            Leave game
+                        </button>
+                    </section>
+                </div>
+
+                <p
+                    id="table-error"
+                    class="form-message"
+                    role="alert"
+                ></p>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="five-card-draw-table.js"></script>
+</body>
+</html>

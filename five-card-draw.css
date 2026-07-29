@@ -1,0 +1,266 @@
+.draw-page {
+    align-items: start;
+}
+
+.draw-layout {
+    display: grid;
+    gap: 12px;
+    width: min(1120px, 100%);
+}
+
+.draw-panel {
+    padding: 22px;
+}
+
+.draw-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+}
+
+.draw-table-surface {
+    display: grid;
+    grid-template-rows: auto minmax(150px, 1fr);
+    gap: 18px;
+    min-height: 500px;
+    padding: 24px;
+    border: 11px solid #3d291d;
+    border-radius: 70px;
+    background:
+        radial-gradient(circle at center, #176e54, #0b4937 72%);
+    box-shadow:
+        inset 0 0 55px rgba(0, 0, 0, 0.42),
+        0 16px 40px rgba(0, 0, 0, 0.24);
+}
+
+.draw-player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+}
+
+.draw-player-seat {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #3d485b;
+    border-radius: 13px;
+    background: rgba(14, 19, 27, 0.95);
+}
+
+.draw-player-seat.active-turn-seat {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(85, 214, 169, 0.13);
+}
+
+.draw-player-seat.folded-seat {
+    opacity: 0.52;
+}
+
+.draw-player-seat.queued-seat {
+    border-style: dashed;
+    border-color: #53658a;
+}
+
+.draw-seat-heading,
+.draw-seat-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.draw-seat-details {
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.draw-mini-cards {
+    display: flex;
+    gap: 4px;
+    min-height: 45px;
+}
+
+.draw-mini-card {
+    width: 29px;
+    aspect-ratio: 0.7;
+    border: 2px solid #f2f4f7;
+    border-radius: 4px;
+    background:
+        repeating-linear-gradient(
+            45deg,
+            #263f87 0,
+            #263f87 5px,
+            #3855a1 5px,
+            #3855a1 10px
+        );
+}
+
+.draw-mini-card.revealed {
+    display: grid;
+    place-items: center;
+    border-width: 1px;
+    background: #f4f6f8;
+    color: #171b22;
+    font-size: 0.65rem;
+    font-weight: 900;
+}
+
+.draw-mini-card.revealed.red {
+    color: #c12737;
+}
+
+.draw-centre {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 7px;
+    text-align: center;
+}
+
+.draw-own-hand-panel {
+    display: grid;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--panel-light);
+}
+
+.draw-own-hand-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.draw-own-hand-heading p {
+    margin: 0;
+}
+
+.draw-own-hand-heading p:last-child {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.draw-own-cards {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-height: 125px;
+}
+
+.draw-card-button {
+    position: relative;
+    width: 78px;
+    aspect-ratio: 0.7;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid #cbd2db;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #fff, #e8ebef);
+    color: #141820;
+    box-shadow: 0 9px 18px rgba(0, 0, 0, 0.25);
+    transform: translateY(0);
+    transition:
+        transform 140ms ease,
+        border-color 140ms ease,
+        box-shadow 140ms ease;
+}
+
+.draw-card-button.red-card {
+    color: #c12737;
+}
+
+.draw-card-button.selectable:hover {
+    transform: translateY(-6px);
+}
+
+.draw-card-button.selected {
+    transform: translateY(-12px);
+    border-color: #ffe192;
+    box-shadow:
+        0 0 0 4px rgba(255, 225, 146, 0.16),
+        0 12px 24px rgba(0, 0, 0, 0.28);
+}
+
+.draw-card-button.face-down {
+    display: grid;
+    place-items: center;
+    border: 5px solid #f2f4f7;
+    background:
+        repeating-linear-gradient(
+            45deg,
+            #263f87 0,
+            #263f87 7px,
+            #3855a1 7px,
+            #3855a1 14px
+        );
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 2rem;
+}
+
+.draw-card-rank {
+    position: absolute;
+    top: 7px;
+    left: 8px;
+    font-size: 0.9rem;
+    font-weight: 900;
+}
+
+.draw-card-suit {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 2.3rem;
+}
+
+.draw-controls p {
+    margin: 0;
+}
+
+.draw-kick-button {
+    width: 100%;
+    padding: 7px;
+    font-size: 0.7rem;
+}
+
+@media (max-width: 760px) {
+    .draw-header,
+    .draw-own-hand-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .draw-table-surface {
+        min-height: 580px;
+        padding: 16px 10px;
+        border-width: 8px;
+        border-radius: 30px;
+    }
+
+    .draw-player-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .draw-panel {
+        padding: 14px 10px;
+    }
+
+    .draw-player-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .draw-card-button {
+        width: 58px;
+    }
+}

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Hearts</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="poker.css">
+    <link rel="stylesheet" href="hearts.css">
+</head>
+
+<body>
+    <main class="page hearts-page">
+        <div class="hearts-layout">
+            <div id="site-navbar"></div>
+
+            <section class="panel hearts-panel">
+                <header class="hearts-header">
+                    <div>
+                        <p class="eyebrow">HEARTS</p>
+                        <h1 id="table-name">Loading match...</h1>
+                        <p
+                            id="table-description"
+                            class="description"
+                        ></p>
+                    </div>
+
+                    <div class="poker-user-summary">
+                        <span id="current-username">Loading...</span>
+
+                        <span class="balance-badge">
+                            <span id="wallet-balance">0</span>
+                            wallet
+                        </span>
+                    </div>
+                </header>
+
+                <div class="hearts-information-bar">
+                    <span>
+                        Players:
+                        <strong id="player-count-label">0/4</strong>
+                    </span>
+
+                    <span>
+                        Hand:
+                        <strong id="hand-number-label">Waiting</strong>
+                    </span>
+
+                    <span>
+                        Pass:
+                        <strong id="pass-direction-label">Waiting</strong>
+                    </span>
+
+                    <span>
+                        Trick:
+                        <strong id="trick-number-label">0/13</strong>
+                    </span>
+                </div>
+
+                <section class="hearts-score-panel">
+                    <div>
+                        <p class="eyebrow">SCORES</p>
+                        <strong>Lowest score wins</strong>
+                    </div>
+
+                    <div
+                        id="score-list"
+                        class="hearts-score-list"
+                    ></div>
+                </section>
+
+                <div class="hearts-table-surface">
+                    <section
+                        id="hearts-player-grid"
+                        class="hearts-player-grid"
+                    ></section>
+
+                    <section class="hearts-trick-centre">
+                        <p class="eyebrow">CURRENT TRICK</p>
+
+                        <div
+                            id="current-trick"
+                            class="current-trick"
+                        ></div>
+
+                        <strong id="turn-description">
+                            Waiting for the match
+                        </strong>
+
+                        <p
+                            id="winner-message"
+                            class="winner-message"
+                        ></p>
+                    </section>
+                </div>
+
+                <section class="hearts-own-hand-panel">
+                    <div>
+                        <p class="eyebrow">YOUR HAND</p>
+                        <p id="hand-instruction">
+                            Your cards will appear when the match begins.
+                        </p>
+                    </div>
+
+                    <div
+                        id="own-hearts-cards"
+                        class="own-hearts-cards"
+                    ></div>
+                </section>
+
+                <section
+                    id="waiting-controls"
+                    class="poker-control-panel"
+                >
+                    <p id="waiting-text">
+                        Waiting for four players.
+                    </p>
+
+                    <button
+                        id="start-game-button"
+                        type="button"
+                        class="hidden"
+                    >
+                        Start Hearts match
+                    </button>
+                </section>
+
+                <section
+                    id="pass-controls"
+                    class="poker-control-panel hearts-action-controls hidden"
+                >
+                    <p>
+                        Select exactly three cards to pass.
+                    </p>
+
+                    <button
+                        id="submit-pass-button"
+                        type="button"
+                        disabled
+                    >
+                        Pass 3 cards
+                    </button>
+                </section>
+
+                <section
+                    id="play-controls"
+                    class="poker-control-panel hearts-action-controls hidden"
+                >
+                    <p>
+                        Select one card, then confirm the play.
+                    </p>
+
+                    <button
+                        id="play-card-button"
+                        type="button"
+                        disabled
+                    >
+                        Play selected card
+                    </button>
+                </section>
+
+                <p
+                    id="turn-message"
+                    class="turn-message"
+                ></p>
+
+                <div class="hearts-bottom-layout">
+                    <section class="hearts-trick-history-panel">
+                        <p class="eyebrow">RECENT TRICKS</p>
+
+                        <ol
+                            id="trick-history"
+                            class="hearts-trick-history"
+                        ></ol>
+                    </section>
+
+                    <section class="match-management-panel">
+                        <button
+                            id="cancel-game-button"
+                            type="button"
+                            class="secondary-button hidden"
+                        >
+                            Cancel match
+                        </button>
+
+                        <a
+                            href="poker.html"
+                            class="button-link secondary-link"
+                        >
+                            Lobby
+                        </a>
+
+                        <button
+                            id="leave-game-button"
+                            type="button"
+                            class="danger-button"
+                        >
+                            Leave game
+                        </button>
+                    </section>
+                </div>
+
+                <p
+                    id="table-error"
+                    class="form-message"
+                    role="alert"
+                ></p>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="hearts-table.js"></script>
+</body>
+</html>

@@ -19,11 +19,17 @@ const gameTypeInput =
 const gameNameInput =
     document.querySelector("#game-name-input");
 
-const pokerSettings =
-    document.querySelector("#poker-settings");
+const blindSettings =
+    document.querySelector("#blind-settings");
 
 const blackjackSettings =
     document.querySelector("#blackjack-settings");
+
+const standardBuyInSettings =
+    document.querySelector("#standard-buy-in-settings");
+
+const heartsSettings =
+    document.querySelector("#hearts-settings");
 
 const smallBlindInput =
     document.querySelector("#small-blind-input");
@@ -43,11 +49,14 @@ const minimumBuyInInput =
 const maximumBuyInInput =
     document.querySelector("#maximum-buy-in-input");
 
-const maximumPlayersInput =
-    document.querySelector("#maximum-players-input");
-
 const creatorBuyInInput =
     document.querySelector("#creator-buy-in-input");
+
+const heartsEntryStakeInput =
+    document.querySelector("#hearts-entry-stake-input");
+
+const maximumPlayersInput =
+    document.querySelector("#maximum-players-input");
 
 const createGameButton =
     document.querySelector("#create-game-button");
@@ -89,26 +98,65 @@ function showListMessage(message = "") {
 
 
 function gamePageFor(gameTable) {
-    return gameTable.game_type === "blackjack"
-        ? "blackjack-table.html"
-        : "poker-table.html";
+    switch (gameTable.game_type) {
+        case "blackjack":
+            return "blackjack-table.html";
+
+        case "five_card_draw":
+            return "five-card-draw-table.html";
+
+        case "hearts":
+            return "hearts-table.html";
+
+        default:
+            return "poker-table.html";
+    }
 }
 
 
 function gameLabel(gameType) {
-    return gameType === "blackjack"
-        ? "Blackjack"
-        : "Texas Hold'em";
+    switch (gameType) {
+        case "blackjack":
+            return "Blackjack";
+
+        case "five_card_draw":
+            return "Five-Card Draw";
+
+        case "hearts":
+            return "Hearts";
+
+        default:
+            return "Texas Hold'em";
+    }
+}
+
+
+function gameUsesBlinds(gameType) {
+    return gameType === "poker"
+        || gameType === "five_card_draw";
 }
 
 
 function rebuildPlayerOptions() {
-    const blackjackSelected =
-        gameTypeInput.value === "blackjack";
+    const gameType = gameTypeInput.value;
 
-    const minimum = blackjackSelected ? 1 : 2;
-    const maximum = blackjackSelected ? 7 : 9;
-    const preferred = blackjackSelected ? 5 : 6;
+    let minimum = 2;
+    let maximum = 9;
+    let preferred = 6;
+
+    if (gameType === "blackjack") {
+        minimum = 1;
+        maximum = 7;
+        preferred = 5;
+    } else if (gameType === "five_card_draw") {
+        minimum = 2;
+        maximum = 6;
+        preferred = 5;
+    } else if (gameType === "hearts") {
+        minimum = 4;
+        maximum = 4;
+        preferred = 4;
+    }
 
     maximumPlayersInput.replaceChildren();
 
@@ -121,35 +169,31 @@ function rebuildPlayerOptions() {
         option.value = String(playerCount);
         option.textContent =
             `${playerCount} player${playerCount === 1 ? "" : "s"}`;
-
-        if (playerCount === preferred) {
-            option.selected = true;
-        }
-
+        option.selected = playerCount === preferred;
         maximumPlayersInput.append(option);
     }
 }
 
 
 function updateGameTypeFields() {
-    const blackjackSelected =
-        gameTypeInput.value === "blackjack";
+    const gameType = gameTypeInput.value;
+    const usesBlinds = gameUsesBlinds(gameType);
+    const isBlackjack = gameType === "blackjack";
+    const isHearts = gameType === "hearts";
 
-    pokerSettings.classList.toggle(
-        "hidden",
-        blackjackSelected
-    );
+    blindSettings.classList.toggle("hidden", !usesBlinds);
+    blackjackSettings.classList.toggle("hidden", !isBlackjack);
+    standardBuyInSettings.classList.toggle("hidden", isHearts);
+    heartsSettings.classList.toggle("hidden", !isHearts);
 
-    blackjackSettings.classList.toggle(
-        "hidden",
-        !blackjackSelected
-    );
-
-    smallBlindInput.required = !blackjackSelected;
-    bigBlindInput.required = !blackjackSelected;
-
-    blackjackMinimumBetInput.required = blackjackSelected;
-    blackjackMaximumBetInput.required = blackjackSelected;
+    smallBlindInput.required = usesBlinds;
+    bigBlindInput.required = usesBlinds;
+    blackjackMinimumBetInput.required = isBlackjack;
+    blackjackMaximumBetInput.required = isBlackjack;
+    minimumBuyInInput.required = !isHearts;
+    maximumBuyInInput.required = !isHearts;
+    creatorBuyInInput.required = !isHearts;
+    heartsEntryStakeInput.required = isHearts;
 
     rebuildPlayerOptions();
 }
@@ -192,6 +236,10 @@ function createGameCard(gameTable, seatsAtTable) {
         (seat) => seat.queued_for_next_hand
     ).length;
 
+    const activeHeartsMatch =
+        gameTable.game_type === "hearts"
+        && gameTable.status === "playing";
+
     const card = document.createElement("article");
     card.className = "match-card";
 
@@ -226,30 +274,49 @@ function createGameCard(gameTable, seatsAtTable) {
         createInformationItem(
             "Seats",
             `${seatsAtTable.length}/${gameTable.max_players}`
-        ),
-        createInformationItem(
-            "Buy-in",
-            `${formatChips(gameTable.min_buy_in)}–${formatChips(gameTable.max_buy_in)}`
         )
     );
 
-    if (gameTable.game_type === "blackjack") {
+    if (gameTable.game_type === "hearts") {
         information.append(
             createInformationItem(
-                "Bet limits",
-                `${formatChips(gameTable.blackjack_min_bet)}–${formatChips(gameTable.blackjack_max_bet)}`
+                "Entry stake",
+                `${formatChips(gameTable.min_buy_in)} each`
+            ),
+            createInformationItem(
+                "Format",
+                "First to 100 points"
             )
         );
     } else {
         information.append(
             createInformationItem(
-                "Blinds",
-                `${formatChips(gameTable.small_blind)} / ${formatChips(gameTable.big_blind)}`
+                "Buy-in",
+                `${formatChips(gameTable.min_buy_in)}–${formatChips(gameTable.max_buy_in)}`
             )
         );
+
+        if (gameTable.game_type === "blackjack") {
+            information.append(
+                createInformationItem(
+                    "Bet limits",
+                    `${formatChips(gameTable.blackjack_min_bet)}–${formatChips(gameTable.blackjack_max_bet)}`
+                )
+            );
+        } else {
+            information.append(
+                createInformationItem(
+                    "Blinds",
+                    `${formatChips(gameTable.small_blind)} / ${formatChips(gameTable.big_blind)}`
+                )
+            );
+        }
     }
 
-    if (gameTable.status === "playing") {
+    if (
+        gameTable.status === "playing"
+        && gameTable.game_type !== "hearts"
+    ) {
         information.append(
             createInformationItem(
                 "Next round queue",
@@ -271,6 +338,12 @@ function createGameCard(gameTable, seatsAtTable) {
             : "Open game";
 
         controls.append(openButton);
+    } else if (activeHeartsMatch) {
+        const unavailable = document.createElement("button");
+        unavailable.type = "button";
+        unavailable.disabled = true;
+        unavailable.textContent = "Match in progress";
+        controls.append(unavailable);
     } else {
         const buyInGroup = document.createElement("div");
         buyInGroup.className = "join-buy-in-group";
@@ -278,7 +351,9 @@ function createGameCard(gameTable, seatsAtTable) {
         const label = document.createElement("label");
         label.textContent = gameTable.status === "playing"
             ? "Next-round buy-in"
-            : "Buy-in";
+            : gameTable.game_type === "hearts"
+                ? "Entry stake"
+                : "Buy-in";
 
         const input = document.createElement("input");
         input.type = "number";
@@ -286,14 +361,14 @@ function createGameCard(gameTable, seatsAtTable) {
         input.max = gameTable.max_buy_in;
         input.step = "1";
         input.value = String(
-            Math.min(
-                Number(gameTable.max_buy_in),
-                Math.max(
-                    Number(gameTable.min_buy_in),
-                    1000
+            gameTable.game_type === "hearts"
+                ? Number(gameTable.min_buy_in)
+                : Math.min(
+                    Number(gameTable.max_buy_in),
+                    Math.max(Number(gameTable.min_buy_in), 1000)
                 )
-            )
         );
+        input.disabled = gameTable.game_type === "hearts";
 
         buyInGroup.append(label, input);
 
@@ -521,28 +596,47 @@ createGameForm.addEventListener("submit", async (event) => {
 
     try {
         const gameType = gameTypeInput.value;
-        const minimumBuyIn = parseWholeNumber(
-            minimumBuyInInput,
-            "Minimum buy-in"
-        );
-        const maximumBuyIn = parseWholeNumber(
-            maximumBuyInInput,
-            "Maximum buy-in"
-        );
-        const creatorBuyIn = parseWholeNumber(
-            creatorBuyInInput,
-            "Your buy-in"
-        );
+        const heartsGame = gameType === "hearts";
+        const usesBlinds = gameUsesBlinds(gameType);
+
+        const heartsStake = heartsGame
+            ? parseWholeNumber(
+                heartsEntryStakeInput,
+                "Hearts entry stake"
+            )
+            : null;
+
+        const minimumBuyIn = heartsGame
+            ? heartsStake
+            : parseWholeNumber(
+                minimumBuyInInput,
+                "Minimum buy-in"
+            );
+
+        const maximumBuyIn = heartsGame
+            ? heartsStake
+            : parseWholeNumber(
+                maximumBuyInInput,
+                "Maximum buy-in"
+            );
+
+        const creatorBuyIn = heartsGame
+            ? heartsStake
+            : parseWholeNumber(
+                creatorBuyInInput,
+                "Your buy-in"
+            );
+
         const maximumPlayers = parseWholeNumber(
             maximumPlayersInput,
             "Maximum players"
         );
 
-        const smallBlind = gameType === "poker"
+        const smallBlind = usesBlinds
             ? parseWholeNumber(smallBlindInput, "Small blind")
             : 1;
 
-        const bigBlind = gameType === "poker"
+        const bigBlind = usesBlinds
             ? parseWholeNumber(bigBlindInput, "Big blind")
             : 2;
 
@@ -581,12 +675,8 @@ createGameForm.addEventListener("submit", async (event) => {
             throw error;
         }
 
-        const page = gameType === "blackjack"
-            ? "blackjack-table.html"
-            : "poker-table.html";
-
         window.location.href =
-            `${page}?id=${encodeURIComponent(tableId)}`;
+            `${gamePageFor({ game_type: gameType })}?id=${encodeURIComponent(tableId)}`;
     } catch (error) {
         console.error(error);
         showCreateMessage(

@@ -1439,3 +1439,25 @@ select:focus {
         flex-direction: column;
     }
 }
+
+/* Append this to the bottom of poker.css. */
+
+.game-type-badge.five_card_draw {
+    border: 1px solid #6d4f8d;
+    background: rgba(109, 79, 141, 0.24);
+    color: #dec8f4;
+}
+
+.game-type-badge.hearts {
+    border: 1px solid #8b4051;
+    background: rgba(139, 64, 81, 0.24);
+    color: #ffc1cc;
+}
+
+#hearts-settings .form-field {
+    min-width: 180px;
+}
+
+.create-game-form .game-specific-settings {
+    align-items: end;
+}
