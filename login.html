@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Log In</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body>
+    <main class="page">
+        <section class="panel auth-panel">
+            <p class="eyebrow">RETURNING PLAYER</p>
+
+            <h1>Log in</h1>
+
+            <p class="description">
+                Continue with your account and play chips.
+            </p>
+
+            <form id="login-form" class="auth-form">
+                <label for="email-input">
+                    Email
+                </label>
+
+                <input
+                    id="email-input"
+                    type="email"
+                    autocomplete="email"
+                    placeholder="Email address"
+                    required
+                >
+
+                <label for="password-input">
+                    Password
+                </label>
+
+                <input
+                    id="password-input"
+                    type="password"
+                    autocomplete="current-password"
+                    placeholder="Password"
+                    required
+                >
+
+                <button id="login-button" type="submit">
+                    Log in
+                </button>
+            </form>
+
+            <p
+                id="login-message"
+                class="form-message"
+                role="alert"
+            ></p>
+
+            <p class="auth-link">
+                No account?
+                <a href="register.html">Create one</a>
+            </p>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>

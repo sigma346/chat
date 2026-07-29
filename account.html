@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Account</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body>
+    <main class="page">
+        <div class="account-layout">
+            <nav class="site-nav">
+                <a href="index.html" class="nav-link">
+                    Chat
+                </a>
+
+                <a href="poker.html" class="nav-link">
+                    Poker
+                </a>
+
+                <a href="account.html" class="nav-link active">
+                    Account
+                </a>
+                <button
+                    id="logout-button"
+                    class="nav-button"
+                    type="button"
+                >
+                    Log out
+                </button>
+            </nav>
+
+            <section class="panel auth-panel account-panel">
+                <p class="eyebrow">PLAYER ACCOUNT</p>
+
+                <h1>Your account</h1>
+
+                <div class="account-details">
+                    <div class="account-stat">
+                        <span class="account-label">
+                            Username
+                        </span>
+
+                        <strong id="account-username">
+                            Loading...
+                        </strong>
+                    </div>
+
+                    <div class="account-stat">
+                        <span class="account-label">
+                            Email
+                        </span>
+
+                        <strong id="account-email">
+                            Loading...
+                        </strong>
+                    </div>
+
+                    <div class="account-stat">
+                        <span class="account-label">
+                            Player ID
+                        </span>
+
+                        <strong id="account-id">
+                            Loading...
+                        </strong>
+                    </div>
+
+                    <div class="account-stat">
+                        <span class="account-label">
+                            Play chips
+                        </span>
+
+                        <strong id="account-chips">
+                            0
+                        </strong>
+                    </div>
+                </div>
+
+                <hr>
+
+                <form
+                    id="username-form"
+                    class="auth-form"
+                >
+                    <label for="new-username-input">
+                        Change username
+                    </label>
+
+                    <input
+                        id="new-username-input"
+                        type="text"
+                        minlength="3"
+                        maxlength="20"
+                        pattern="[A-Za-z0-9_]+"
+                        required
+                    >
+
+                    <button type="submit">
+                        Save username
+                    </button>
+                </form>
+
+                <p
+                    id="account-message"
+                    class="form-message"
+                    role="alert"
+                ></p>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="account.js"></script>
+</body>
+</html>

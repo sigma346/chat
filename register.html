@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Create Account</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body>
+    <main class="page">
+        <section class="panel auth-panel">
+            <p class="eyebrow">NEW PLAYER</p>
+
+            <h1>Create account</h1>
+
+            <p class="description">
+                New accounts receive 10,000 play chips.
+            </p>
+
+            <form id="register-form" class="auth-form">
+                <label for="username-input">
+                    Username
+                </label>
+
+                <input
+                    id="username-input"
+                    type="text"
+                    minlength="3"
+                    maxlength="20"
+                    pattern="[A-Za-z0-9_]+"
+                    autocomplete="username"
+                    placeholder="Username"
+                    required
+                >
+
+                <small>
+                    Letters, numbers and underscores only.
+                </small>
+
+                <label for="email-input">
+                    Email
+                </label>
+
+                <input
+                    id="email-input"
+                    type="email"
+                    autocomplete="email"
+                    placeholder="Email address"
+                    required
+                >
+
+                <label for="password-input">
+                    Password
+                </label>
+
+                <input
+                    id="password-input"
+                    type="password"
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="At least 8 characters"
+                    required
+                >
+
+                <label for="confirm-password-input">
+                    Confirm password
+                </label>
+
+                <input
+                    id="confirm-password-input"
+                    type="password"
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="Repeat password"
+                    required
+                >
+
+                <button id="register-button" type="submit">
+                    Create account
+                </button>
+            </form>
+
+            <p
+                id="register-message"
+                class="form-message"
+                role="alert"
+            ></p>
+
+            <p class="auth-link">
+                Already registered?
+                <a href="login.html">Log in</a>
+            </p>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="register.js"></script>
+</body>
+</html>

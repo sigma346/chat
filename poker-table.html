@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Poker Match</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="poker.css">
+</head>
+
+<body>
+    <main class="page poker-page">
+        <div class="poker-layout">
+
+            <nav class="site-nav">
+                <a href="index.html" class="nav-link">
+                    Chat
+                </a>
+
+                <a href="poker.html" class="nav-link active">
+                    Poker
+                </a>
+
+                <a href="account.html" class="nav-link">
+                    Account
+                </a>
+
+                <button
+                    id="logout-button"
+                    class="nav-button"
+                    type="button"
+                >
+                    Log out
+                </button>
+            </nav>
+
+            <section class="panel poker-table-panel">
+
+                <header class="poker-table-heading">
+                    <div>
+                        <p class="eyebrow">MATCH WAITING ROOM</p>
+
+                        <h1 id="table-name">
+                            Loading match...
+                        </h1>
+
+                        <p id="table-details" class="description">
+                            Loading match settings...
+                        </p>
+                    </div>
+
+                    <div class="poker-user-summary">
+                        <span id="current-username">
+                            Loading...
+                        </span>
+
+                        <span class="balance-badge">
+                            <span id="current-balance">0</span>
+                            wallet chips
+                        </span>
+                    </div>
+                </header>
+
+                <div class="table-status-bar">
+                    <span>
+                        Status:
+                        <strong id="table-status">
+                            Loading
+                        </strong>
+                    </span>
+
+                    <span>
+                        Players:
+                        <strong id="player-count">
+                            0/0
+                        </strong>
+                    </span>
+                </div>
+
+                <div
+                    id="poker-seat-grid"
+                    class="poker-seat-grid"
+                ></div>
+
+                <div class="waiting-room-actions">
+                    <a
+                        href="poker.html"
+                        class="button-link secondary-link"
+                    >
+                        Return to lobby
+                    </a>
+
+                    <button
+                        id="leave-match-button"
+                        class="danger-button hidden"
+                        type="button"
+                    >
+                        Leave match
+                    </button>
+                </div>
+
+                <p class="waiting-room-note">
+                    Once this waiting-room system is working,
+                    the next stage adds ready states, starting
+                    the hand, dealing cards and betting.
+                </p>
+
+                <p
+                    id="table-message"
+                    class="form-message"
+                    role="alert"
+                ></p>
+
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="poker-table.js"></script>
+</body>
+</html>

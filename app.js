@@ -1,64 +1,59 @@
-const config = window.CHAT_CONFIG;
+const messageList =
+    document.querySelector("#message-list");
 
-/*
-    Page elements
-*/
+const messageForm =
+    document.querySelector("#message-form");
 
-const joinScreen = document.querySelector("#join-screen");
-const chatScreen = document.querySelector("#chat-screen");
+const messageInput =
+    document.querySelector("#message-input");
 
-const joinForm = document.querySelector("#join-form");
-const nicknameInput = document.querySelector("#nickname-input");
-const joinButton = document.querySelector("#join-button");
-const joinError = document.querySelector("#join-error");
+const sendButton =
+    document.querySelector("#send-button");
 
-const currentUserLabel = document.querySelector("#current-user");
-const changeNameButton = document.querySelector("#change-name-button");
+const chatError =
+    document.querySelector("#chat-error");
 
-const connectionStatus = document.querySelector(
-    "#connection-status"
-);
+const currentUserLabel =
+    document.querySelector("#current-user");
 
-const messageList = document.querySelector("#message-list");
+const currentUserIdLabel =
+    document.querySelector("#current-user-id");
 
-const messageForm = document.querySelector("#message-form");
-const messageInput = document.querySelector("#message-input");
-const sendButton = document.querySelector("#send-button");
-const chatError = document.querySelector("#chat-error");
+const chipBalanceLabel =
+    document.querySelector("#chip-balance");
 
-/*
-    Application state
-*/
+const connectionStatus =
+    document.querySelector("#connection-status");
 
-let supabaseClient = null;
-let currentSession = null;
-let currentNickname = "";
+const logoutButton =
+    document.querySelector("#logout-button");
+
+let currentUser = null;
+let currentProfile = null;
 let realtimeChannel = null;
 
 const displayedMessageIds = new Set();
 
-/*
-    General helper functions
-*/
-
-function showError(element, message = "") {
-    element.textContent = message;
+function shortUserId(userId) {
+    return userId
+        .replaceAll("-", "")
+        .slice(0, 6)
+        .toUpperCase();
 }
 
-function validateConfiguration() {
-    const missingUrl =
-        !config?.supabaseUrl ||
-        config.supabaseUrl.includes("YOUR_SUPABASE");
+function formatChips(chips) {
+    return new Intl.NumberFormat("en-GB").format(chips);
+}
 
-    const missingKey =
-        !config?.supabaseKey ||
-        config.supabaseKey.includes("YOUR_SUPABASE");
+function formatTime(timestamp) {
+    return new Intl.DateTimeFormat(undefined, {
+        hour: "2-digit",
+        minute: "2-digit"
+    }).format(new Date(timestamp));
+}
 
-    if (missingUrl || missingKey) {
-        throw new Error(
-            "Add your Supabase URL and publishable key to config.js."
-        );
-    }
+function showChatError(message = "") {
+    chatError.textContent = message;
 }
 
 function updateConnectionStatus(message, state = "") {
@@ -68,39 +63,24 @@ function updateConnectionStatus(message, state = "") {
         `connection-status ${state}`.trim();
 }
 
-function formatTime(timestamp) {
-    const date = new Date(timestamp);
-
-    return new Intl.DateTimeFormat(undefined, {
-        hour: "2-digit",
-        minute: "2-digit"
-    }).format(date);
-}
-
-function isNearBottomOfMessages() {
-    const distanceFromBottom =
+function isNearBottom() {
+    const distance =
         messageList.scrollHeight -
         messageList.scrollTop -
         messageList.clientHeight;
 
-    return distanceFromBottom < 120;
+    return distance < 120;
 }
 
 function scrollToBottom() {
-    messageList.scrollTop = messageList.scrollHeight;
+    messageList.scrollTop =
+        messageList.scrollHeight;
 }
 
-/*
-    Empty message display
-*/
-
 function removeEmptyMessage() {
-    const emptyMessage =
-        document.querySelector("#empty-message");
-
-    if (emptyMessage) {
-        emptyMessage.remove();
-    }
+    document
+        .querySelector("#empty-message")
+        ?.remove();
 }
 
 function showEmptyMessage() {
@@ -108,45 +88,37 @@ function showEmptyMessage() {
         return;
     }
 
-    const emptyMessage = document.createElement("li");
+    const emptyMessage =
+        document.createElement("li");
 
     emptyMessage.id = "empty-message";
     emptyMessage.className = "empty-message";
 
     emptyMessage.textContent =
-        "No messages yet. A rare moment of internet peace.";
+        "No messages yet.";
 
     messageList.append(emptyMessage);
 }
 
-/*
-    Message rendering
-*/
-
 function displayMessage(message, forceScroll = false) {
-    if (!message?.id) {
-        return;
-    }
-
-    if (displayedMessageIds.has(message.id)) {
+    if (
+        !message?.id ||
+        displayedMessageIds.has(message.id)
+    ) {
         return;
     }
 
     const shouldScroll =
-        forceScroll || isNearBottomOfMessages();
+        forceScroll || isNearBottom();
 
     displayedMessageIds.add(message.id);
-    removeEmptyMessage();
 
-    /*
-        Check whether the previous visible message
-        was sent by the same user.
-    */
+    removeEmptyMessage();
 
     const previousMessage =
         messageList.lastElementChild;
 
-    const isGroupedMessage =
+    const groupedMessage =
         previousMessage?.classList.contains("message") &&
         previousMessage.dataset.userId === message.user_id;
 
@@ -156,63 +128,72 @@ function displayMessage(message, forceScroll = false) {
     messageElement.className = "message";
     messageElement.dataset.userId = message.user_id;
 
-    const isOwnMessage =
-        currentSession?.user?.id === message.user_id;
+    const ownMessage =
+        currentUser.id === message.user_id;
 
-    if (isOwnMessage) {
+    if (ownMessage) {
         messageElement.classList.add("own-message");
     }
 
-    if (isGroupedMessage) {
+    if (groupedMessage) {
         messageElement.classList.add("grouped-message");
     }
 
-    /*
-        Only display the username and time when this
-        is the first message in a group.
-    */
-
-    if (!isGroupedMessage) {
-        const messageInformation =
+    if (!groupedMessage) {
+        const informationElement =
             document.createElement("div");
 
-        messageInformation.className =
+        informationElement.className =
             "message-information";
 
         const authorElement =
             document.createElement("span");
 
-        authorElement.className = "message-author";
-        authorElement.textContent = message.username;
+        authorElement.className =
+            "message-author";
+
+        authorElement.textContent =
+            message.username;
+
+        const idElement =
+            document.createElement("span");
+
+        idElement.className = "user-id";
+
+        idElement.textContent =
+            `#${shortUserId(message.user_id)}`;
 
         const timeElement =
             document.createElement("time");
 
-        timeElement.dateTime = message.created_at;
+        timeElement.dateTime =
+            message.created_at;
+
         timeElement.textContent =
             formatTime(message.created_at);
 
-        messageInformation.append(
+        informationElement.append(
             authorElement,
+            idElement,
             timeElement
         );
 
-        messageElement.append(messageInformation);
+        messageElement.append(
+            informationElement
+        );
     }
 
     const contentElement =
         document.createElement("p");
 
-    contentElement.className = "message-content";
-    contentElement.textContent = message.content;
+    contentElement.className =
+        "message-content";
 
-    /*
-        Hovering over any message still reveals its
-        username and exact time.
-    */
+    contentElement.textContent =
+        message.content;
 
     contentElement.title =
-        `${message.username} • ${formatTime(message.created_at)}`;
+        `${message.username} #${shortUserId(message.user_id)}`;
 
     messageElement.append(contentElement);
     messageList.append(messageElement);
@@ -221,46 +202,55 @@ function displayMessage(message, forceScroll = false) {
         scrollToBottom();
     }
 }
-/*
-    Supabase authentication
-*/
 
-async function createOrRestoreSession() {
+async function loadCurrentAccount() {
     const {
-        data: sessionData,
-        error: sessionError
-    } = await supabaseClient.auth.getSession();
+        data: {
+            user
+        },
+        error: userError
+    } = await window.supabaseClient.auth.getUser();
 
-    if (sessionError) {
-        throw sessionError;
+    if (userError || !user) {
+        window.location.href = "login.html";
+        return false;
     }
 
-    if (sessionData.session) {
-        currentSession = sessionData.session;
-        return;
-    }
+    currentUser = user;
 
     const {
-        data: anonymousData,
-        error: anonymousError
-    } = await supabaseClient.auth.signInAnonymously();
+        data: profile,
+        error: profileError
+    } = await window.supabaseClient
+        .from("profiles")
+        .select("id, username, chips")
+        .eq("id", user.id)
+        .single();
 
-    if (anonymousError) {
-        throw anonymousError;
+    if (profileError) {
+        showChatError(profileError.message);
+        return false;
     }
 
-    currentSession = anonymousData.session;
+    currentProfile = profile;
+
+    currentUserLabel.textContent =
+        profile.username;
+
+    currentUserIdLabel.textContent =
+        `#${shortUserId(user.id)}`;
+
+    chipBalanceLabel.textContent =
+        formatChips(profile.chips);
+
+    return true;
 }
-
-/*
-    Load previous messages
-*/
 
 async function loadMessages() {
     const {
         data,
         error
-    } = await supabaseClient
+    } = await window.supabaseClient
         .from("messages")
         .select(
             "id, user_id, username, content, created_at"
@@ -277,14 +267,8 @@ async function loadMessages() {
     messageList.replaceChildren();
     displayedMessageIds.clear();
 
-    /*
-        The database returns newest first.
-
-        Reverse the array so the oldest message appears
-        at the top and the newest appears at the bottom.
-    */
-
-    const orderedMessages = [...data].reverse();
+    const orderedMessages =
+        [...data].reverse();
 
     for (const message of orderedMessages) {
         displayMessage(message);
@@ -294,152 +278,61 @@ async function loadMessages() {
     scrollToBottom();
 }
 
-/*
-    Realtime message subscription
-*/
-
 function subscribeToMessages() {
-    if (realtimeChannel) {
-        supabaseClient.removeChannel(realtimeChannel);
-    }
+    realtimeChannel =
+        window.supabaseClient
+            .channel("public-chat-room")
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "messages"
+                },
+                (payload) => {
+                    displayMessage(payload.new);
+                }
+            )
+            .subscribe((status) => {
+                if (status === "SUBSCRIBED") {
+                    updateConnectionStatus(
+                        "Live connection",
+                        "connected"
+                    );
 
-    realtimeChannel = supabaseClient
-        .channel("public-chat-room")
-        .on(
-            "postgres_changes",
-            {
-                event: "INSERT",
-                schema: "public",
-                table: "messages"
-            },
-            (payload) => {
-                displayMessage(payload.new);
-            }
-        )
-        .subscribe((status) => {
-            if (status === "SUBSCRIBED") {
+                    return;
+                }
+
+                if (
+                    status === "CHANNEL_ERROR" ||
+                    status === "TIMED_OUT" ||
+                    status === "CLOSED"
+                ) {
+                    updateConnectionStatus(
+                        "Connection lost. Refresh the page.",
+                        "disconnected"
+                    );
+
+                    return;
+                }
+
                 updateConnectionStatus(
-                    "Live connection",
-                    "connected"
+                    "Connecting..."
                 );
-
-                return;
-            }
-
-            if (
-                status === "CHANNEL_ERROR" ||
-                status === "TIMED_OUT" ||
-                status === "CLOSED"
-            ) {
-                updateConnectionStatus(
-                    "Connection lost. Refresh the page.",
-                    "disconnected"
-                );
-
-                return;
-            }
-
-            updateConnectionStatus("Connecting...");
-        });
+            });
 }
-
-/*
-    Enter the chat
-*/
-
-async function enterChat(chosenNickname) {
-    joinButton.disabled = true;
-
-    showError(joinError);
-
-    try {
-        validateConfiguration();
-
-        const trimmedNickname =
-            chosenNickname.trim();
-
-        if (!trimmedNickname) {
-            throw new Error("Enter a nickname.");
-        }
-
-        currentNickname = trimmedNickname;
-
-        localStorage.setItem(
-            "quick-chat-nickname",
-            currentNickname
-        );
-
-        if (!supabaseClient) {
-            supabaseClient = window.supabase.createClient(
-                config.supabaseUrl,
-                config.supabaseKey
-            );
-        }
-
-        await createOrRestoreSession();
-
-        currentUserLabel.textContent =
-            currentNickname;
-
-        joinScreen.classList.add("hidden");
-        chatScreen.classList.remove("hidden");
-
-        await loadMessages();
-
-        subscribeToMessages();
-
-        messageInput.focus();
-    } catch (error) {
-        console.error(error);
-
-        joinScreen.classList.remove("hidden");
-        chatScreen.classList.add("hidden");
-
-        showError(
-            joinError,
-            error.message || "Could not enter the chat."
-        );
-    } finally {
-        joinButton.disabled = false;
-    }
-}
-
-/*
-    Submit nickname
-*/
-
-joinForm.addEventListener(
-    "submit",
-    async (event) => {
-        event.preventDefault();
-
-        await enterChat(nicknameInput.value);
-    }
-);
-
-/*
-    Send a message
-*/
 
 messageForm.addEventListener(
     "submit",
     async (event) => {
         event.preventDefault();
 
-        showError(chatError);
+        showChatError();
 
-        const content = messageInput.value.trim();
+        const content =
+            messageInput.value.trim();
 
-        if (!content) {
-            return;
-        }
-
-        if (!currentSession?.user?.id) {
-            showError(
-                chatError,
-                "Your user session is unavailable."
-            );
-
+        if (!content || !currentUser) {
             return;
         }
 
@@ -449,12 +342,12 @@ messageForm.addEventListener(
         try {
             const {
                 error
-            } = await supabaseClient
+            } = await window.supabaseClient
                 .from("messages")
                 .insert({
-                    user_id: currentSession.user.id,
-                    username: currentNickname,
-                    content: content
+                    user_id: currentUser.id,
+                    username: currentProfile.username,
+                    content
                 });
 
             if (error) {
@@ -465,63 +358,62 @@ messageForm.addEventListener(
         } catch (error) {
             console.error(error);
 
-            showError(
-                chatError,
-                error.message || "Message failed to send."
+            showChatError(
+                error.message ||
+                "Message failed to send."
             );
         } finally {
             sendButton.disabled = false;
             messageInput.disabled = false;
-
             messageInput.focus();
         }
     }
 );
 
-/*
-    Change nickname
-*/
-
-changeNameButton.addEventListener(
+logoutButton.addEventListener(
     "click",
-    () => {
-        localStorage.removeItem(
-            "quick-chat-nickname"
-        );
+    async () => {
+        await window.supabaseClient.auth.signOut({
+            scope: "local"
+        });
 
-        location.reload();
+        window.location.href = "login.html";
     }
 );
-
-/*
-    Remove realtime subscription when leaving
-*/
 
 window.addEventListener(
     "beforeunload",
     () => {
-        if (
-            supabaseClient &&
-            realtimeChannel
-        ) {
-            supabaseClient.removeChannel(
+        if (realtimeChannel) {
+            window.supabaseClient.removeChannel(
                 realtimeChannel
             );
         }
     }
 );
 
-/*
-    Automatically restore saved nickname
-*/
+async function initialiseChat() {
+    try {
+        const accountLoaded =
+            await loadCurrentAccount();
 
-const savedNickname =
-    localStorage.getItem(
-        "quick-chat-nickname"
-    );
+        if (!accountLoaded) {
+            return;
+        }
 
-if (savedNickname) {
-    nicknameInput.value = savedNickname;
+        await loadMessages();
 
-    enterChat(savedNickname);
+        subscribeToMessages();
+
+        messageInput.focus();
+    } catch (error) {
+        console.error(error);
+
+        showChatError(
+            error.message ||
+            "The chat could not be loaded."
+        );
+    }
 }
+
+initialiseChat();

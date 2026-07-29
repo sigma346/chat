@@ -422,3 +422,128 @@ button:disabled {
         max-width: 88%;
     }
 }
+
+/* =========================================================
+   ACCOUNT NAVIGATION AND BALANCE
+   ========================================================= */
+
+.site-layout {
+    display: grid;
+    gap: 12px;
+
+    width: 100%;
+}
+
+.site-nav {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 9px;
+
+    border: 1px solid var(--border);
+    border-radius: 14px;
+
+    background: rgba(20, 25, 34, 0.97);
+}
+
+.nav-link,
+.nav-button {
+    padding: 9px 13px;
+
+    border-radius: 9px;
+
+    color: var(--muted);
+
+    font-size: 0.85rem;
+    font-weight: 750;
+
+    text-decoration: none;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background: var(--panel-light);
+    color: var(--text);
+}
+
+.nav-button {
+    margin-left: auto;
+
+    border: 1px solid var(--border);
+
+    background: transparent;
+    color: var(--text);
+}
+
+.profile-summary {
+    display: flex;
+    align-items: baseline;
+
+    min-width: 0;
+}
+
+.profile-summary #current-user {
+    overflow: hidden;
+
+    font-weight: 800;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-id {
+    margin-left: 5px;
+
+    color: var(--muted);
+
+    font-family: monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+
+    opacity: 0.65;
+}
+
+.balance-badge {
+    padding: 7px 11px;
+
+    border: 1px solid #8b6f24;
+    border-radius: 999px;
+
+    background: rgba(139, 111, 36, 0.18);
+    color: #ffe192;
+
+    font-size: 0.8rem;
+    font-weight: 800;
+
+    white-space: nowrap;
+}
+
+.message.grouped-message {
+    margin-top: -8px;
+}
+
+.message.grouped-message .message-content {
+    border-radius: 6px 15px 15px 6px;
+}
+
+.message.own-message.grouped-message .message-content {
+    border-radius: 15px 6px 6px 15px;
+}
+
+@media (max-width: 620px) {
+    .site-layout {
+        min-height: 100vh;
+    }
+
+    .site-nav {
+        margin: 8px;
+
+        border-radius: 12px;
+    }
+
+    .site-layout .chat-panel {
+        height: calc(100vh - 72px);
+    }
+}

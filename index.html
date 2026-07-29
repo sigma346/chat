@@ -8,11 +8,6 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <meta
-        name="description"
-        content="A simple realtime chat room powered by Supabase."
-    >
-
     <title>Quick Chat</title>
 
     <link rel="stylesheet" href="style.css">
@@ -20,115 +15,107 @@
 
 <body>
     <main class="page">
+        <div class="site-layout">
+            <nav class="site-nav">
+                <a href="index.html" class="nav-link active">
+                    Chat
+                </a>
 
-        <!-- Nickname screen -->
-        <section id="join-screen" class="panel join-panel">
-            <p class="eyebrow">SUPABASE REALTIME</p>
+                <a href="poker.html" class="nav-link">
+                    Poker
+                </a>
 
-            <h1>Quick Chat</h1>
+                <a href="account.html" class="nav-link">
+                    Account
+                </a>
 
-            <p class="description">
-                Choose a nickname to enter the chat room.
-            </p>
-
-            <form id="join-form">
-                <label for="nickname-input">
-                    Nickname
-                </label>
-
-                <input
-                    id="nickname-input"
-                    type="text"
-                    minlength="1"
-                    maxlength="24"
-                    autocomplete="nickname"
-                    placeholder="Enter a nickname"
-                    required
+                <button
+                    id="logout-button"
+                    class="nav-button"
+                    type="button"
                 >
-
-                <button id="join-button" type="submit">
-                    Enter chat
+                    Log out
                 </button>
-            </form>
+            </nav>
 
-            <p
-                id="join-error"
-                class="error-message"
-                role="alert"
-            ></p>
-        </section>
+            <section class="panel chat-panel">
+                <header class="chat-header">
+                    <div>
+                        <p class="eyebrow">PUBLIC ROOM</p>
+                        <h1>Quick Chat</h1>
+                    </div>
 
-        <!-- Chat screen -->
-        <section
-            id="chat-screen"
-            class="panel chat-panel hidden"
-        >
-            <header class="chat-header">
-                <div>
-                    <p class="eyebrow">PUBLIC ROOM</p>
-                    <h1>Quick Chat</h1>
+                    <div class="user-controls">
+                        <div class="profile-summary">
+                            <span id="current-user"></span>
+
+                            <span
+                                id="current-user-id"
+                                class="user-id"
+                            ></span>
+                        </div>
+
+                        <span class="balance-badge">
+                            <span id="chip-balance">0</span>
+                            chips
+                        </span>
+                    </div>
+                </header>
+
+                <div
+                    id="connection-status"
+                    class="connection-status"
+                    aria-live="polite"
+                >
+                    Connecting...
                 </div>
 
-                <div class="user-controls">
-                    <span id="current-user" class="user-badge"></span>
+                <ol
+                    id="message-list"
+                    class="message-list"
+                    aria-live="polite"
+                ></ol>
+
+                <form
+                    id="message-form"
+                    class="message-form"
+                >
+                    <label
+                        class="screen-reader-only"
+                        for="message-input"
+                    >
+                        Message
+                    </label>
+
+                    <input
+                        id="message-input"
+                        type="text"
+                        maxlength="500"
+                        autocomplete="off"
+                        placeholder="Write a message..."
+                        required
+                    >
 
                     <button
-                        id="change-name-button"
-                        class="secondary-button"
-                        type="button"
+                        id="send-button"
+                        type="submit"
                     >
-                        Change name
+                        Send
                     </button>
-                </div>
-            </header>
+                </form>
 
-            <div
-                id="connection-status"
-                class="connection-status"
-                aria-live="polite"
-            >
-                Connecting...
-            </div>
-
-            <ol
-                id="message-list"
-                class="message-list"
-                aria-live="polite"
-            ></ol>
-
-            <form id="message-form" class="message-form">
-                <label class="screen-reader-only" for="message-input">
-                    Message
-                </label>
-
-                <input
-                    id="message-input"
-                    type="text"
-                    maxlength="500"
-                    autocomplete="off"
-                    placeholder="Write a message..."
-                    required
-                >
-
-                <button id="send-button" type="submit">
-                    Send
-                </button>
-            </form>
-
-            <p
-                id="chat-error"
-                class="error-message chat-error"
-                role="alert"
-            ></p>
-        </section>
-
+                <p
+                    id="chat-error"
+                    class="error-message chat-error"
+                    role="alert"
+                ></p>
+            </section>
+        </div>
     </main>
 
-    <!-- Supabase JavaScript library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- Our files -->
     <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

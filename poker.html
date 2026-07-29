@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Poker Lobby</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="poker.css">
+</head>
+
+<body>
+    <main class="page poker-page">
+        <div class="poker-layout">
+
+            <nav class="site-nav">
+                <a href="index.html" class="nav-link">
+                    Chat
+                </a>
+
+                <a href="poker.html" class="nav-link active">
+                    Poker
+                </a>
+
+                <a href="account.html" class="nav-link">
+                    Account
+                </a>
+
+                <button
+                    id="logout-button"
+                    class="nav-button"
+                    type="button"
+                >
+                    Log out
+                </button>
+            </nav>
+
+            <header class="panel poker-heading">
+                <div>
+                    <p class="eyebrow">TEXAS HOLD'EM</p>
+                    <h1>Poker lobby</h1>
+
+                    <p class="description">
+                        Create a match or join an open table.
+                    </p>
+                </div>
+
+                <div class="poker-user-summary">
+                    <span id="current-username">
+                        Loading...
+                    </span>
+
+                    <span class="balance-badge">
+                        <span id="current-balance">0</span>
+                        chips
+                    </span>
+                </div>
+            </header>
+
+            <section
+                id="active-match-panel"
+                class="panel active-match-panel hidden"
+            >
+                <div>
+                    <strong>You are already seated.</strong>
+
+                    <p id="active-match-text">
+                        Return to your active poker match.
+                    </p>
+                </div>
+
+                <button
+                    id="return-to-match-button"
+                    type="button"
+                >
+                    Open match
+                </button>
+            </section>
+
+            <div class="poker-columns">
+
+                <section class="panel create-match-panel">
+                    <p class="eyebrow">HOST A TABLE</p>
+
+                    <h2>Create match</h2>
+
+                    <form
+                        id="create-match-form"
+                        class="poker-form"
+                    >
+                        <label for="match-name-input">
+                            Match name
+                        </label>
+
+                        <input
+                            id="match-name-input"
+                            type="text"
+                            minlength="3"
+                            maxlength="30"
+                            placeholder="Friday Night Poker"
+                            required
+                        >
+
+                        <div class="poker-form-row">
+                            <div>
+                                <label for="small-blind-input">
+                                    Small blind
+                                </label>
+
+                                <input
+                                    id="small-blind-input"
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value="25"
+                                    required
+                                >
+                            </div>
+
+                            <div>
+                                <label for="big-blind-input">
+                                    Big blind
+                                </label>
+
+                                <input
+                                    id="big-blind-input"
+                                    type="number"
+                                    min="2"
+                                    step="1"
+                                    value="50"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="poker-form-row">
+                            <div>
+                                <label for="minimum-buy-in-input">
+                                    Minimum buy-in
+                                </label>
+
+                                <input
+                                    id="minimum-buy-in-input"
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value="1000"
+                                    required
+                                >
+                            </div>
+
+                            <div>
+                                <label for="maximum-buy-in-input">
+                                    Maximum buy-in
+                                </label>
+
+                                <input
+                                    id="maximum-buy-in-input"
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value="5000"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <label for="maximum-players-input">
+                            Maximum players
+                        </label>
+
+                        <select
+                            id="maximum-players-input"
+                            required
+                        >
+                            <option value="2">2 players</option>
+                            <option value="3">3 players</option>
+                            <option value="4">4 players</option>
+                            <option value="5">5 players</option>
+                            <option value="6" selected>6 players</option>
+                            <option value="7">7 players</option>
+                            <option value="8">8 players</option>
+                            <option value="9">9 players</option>
+                        </select>
+
+                        <label for="host-buy-in-input">
+                            Your buy-in
+                        </label>
+
+                        <input
+                            id="host-buy-in-input"
+                            type="number"
+                            min="1"
+                            step="1"
+                            value="1000"
+                            required
+                        >
+
+                        <button
+                            id="create-match-button"
+                            type="submit"
+                        >
+                            Create and join
+                        </button>
+                    </form>
+
+                    <p
+                        id="create-match-message"
+                        class="form-message"
+                        role="alert"
+                    ></p>
+                </section>
+
+                <section class="panel open-matches-panel">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">AVAILABLE TABLES</p>
+                            <h2>Open matches</h2>
+                        </div>
+
+                        <button
+                            id="refresh-matches-button"
+                            class="secondary-button"
+                            type="button"
+                        >
+                            Refresh
+                        </button>
+                    </div>
+
+                    <div
+                        id="match-list"
+                        class="match-list"
+                    >
+                        <p class="empty-match-list">
+                            Loading matches...
+                        </p>
+                    </div>
+
+                    <p
+                        id="lobby-message"
+                        class="form-message"
+                        role="alert"
+                    ></p>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="poker.js"></script>
+</body>
+</html>
