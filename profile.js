@@ -27,13 +27,45 @@ const saveProfileButton = document.querySelector(
 );
 const shopWalletChips = document.querySelector("#shop-wallet-chips");
 const cosmeticGrid = document.querySelector("#cosmetic-grid");
+const profileOverallStatistics = document.querySelector(
+    "#profile-overall-statistics"
+);
+const profileGameStatistics = document.querySelector(
+    "#profile-game-statistics"
+);
+const statisticsFavouriteGame = document.querySelector(
+    "#statistics-favourite-game"
+);
+const profileAchievementGroups = document.querySelector(
+    "#profile-achievement-groups"
+);
+const achievementCount = document.querySelector(
+    "#achievement-count"
+);
 
 const badgeSymbols = {
     badge_ace: "♠",
     badge_penguin: "🐧",
     badge_dice: "⚄",
     badge_crown: "♛",
-    badge_admin_shield: "✒️"
+    badge_admin_shield: "✒️",
+    badge_first_steps: "★",
+    badge_level_10: "✦",
+    badge_level_50: "◆",
+    badge_chip_vault: "◈",
+    badge_hot_streak: "🔥",
+    badge_poker_veteran: "♠",
+    badge_big_pot: "●",
+    badge_draw_veteran: "🂠",
+    badge_twenty_one: "21",
+    badge_blackjack_veteran: "♣",
+    badge_hearts_winner: "♥",
+    badge_klondike: "K",
+    badge_spider: "🕷",
+    badge_plinko_profit: "•",
+    badge_ice_crossing: "❄",
+    badge_horse_winner: "♞",
+    badge_green_zero: "0"
 };
 
 const categoryNames = {
@@ -53,6 +85,42 @@ function formatNumber(value) {
     return new Intl.NumberFormat("en-AU").format(
         Number(value ?? 0)
     );
+}
+
+function formatSignedChips(value) {
+    const amount = Number(value ?? 0);
+    const absolute = formatNumber(Math.abs(amount));
+
+    if (amount > 0) {
+        return `+${absolute} chips`;
+    }
+
+    if (amount < 0) {
+        return `−${absolute} chips`;
+    }
+
+    return "0 chips";
+}
+
+function formatPercent(value) {
+    return `${Number(value ?? 0).toFixed(1)}%`;
+}
+
+const gameLabels = {
+    poker: "Texas Hold'em",
+    five_card_draw: "Five-Card Draw",
+    blackjack: "Blackjack",
+    hearts: "Hearts",
+    solitaire_klondike: "Klondike",
+    solitaire_spider: "Spider",
+    plinko: "Plinko",
+    penguin_cross: "Penguin Cross",
+    horse_racing: "Horse Racing",
+    roulette: "Community Roulette"
+};
+
+function gameLabel(gameKey) {
+    return gameLabels[gameKey] ?? "No completed games";
 }
 
 function initialsFromUsername(username) {
@@ -174,6 +242,320 @@ async function loadPublicProfile() {
     renderPublicProfile(data);
 }
 
+
+function statisticCard(label, value, detail = "") {
+    const card = document.createElement("article");
+    card.className = "profile-statistic-card";
+
+    const labelElement = document.createElement("span");
+    labelElement.textContent = label;
+
+    const valueElement = document.createElement("strong");
+    valueElement.textContent = value;
+
+    card.append(labelElement, valueElement);
+
+    if (detail) {
+        const detailElement = document.createElement("small");
+        detailElement.textContent = detail;
+        card.append(detailElement);
+    }
+
+    return card;
+}
+
+function renderPlayerStatistics(data) {
+    const overall = data?.overall ?? {};
+    const games = Array.isArray(data?.games)
+        ? data.games
+        : [];
+
+    statisticsFavouriteGame.textContent =
+        `Favourite: ${gameLabel(overall.favourite_game)}`;
+
+    profileOverallStatistics.replaceChildren(
+        statisticCard(
+            "Games completed",
+            formatNumber(overall.games_completed)
+        ),
+        statisticCard(
+            "Wins",
+            formatNumber(overall.wins),
+            `${formatPercent(overall.win_rate)} win rate`
+        ),
+        statisticCard(
+            "Best win streak",
+            formatNumber(overall.best_win_streak)
+        ),
+        statisticCard(
+            "Lifetime profit",
+            formatSignedChips(overall.lifetime_profit)
+        ),
+        statisticCard(
+            "Biggest single win",
+            formatSignedChips(overall.biggest_win)
+        ),
+        statisticCard(
+            "Achievements",
+            formatNumber(overall.achievements_unlocked),
+            `${formatNumber(overall.cosmetics_owned)} cosmetics owned`
+        ),
+        statisticCard(
+            "Chips donated",
+            `${formatNumber(overall.donated_chips)} chips`
+        ),
+        statisticCard(
+            "Chips received",
+            `${formatNumber(overall.received_chips)} chips`
+        )
+    );
+
+    profileGameStatistics.replaceChildren();
+
+    if (!games.length) {
+        const empty = document.createElement("p");
+        empty.className = "profile-data-loading";
+        empty.textContent =
+            "No completed competitive games have been recorded yet.";
+        profileGameStatistics.append(empty);
+        return;
+    }
+
+    for (const game of games) {
+        const card = document.createElement("article");
+        card.className = "profile-game-stat-card";
+
+        const header = document.createElement("div");
+        header.className = "profile-game-stat-header";
+
+        const name = document.createElement("h4");
+        name.textContent = game.label ?? gameLabel(game.key);
+
+        const played = document.createElement("span");
+        played.textContent = `${formatNumber(game.played)} played`;
+
+        header.append(name, played);
+
+        const metrics = document.createElement("div");
+        metrics.className = "profile-game-stat-metrics";
+
+        const winMetric = document.createElement("span");
+        winMetric.innerHTML =
+            `<strong>${formatNumber(game.wins)}</strong> wins`;
+
+        const rateMetric = document.createElement("span");
+        rateMetric.innerHTML =
+            `<strong>${formatPercent(game.win_rate)}</strong> win rate`;
+
+        const profitMetric = document.createElement("span");
+        profitMetric.className =
+            Number(game.profit ?? 0) > 0
+                ? "positive"
+                : Number(game.profit ?? 0) < 0
+                    ? "negative"
+                    : "neutral";
+        profitMetric.innerHTML =
+            `<strong>${formatSignedChips(game.profit)}</strong> profit`;
+
+        metrics.append(winMetric, rateMetric, profitMetric);
+        card.append(header, metrics);
+        profileGameStatistics.append(card);
+    }
+}
+
+function achievementRewardPreview(achievement) {
+    const reward = achievement.reward ?? {};
+    const category = reward.category ?? "title";
+    const preview = document.createElement("span");
+
+    preview.className =
+        `achievement-reward-preview reward-${category}`;
+
+    if (reward.id) {
+        preview.dataset.cosmetic = reward.id;
+    }
+
+    if (category === "badge") {
+        preview.textContent =
+            badgeSymbol(reward.id) || "◆";
+    } else if (category === "frame") {
+        preview.textContent = "P";
+        preview.dataset.frame = reward.id ?? "frame_standard";
+    } else if (category === "theme") {
+        preview.setAttribute(
+            "aria-label",
+            reward.name ?? "Profile theme"
+        );
+    } else {
+        preview.textContent = "Aa";
+    }
+
+    preview.title = reward.name ?? "Cosmetic reward";
+    return preview;
+}
+
+function renderPlayerAchievements(data) {
+    const achievements = Array.isArray(data?.achievements)
+        ? data.achievements
+        : [];
+
+    achievementCount.textContent =
+        `${formatNumber(data?.unlocked_count)} / `
+        + `${formatNumber(data?.total_count)} unlocked`;
+
+    profileAchievementGroups.replaceChildren();
+
+    if (!achievements.length) {
+        const empty = document.createElement("p");
+        empty.className = "profile-data-loading";
+        empty.textContent = "No achievements are available.";
+        profileAchievementGroups.append(empty);
+        return;
+    }
+
+    const grouped = new Map();
+
+    for (const achievement of achievements) {
+        const category = achievement.category ?? "Other";
+
+        if (!grouped.has(category)) {
+            grouped.set(category, []);
+        }
+
+        grouped.get(category).push(achievement);
+    }
+
+    for (const [category, categoryAchievements] of grouped) {
+        const section = document.createElement("section");
+        section.className = "achievement-category";
+
+        const heading = document.createElement("h3");
+        heading.textContent = category;
+
+        const grid = document.createElement("div");
+        grid.className = "achievement-grid";
+
+        for (const achievement of categoryAchievements) {
+            const unlocked = achievement.unlocked === true;
+            const progress = Number(achievement.progress ?? 0);
+            const target = Math.max(
+                Number(achievement.target ?? 1),
+                1
+            );
+            const percentage = unlocked
+                ? 100
+                : Math.min(progress / target * 100, 100);
+
+            const card = document.createElement("article");
+            card.className = "achievement-card";
+            card.classList.toggle("unlocked", unlocked);
+            card.classList.toggle("locked", !unlocked);
+
+            const icon = document.createElement("div");
+            icon.className = "achievement-reward-icon";
+            icon.append(achievementRewardPreview(achievement));
+
+            const content = document.createElement("div");
+            content.className = "achievement-card-content";
+
+            const topRow = document.createElement("div");
+            topRow.className = "achievement-card-heading";
+
+            const name = document.createElement("h4");
+            name.textContent = achievement.name;
+
+            const status = document.createElement("span");
+            status.className = "achievement-status";
+            status.textContent = unlocked ? "Unlocked" : "Locked";
+
+            topRow.append(name, status);
+
+            const description = document.createElement("p");
+            description.textContent = achievement.description;
+
+            const reward = document.createElement("p");
+            reward.className = "achievement-reward-name";
+            reward.textContent =
+                `Reward: ${achievement.reward?.name ?? "Cosmetic"}`;
+
+            const progressRow = document.createElement("div");
+            progressRow.className = "achievement-progress-row";
+
+            const progressText = document.createElement("span");
+            progressText.textContent = unlocked
+                ? "Complete"
+                : `${formatNumber(progress)} / ${formatNumber(target)}`;
+
+            const track = document.createElement("span");
+            track.className = "achievement-progress-track";
+
+            const fill = document.createElement("span");
+            fill.className = "achievement-progress-fill";
+            fill.style.width = `${percentage}%`;
+
+            track.append(fill);
+            progressRow.append(progressText, track);
+
+            content.append(
+                topRow,
+                description,
+                reward,
+                progressRow
+            );
+
+            card.append(icon, content);
+            grid.append(card);
+        }
+
+        section.append(heading, grid);
+        profileAchievementGroups.append(section);
+    }
+}
+
+async function refreshAchievements() {
+    const {
+        error
+    } = await window.supabaseClient.rpc(
+        "refresh_my_achievements"
+    );
+
+    if (error) {
+        throw error;
+    }
+}
+
+async function loadPlayerStatistics() {
+    const {
+        data,
+        error
+    } = await window.supabaseClient.rpc(
+        "get_player_statistics",
+        profileRequestParameters()
+    );
+
+    if (error) {
+        throw error;
+    }
+
+    renderPlayerStatistics(data);
+}
+
+async function loadPlayerAchievements() {
+    const {
+        data,
+        error
+    } = await window.supabaseClient.rpc(
+        "get_player_achievements",
+        profileRequestParameters()
+    );
+
+    if (error) {
+        throw error;
+    }
+
+    renderPlayerAchievements(data);
+}
+
 function cosmeticPreview(cosmetic) {
     const preview = document.createElement("div");
     preview.className = "cosmetic-preview";
@@ -214,6 +596,16 @@ function cosmeticActionButton(cosmetic) {
         button.textContent = "Equipped";
         button.disabled = true;
         button.classList.add("equipped");
+        return button;
+    }
+
+    if (
+        cosmetic.unlock_source === "achievement"
+        && !cosmetic.owned
+    ) {
+        button.textContent = "Locked";
+        button.disabled = true;
+        button.classList.add("achievement-locked");
         return button;
     }
 
@@ -273,8 +665,12 @@ function renderCosmetics() {
         ownership.textContent = cosmetic.equipped
             ? "Currently equipped"
             : cosmetic.owned
-                ? "Owned"
-                : `${formatNumber(cosmetic.price)} chips`;
+                ? cosmetic.unlock_source === "achievement"
+                    ? "Achievement unlocked"
+                    : "Owned"
+                : cosmetic.unlock_source === "achievement"
+                    ? "Achievement reward"
+                    : `${formatNumber(cosmetic.price)} chips`;
 
         const button = cosmeticActionButton(cosmetic);
 
@@ -492,8 +888,16 @@ async function initialiseProfile() {
         await loadPublicProfile();
 
         if (loadedProfile?.is_self) {
-            await loadCosmetics();
+            await refreshAchievements();
         }
+
+        await Promise.all([
+            loadPlayerStatistics(),
+            loadPlayerAchievements(),
+            loadedProfile?.is_self
+                ? loadCosmetics()
+                : Promise.resolve()
+        ]);
     } catch (error) {
         console.error(error);
         setMessage(

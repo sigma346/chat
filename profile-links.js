@@ -260,6 +260,54 @@
                 --player-theme-surface: rgba(20, 20, 48, 0.82);
             }
 
+            .cosmetic-rich-player-card[data-player-theme="theme_royal_felt"] {
+                --player-theme-accent: rgba(240, 202, 87, 0.82);
+                --player-theme-soft: rgba(34, 150, 101, 0.17);
+                --player-theme-surface: rgba(8, 43, 31, 0.88);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_frozen_crossing"] {
+                --player-theme-accent: rgba(174, 237, 255, 0.86);
+                --player-theme-soft: rgba(73, 179, 222, 0.17);
+                --player-theme-surface: rgba(8, 35, 54, 0.88);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_midnight_web"] {
+                --player-theme-accent: rgba(190, 145, 255, 0.8);
+                --player-theme-soft: rgba(117, 71, 210, 0.18);
+                --player-theme-surface: rgba(19, 12, 39, 0.9);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_moonshot"] {
+                --player-theme-accent: rgba(214, 228, 250, 0.84);
+                --player-theme-soft: rgba(100, 139, 201, 0.17);
+                --player-theme-surface: rgba(13, 27, 50, 0.9);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_crimson_trick"] {
+                --player-theme-accent: rgba(255, 104, 137, 0.82);
+                --player-theme-soft: rgba(185, 37, 76, 0.18);
+                --player-theme-surface: rgba(55, 10, 25, 0.9);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_casino_neon"] {
+                --player-theme-accent: rgba(61, 225, 255, 0.84);
+                --player-theme-soft: rgba(255, 58, 191, 0.15);
+                --player-theme-surface: rgba(20, 14, 43, 0.9);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_high_stakes"] {
+                --player-theme-accent: rgba(244, 198, 80, 0.86);
+                --player-theme-soft: rgba(180, 31, 52, 0.16);
+                --player-theme-surface: rgba(33, 9, 13, 0.92);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_vault"] {
+                --player-theme-accent: rgba(232, 201, 99, 0.86);
+                --player-theme-soft: rgba(28, 151, 102, 0.18);
+                --player-theme-surface: rgba(8, 42, 29, 0.9);
+            }
+
             .cosmetic-rich-player-card.admin-player-card {
                 --player-theme-accent: rgba(248, 214, 109, 0.82);
                 --player-theme-soft: rgba(248, 214, 109, 0.12);
@@ -505,11 +553,159 @@
                     0 8px 20px rgba(111, 67, 7, 0.34);
             }
 
+            .game-profile-avatar-frame[data-player-frame="frame_wanderer"] {
+                border-color: #66d5c8;
+                background:
+                    conic-gradient(
+                        from 45deg,
+                        #286d69,
+                        #d8b766,
+                        #286d69,
+                        #d8b766,
+                        #286d69
+                    );
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_bronze_edge"] {
+                border-color: #d59656;
+                background:
+                    linear-gradient(145deg, #f0bd76, #9a5e2e 48%, #4f2b17);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_silver_pulse"] {
+                border-color: #e6edf7;
+                background:
+                    linear-gradient(145deg, #f8fbff, #8c9bae 48%, #303946);
+                box-shadow:
+                    0 0 0 2px rgba(220, 231, 244, 0.14),
+                    0 0 16px rgba(183, 207, 235, 0.32),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+                animation:
+                    cosmetic-achievement-silver-pulse
+                    2.4s ease-in-out infinite;
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_royal_prestige"] {
+                border-color: #ffd86f;
+                background:
+                    conic-gradient(
+                        from 30deg,
+                        #6d3fb4,
+                        #ffe08a,
+                        #8c55d5,
+                        #d7a937,
+                        #6d3fb4
+                    );
+                box-shadow:
+                    0 0 0 2px rgba(255, 216, 111, 0.15),
+                    0 0 16px rgba(132, 77, 202, 0.28),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_hot_streak"] {
+                border-color: #ffb34f;
+                background:
+                    linear-gradient(145deg, #ffd36b, #ef612f 48%, #8b1725);
+                box-shadow:
+                    0 0 16px rgba(255, 99, 51, 0.32),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+                animation:
+                    cosmetic-achievement-fire-pulse
+                    1.7s ease-in-out infinite;
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_classic_felt"] {
+                border-color: #e3c66d;
+                background:
+                    linear-gradient(145deg, #e3c66d, #177050 48%, #083626);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_speedrun"] {
+                border-color: #72e8ff;
+                background:
+                    linear-gradient(
+                        125deg,
+                        #d6f9ff 0 18%,
+                        #45d5f2 19% 42%,
+                        #1d75cf 43% 68%,
+                        #102849 69%
+                    );
+                box-shadow:
+                    0 0 15px rgba(69, 213, 242, 0.3),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_webbed_gold"] {
+                border-color: #f2cf62;
+                background:
+                    repeating-radial-gradient(
+                        circle at 50% 50%,
+                        #efcf6d 0 1px,
+                        #171716 1px 5px
+                    );
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_frost_trail"] {
+                border-color: #e1faff;
+                background:
+                    linear-gradient(
+                        145deg,
+                        #f2fdff,
+                        #70d8ee 42%,
+                        #2e78af 68%,
+                        #173750
+                    );
+                box-shadow:
+                    0 0 14px rgba(83, 197, 229, 0.3),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_five_card_flame"] {
+                border-color: #ffc45d;
+                background:
+                    conic-gradient(
+                        from 190deg,
+                        #7d1221,
+                        #f14c28,
+                        #ffd067,
+                        #e43a25,
+                        #7d1221
+                    );
+            }
+
             .profile-enhanced-text-chip {
                 display: inline-flex !important;
                 align-items: center;
                 flex-wrap: wrap;
                 gap: 0.24rem;
+            }
+
+            @keyframes cosmetic-achievement-silver-pulse {
+                0%,
+                100% {
+                    box-shadow:
+                        0 0 0 2px rgba(220, 231, 244, 0.12),
+                        0 0 12px rgba(183, 207, 235, 0.22),
+                        0 7px 18px rgba(0, 0, 0, 0.22);
+                }
+
+                50% {
+                    box-shadow:
+                        0 0 0 2px rgba(230, 239, 250, 0.22),
+                        0 0 21px rgba(183, 207, 235, 0.44),
+                        0 7px 18px rgba(0, 0, 0, 0.22);
+                }
+            }
+
+            @keyframes cosmetic-achievement-fire-pulse {
+                0%,
+                100% {
+                    filter: saturate(0.95);
+                }
+
+                50% {
+                    filter: saturate(1.28);
+                }
             }
 
             @keyframes cosmetic-neon-frame-pulse {
@@ -706,7 +902,9 @@
             }
 
             @media (prefers-reduced-motion: reduce) {
-                .game-profile-avatar-frame[data-player-frame="frame_neon"] {
+                .game-profile-avatar-frame[data-player-frame="frame_neon"],
+                .game-profile-avatar-frame[data-player-frame="frame_silver_pulse"],
+                .game-profile-avatar-frame[data-player-frame="frame_hot_streak"] {
                     animation: none;
                 }
             }

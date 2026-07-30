@@ -674,3 +674,811 @@
         0 0 0 2px rgba(248, 214, 109, 0.18),
         0 8px 22px rgba(0, 0, 0, 0.35);
 }
+
+
+/* =========================================================
+   PLAYER STATISTICS
+   ========================================================= */
+
+.profile-statistics-panel,
+.profile-achievements-panel {
+    padding: 1.35rem;
+}
+
+.profile-section-heading {
+    align-items: center;
+}
+
+.profile-section-summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0.48rem 0.75rem;
+    border: 1px solid rgba(98, 230, 189, 0.22);
+    border-radius: 999px;
+    background: rgba(8, 13, 22, 0.52);
+    color: #d8fff3;
+    font-size: 0.86rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.profile-overall-statistics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.profile-statistic-card {
+    min-width: 0;
+    padding: 0.9rem;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 0.85rem;
+    background: rgba(8, 13, 22, 0.5);
+}
+
+.profile-statistic-card > span {
+    display: block;
+    margin-bottom: 0.28rem;
+    color: #99a8ba;
+    font-size: 0.73rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.profile-statistic-card strong {
+    display: block;
+    overflow-wrap: anywhere;
+    color: #f8fafc;
+    font-size: 1.08rem;
+}
+
+.profile-statistic-card small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #9aabc0;
+    font-size: 0.78rem;
+}
+
+.profile-subsection-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1.35rem 0 0.75rem;
+}
+
+.profile-subsection-heading h3 {
+    margin: 0;
+}
+
+.profile-subsection-heading span {
+    color: #8f9caf;
+    font-size: 0.82rem;
+}
+
+.profile-game-statistics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+    gap: 0.75rem;
+}
+
+.profile-game-stat-card {
+    min-width: 0;
+    padding: 0.9rem;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 0.85rem;
+    background: rgba(8, 13, 22, 0.42);
+}
+
+.profile-game-stat-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.7rem;
+}
+
+.profile-game-stat-header h4 {
+    margin: 0;
+    color: #f8fafc;
+}
+
+.profile-game-stat-header span {
+    color: #8f9caf;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.profile-game-stat-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.profile-game-stat-metrics span {
+    min-width: 0;
+    color: #93a2b5;
+    font-size: 0.74rem;
+}
+
+.profile-game-stat-metrics strong {
+    display: block;
+    margin-bottom: 0.15rem;
+    overflow-wrap: anywhere;
+    color: #e7edf6;
+    font-size: 0.88rem;
+}
+
+.profile-game-stat-metrics .positive strong {
+    color: #81e6b8;
+}
+
+.profile-game-stat-metrics .negative strong {
+    color: #ff9aab;
+}
+
+.profile-data-loading {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 1rem;
+    color: #95a3b5;
+    text-align: center;
+}
+
+/* =========================================================
+   ACHIEVEMENTS
+   ========================================================= */
+
+.profile-achievement-groups {
+    display: grid;
+    gap: 1.2rem;
+    margin-top: 1rem;
+}
+
+.achievement-category {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.achievement-category > h3 {
+    margin: 0;
+    color: #e8eef7;
+    font-size: 0.95rem;
+}
+
+.achievement-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 0.75rem;
+}
+
+.achievement-card {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0.85rem;
+    border: 1px solid rgba(148, 163, 184, 0.17);
+    border-radius: 0.9rem;
+    background: rgba(8, 13, 22, 0.46);
+    transition:
+        border-color 150ms ease,
+        background 150ms ease,
+        transform 150ms ease;
+}
+
+.achievement-card.unlocked {
+    border-color: rgba(98, 230, 189, 0.32);
+    background: rgba(30, 91, 74, 0.13);
+}
+
+.achievement-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(148, 163, 184, 0.28);
+}
+
+.achievement-reward-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 0.8rem;
+    background: rgba(12, 20, 31, 0.82);
+}
+
+.achievement-card.locked .achievement-reward-icon {
+    filter: grayscale(1);
+    opacity: 0.55;
+}
+
+.achievement-reward-preview {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    color: #f8fafc;
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+.achievement-reward-preview.reward-badge {
+    border: 1px solid rgba(248, 214, 109, 0.45);
+    background: rgba(121, 83, 11, 0.36);
+    color: #ffe58c;
+}
+
+.achievement-reward-preview.reward-title {
+    border-radius: 0.55rem;
+    background: rgba(98, 230, 189, 0.12);
+    color: #9ff3da;
+}
+
+.achievement-card-content {
+    min-width: 0;
+}
+
+.achievement-card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.55rem;
+}
+
+.achievement-card-heading h4 {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: #f8fafc;
+}
+
+.achievement-status {
+    flex: 0 0 auto;
+    padding: 0.18rem 0.42rem;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 999px;
+    color: #9ca9ba;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.achievement-card.unlocked .achievement-status {
+    border-color: rgba(98, 230, 189, 0.32);
+    color: #9ff3da;
+}
+
+.achievement-card-content > p {
+    margin: 0.38rem 0 0;
+    color: #9daabd;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+.achievement-card-content .achievement-reward-name {
+    color: #d7e0ed;
+    font-weight: 700;
+}
+
+.achievement-progress-row {
+    display: grid;
+    grid-template-columns: auto minmax(80px, 1fr);
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.7rem;
+}
+
+.achievement-progress-row > span:first-child {
+    color: #94a3b8;
+    font-size: 0.74rem;
+    white-space: nowrap;
+}
+
+.achievement-progress-track {
+    display: block;
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.15);
+}
+
+.achievement-progress-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #42c99c, #8be9cc);
+    transition: width 240ms ease;
+}
+
+.cosmetic-action-button.achievement-locked {
+    border-color: rgba(148, 163, 184, 0.2);
+    background: rgba(148, 163, 184, 0.07);
+    color: #8f9aac;
+    cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+    .profile-overall-statistics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 620px) {
+    .profile-section-heading,
+    .profile-subsection-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .profile-section-summary {
+        white-space: normal;
+    }
+
+    .profile-overall-statistics {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-game-stat-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .achievement-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .achievement-card {
+        grid-template-columns: 44px minmax(0, 1fr);
+        padding: 0.75rem;
+    }
+
+    .achievement-reward-icon {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .achievement-card,
+    .achievement-progress-fill {
+        transition: none;
+    }
+}
+
+/* ============================================================
+   Achievement frame and theme rewards
+   ============================================================ */
+
+/* ---------- Profile themes ---------- */
+
+.profile-hero[data-theme="theme_royal_felt"]::before {
+    background:
+        radial-gradient(
+            circle at 18% 14%,
+            rgba(251, 211, 91, 0.24),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 82% 82%,
+            rgba(25, 151, 100, 0.18),
+            transparent 38%
+        ),
+        linear-gradient(135deg, #0f3a2b, #071a14 72%);
+}
+
+.profile-hero[data-theme="theme_frozen_crossing"]::before {
+    background:
+        radial-gradient(
+            circle at 15% 16%,
+            rgba(224, 248, 255, 0.36),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 82% 78%,
+            rgba(66, 165, 245, 0.22),
+            transparent 38%
+        ),
+        linear-gradient(135deg, #153b59, #071827 72%);
+}
+
+.profile-hero[data-theme="theme_midnight_web"]::before {
+    background:
+        repeating-radial-gradient(
+            circle at 82% 18%,
+            rgba(181, 137, 255, 0.13) 0 1px,
+            transparent 1px 24px
+        ),
+        radial-gradient(
+            circle at 20% 20%,
+            rgba(117, 71, 210, 0.26),
+            transparent 35%
+        ),
+        linear-gradient(135deg, #17112e, #070711 74%);
+}
+
+.profile-hero[data-theme="theme_moonshot"]::before {
+    background:
+        radial-gradient(
+            circle at 82% 20%,
+            rgba(238, 244, 255, 0.35) 0 7%,
+            rgba(174, 196, 230, 0.12) 8%,
+            transparent 21%
+        ),
+        radial-gradient(
+            circle at 16% 80%,
+            rgba(92, 130, 196, 0.18),
+            transparent 38%
+        ),
+        linear-gradient(135deg, #15233e, #070d18 72%);
+}
+
+.profile-hero[data-theme="theme_crimson_trick"]::before {
+    background:
+        radial-gradient(
+            circle at 18% 15%,
+            rgba(255, 116, 143, 0.25),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 84% 78%,
+            rgba(142, 19, 56, 0.26),
+            transparent 40%
+        ),
+        linear-gradient(135deg, #481527, #15070d 72%);
+}
+
+.profile-hero[data-theme="theme_casino_neon"]::before {
+    background:
+        linear-gradient(
+            115deg,
+            transparent 0 42%,
+            rgba(255, 58, 191, 0.15) 43% 44%,
+            transparent 45% 62%,
+            rgba(50, 225, 255, 0.14) 63% 64%,
+            transparent 65%
+        ),
+        radial-gradient(
+            circle at 14% 18%,
+            rgba(50, 225, 255, 0.25),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 86% 75%,
+            rgba(255, 58, 191, 0.22),
+            transparent 36%
+        ),
+        linear-gradient(135deg, #15112c, #080713 72%);
+}
+
+.profile-hero[data-theme="theme_high_stakes"]::before {
+    background:
+        radial-gradient(
+            circle at 16% 16%,
+            rgba(255, 204, 92, 0.24),
+            transparent 32%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(128, 12, 28, 0.38),
+            transparent 48%
+        ),
+        linear-gradient(135deg, #241115, #080708 74%);
+}
+
+.profile-hero[data-theme="theme_vault"]::before {
+    background:
+        radial-gradient(
+            circle at 16% 16%,
+            rgba(255, 222, 111, 0.28),
+            transparent 33%
+        ),
+        radial-gradient(
+            circle at 84% 80%,
+            rgba(13, 137, 92, 0.25),
+            transparent 40%
+        ),
+        linear-gradient(135deg, #123d2e, #07150f 72%);
+}
+
+/* ---------- Avatar frames ---------- */
+
+.profile-avatar-frame[data-frame="frame_wanderer"] {
+    border-color: #66d5c8;
+    background:
+        conic-gradient(
+            from 45deg,
+            #286d69,
+            #d8b766,
+            #286d69,
+            #d8b766,
+            #286d69
+        );
+    box-shadow:
+        0 0 0 2px rgba(216, 183, 102, 0.16),
+        0 12px 34px rgba(0, 0, 0, 0.3);
+}
+
+.profile-avatar-frame[data-frame="frame_bronze_edge"] {
+    border-color: #d59656;
+    background:
+        linear-gradient(145deg, #f0bd76, #9a5e2e 48%, #4f2b17);
+    box-shadow:
+        inset 0 0 0 2px rgba(255, 225, 177, 0.2),
+        0 12px 30px rgba(91, 48, 20, 0.34);
+}
+
+.profile-avatar-frame[data-frame="frame_silver_pulse"] {
+    border-color: #e6edf7;
+    background:
+        linear-gradient(145deg, #f8fbff, #8c9bae 48%, #303946);
+    box-shadow:
+        0 0 0 2px rgba(220, 231, 244, 0.16),
+        0 0 22px rgba(183, 207, 235, 0.28),
+        0 12px 34px rgba(0, 0, 0, 0.3);
+    animation: achievement-silver-pulse 2.4s ease-in-out infinite;
+}
+
+.profile-avatar-frame[data-frame="frame_royal_prestige"] {
+    border-color: #ffd86f;
+    background:
+        conic-gradient(
+            from 30deg,
+            #6d3fb4,
+            #ffe08a,
+            #8c55d5,
+            #d7a937,
+            #6d3fb4
+        );
+    box-shadow:
+        0 0 0 2px rgba(255, 216, 111, 0.18),
+        0 0 24px rgba(132, 77, 202, 0.3),
+        0 13px 36px rgba(0, 0, 0, 0.34);
+}
+
+.profile-avatar-frame[data-frame="frame_hot_streak"] {
+    border-color: #ffb34f;
+    background:
+        linear-gradient(145deg, #ffd36b, #ef612f 48%, #8b1725);
+    box-shadow:
+        0 0 20px rgba(255, 99, 51, 0.34),
+        0 12px 34px rgba(0, 0, 0, 0.3);
+    animation: achievement-fire-pulse 1.7s ease-in-out infinite;
+}
+
+.profile-avatar-frame[data-frame="frame_classic_felt"] {
+    border-color: #e3c66d;
+    background:
+        linear-gradient(145deg, #e3c66d, #177050 48%, #083626);
+    box-shadow:
+        inset 0 0 0 2px rgba(255, 243, 190, 0.13),
+        0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.profile-avatar-frame[data-frame="frame_speedrun"] {
+    border-color: #72e8ff;
+    background:
+        linear-gradient(
+            125deg,
+            #d6f9ff 0 18%,
+            #45d5f2 19% 42%,
+            #1d75cf 43% 68%,
+            #102849 69%
+        );
+    box-shadow:
+        0 0 20px rgba(69, 213, 242, 0.32),
+        0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.profile-avatar-frame[data-frame="frame_webbed_gold"] {
+    border-color: #f2cf62;
+    background:
+        repeating-radial-gradient(
+            circle at 50% 50%,
+            #efcf6d 0 2px,
+            #171716 2px 8px
+        );
+    box-shadow:
+        0 0 0 2px rgba(242, 207, 98, 0.14),
+        0 12px 34px rgba(0, 0, 0, 0.34);
+}
+
+.profile-avatar-frame[data-frame="frame_frost_trail"] {
+    border-color: #e1faff;
+    background:
+        linear-gradient(145deg, #f2fdff, #70d8ee 42%, #2e78af 68%, #173750);
+    box-shadow:
+        0 0 0 2px rgba(224, 248, 255, 0.18),
+        0 0 18px rgba(83, 197, 229, 0.28),
+        0 12px 30px rgba(0, 0, 0, 0.28);
+}
+
+.profile-avatar-frame[data-frame="frame_five_card_flame"] {
+    border-color: #ffc45d;
+    background:
+        conic-gradient(
+            from 190deg,
+            #7d1221,
+            #f14c28,
+            #ffd067,
+            #e43a25,
+            #7d1221
+        );
+    box-shadow:
+        0 0 20px rgba(240, 74, 40, 0.3),
+        0 12px 32px rgba(0, 0, 0, 0.32);
+}
+
+/* ---------- Shop and achievement previews ---------- */
+
+.cosmetic-preview[data-cosmetic="theme_royal_felt"],
+.achievement-reward-preview[data-cosmetic="theme_royal_felt"] {
+    background: linear-gradient(145deg, #2e8b61, #102419 62%, #d5aa35);
+}
+
+.cosmetic-preview[data-cosmetic="theme_frozen_crossing"],
+.achievement-reward-preview[data-cosmetic="theme_frozen_crossing"] {
+    background: linear-gradient(145deg, #dff9ff, #58b5db 46%, #153c61);
+}
+
+.cosmetic-preview[data-cosmetic="theme_midnight_web"],
+.achievement-reward-preview[data-cosmetic="theme_midnight_web"] {
+    background:
+        repeating-radial-gradient(
+            circle,
+            rgba(207, 171, 255, 0.55) 0 1px,
+            transparent 1px 7px
+        ),
+        #17102b;
+}
+
+.cosmetic-preview[data-cosmetic="theme_moonshot"],
+.achievement-reward-preview[data-cosmetic="theme_moonshot"] {
+    background:
+        radial-gradient(circle at 70% 25%, #f4f7ff 0 12%, transparent 13%),
+        linear-gradient(145deg, #324b78, #0c1424);
+}
+
+.cosmetic-preview[data-cosmetic="theme_crimson_trick"],
+.achievement-reward-preview[data-cosmetic="theme_crimson_trick"] {
+    background: linear-gradient(145deg, #b53152, #390d1c 65%);
+}
+
+.cosmetic-preview[data-cosmetic="theme_casino_neon"],
+.achievement-reward-preview[data-cosmetic="theme_casino_neon"] {
+    background:
+        linear-gradient(120deg, #2ee1ff, #211638 48%, #ff3abf);
+}
+
+.cosmetic-preview[data-cosmetic="theme_high_stakes"],
+.achievement-reward-preview[data-cosmetic="theme_high_stakes"] {
+    background:
+        linear-gradient(145deg, #c89b2d, #4b101a 42%, #090909 72%);
+}
+
+.cosmetic-preview[data-cosmetic="theme_vault"],
+.achievement-reward-preview[data-cosmetic="theme_vault"] {
+    background:
+        linear-gradient(145deg, #dfbd54, #176e4f 42%, #09271c);
+}
+
+.achievement-reward-preview.reward-theme {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 0.58rem;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.16);
+}
+
+.achievement-reward-preview.reward-frame {
+    border-width: 3px;
+    border-style: solid;
+    border-radius: 0.66rem;
+    background: #182233;
+    color: #f8fafc;
+    font-size: 0.75rem;
+}
+
+.cosmetic-mini-avatar[data-frame="frame_wanderer"],
+.achievement-reward-preview[data-frame="frame_wanderer"] {
+    border-color: #66d5c8;
+    box-shadow: 0 0 0 2px #a98b3d;
+}
+
+.cosmetic-mini-avatar[data-frame="frame_bronze_edge"],
+.achievement-reward-preview[data-frame="frame_bronze_edge"] {
+    border-color: #d59656;
+    box-shadow: 0 0 0 2px #75401f;
+}
+
+.cosmetic-mini-avatar[data-frame="frame_silver_pulse"],
+.achievement-reward-preview[data-frame="frame_silver_pulse"] {
+    border-color: #e6edf7;
+    box-shadow:
+        0 0 0 2px #6e7b8c,
+        0 0 11px rgba(183, 207, 235, 0.45);
+}
+
+.cosmetic-mini-avatar[data-frame="frame_royal_prestige"],
+.achievement-reward-preview[data-frame="frame_royal_prestige"] {
+    border-color: #ffd86f;
+    box-shadow: 0 0 0 2px #7041ad;
+}
+
+.cosmetic-mini-avatar[data-frame="frame_hot_streak"],
+.achievement-reward-preview[data-frame="frame_hot_streak"] {
+    border-color: #ffb34f;
+    box-shadow:
+        0 0 0 2px #a52723,
+        0 0 11px rgba(239, 97, 47, 0.4);
+}
+
+.cosmetic-mini-avatar[data-frame="frame_classic_felt"],
+.achievement-reward-preview[data-frame="frame_classic_felt"] {
+    border-color: #e3c66d;
+    box-shadow: 0 0 0 2px #146247;
+}
+
+.cosmetic-mini-avatar[data-frame="frame_speedrun"],
+.achievement-reward-preview[data-frame="frame_speedrun"] {
+    border-color: #72e8ff;
+    box-shadow: 0 0 0 2px #287cc0;
+}
+
+.cosmetic-mini-avatar[data-frame="frame_webbed_gold"],
+.achievement-reward-preview[data-frame="frame_webbed_gold"] {
+    border-color: #f2cf62;
+    box-shadow: 0 0 0 2px #26231a;
+}
+
+.cosmetic-mini-avatar[data-frame="frame_frost_trail"],
+.achievement-reward-preview[data-frame="frame_frost_trail"] {
+    border-color: #e1faff;
+    box-shadow: 0 0 0 2px #469bbd;
+}
+
+.cosmetic-mini-avatar[data-frame="frame_five_card_flame"],
+.achievement-reward-preview[data-frame="frame_five_card_flame"] {
+    border-color: #ffc45d;
+    box-shadow: 0 0 0 2px #b92d22;
+}
+
+@keyframes achievement-silver-pulse {
+    0%,
+    100% {
+        box-shadow:
+            0 0 0 2px rgba(220, 231, 244, 0.14),
+            0 0 16px rgba(183, 207, 235, 0.2),
+            0 12px 34px rgba(0, 0, 0, 0.3);
+    }
+
+    50% {
+        box-shadow:
+            0 0 0 2px rgba(230, 239, 250, 0.25),
+            0 0 28px rgba(183, 207, 235, 0.42),
+            0 12px 34px rgba(0, 0, 0, 0.3);
+    }
+}
+
+@keyframes achievement-fire-pulse {
+    0%,
+    100% {
+        filter: saturate(0.95);
+        box-shadow:
+            0 0 14px rgba(255, 99, 51, 0.24),
+            0 12px 34px rgba(0, 0, 0, 0.3);
+    }
+
+    50% {
+        filter: saturate(1.2);
+        box-shadow:
+            0 0 26px rgba(255, 99, 51, 0.46),
+            0 12px 34px rgba(0, 0, 0, 0.3);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-avatar-frame[data-frame="frame_silver_pulse"],
+    .profile-avatar-frame[data-frame="frame_hot_streak"] {
+        animation: none;
+    }
+}
+

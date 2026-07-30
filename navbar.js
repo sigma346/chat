@@ -630,6 +630,27 @@
         document.body.append(script);
     }
 
+    function loadAchievementSync() {
+        if (
+            document.querySelector(
+                'script[data-achievement-sync="true"]'
+            )
+        ) {
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = "achievement-sync.js";
+        script.dataset.achievementSync = "true";
+        script.addEventListener("error", () => {
+            console.warn(
+                "Achievement synchronisation could not be loaded."
+            );
+        });
+
+        document.body.append(script);
+    }
+
     async function loadLevelProgress() {
         if (!window.supabaseClient) {
             return;
@@ -760,6 +781,7 @@
         installDropdownDismissHandlers();
         mountNavbar();
         loadProfileLinkEnhancer();
+        loadAchievementSync();
         loadLevelProgress();
         showFriendlyModeBanner();
     }
