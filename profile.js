@@ -13,6 +13,24 @@ const profileTitle = document.querySelector("#profile-title");
 const profileBio = document.querySelector("#profile-bio");
 const profileChips = document.querySelector("#profile-chips");
 const profileXp = document.querySelector("#profile-xp");
+const profileFriendCount = document.querySelector(
+    "#profile-friend-count"
+);
+const profileFriendActions = document.querySelector(
+    "#profile-friend-actions"
+);
+const profileFriendSummary = document.querySelector(
+    "#profile-friend-summary"
+);
+const profileFriendPrimaryButton = document.querySelector(
+    "#profile-friend-primary-button"
+);
+const profileFriendSecondaryButton = document.querySelector(
+    "#profile-friend-secondary-button"
+);
+const profileFriendsLink = document.querySelector(
+    "#profile-friends-link"
+);
 const profileMessage = document.querySelector("#profile-message");
 const profileOwnerPanel = document.querySelector(
     "#profile-owner-panel"
@@ -80,6 +98,9 @@ let loadedProfile = null;
 let cosmetics = [];
 let selectedCategory = "theme";
 let shopBusy = false;
+let friendRelationship = null;
+let friendActionBusy = false;
+let friendshipProfileChannel = null;
 
 function formatNumber(value) {
     return new Intl.NumberFormat("en-AU").format(
@@ -242,6 +263,254 @@ async function loadPublicProfile() {
     renderPublicProfile(data);
 }
 
+
+function renderFriendRelationship(data) {
+    friendRelationship = data ?? {
+        state: loadedProfile?.is_self ? "self" : "none",
+        friend_count: 0,
+        mutual_count: 0
+    };
+
+    profileFriendCount.textContent =
+        formatNumber(friendRelationship.friend_count);
+
+    profileFriendActions.classList.remove("hidden");
+    profileFriendPrimaryButton.classList.add("hidden");
+    profileFriendSecondaryButton.classList.add("hidden");
+    profileFriendPrimaryButton.disabled = false;
+    profileFriendSecondaryButton.disabled = false;
+    profileFriendsLink.textContent = loadedProfile?.is_self
+        ? "Manage friends"
+        : "View friends";
+
+    const mutualCount =
+        Number(friendRelationship.mutual_count ?? 0);
+
+    if (friendRelationship.state === "self") {
+        profileFriendSummary.textContent =
+            `${formatNumber(friendRelationship.friend_count)} friends`;
+        return;
+    }
+
+    if (friendRelationship.state === "friends") {
+        profileFriendSummary.textContent = mutualCount > 0
+            ? `Friends · ${formatNumber(mutualCount)} mutual`
+            : "Friends";
+
+        profileFriendPrimaryButton.textContent = "Friends";
+        profileFriendPrimaryButton.dataset.action = "none";
+        profileFriendPrimaryButton.disabled = true;
+        profileFriendPrimaryButton.classList.remove("hidden");
+
+        profileFriendSecondaryButton.textContent = "Remove";
+        profileFriendSecondaryButton.dataset.action = "remove";
+        profileFriendSecondaryButton.classList.remove("hidden");
+        return;
+    }
+
+    if (friendRelationship.state === "incoming_pending") {
+        profileFriendSummary.textContent = mutualCount > 0
+            ? `Sent you a request · ${formatNumber(mutualCount)} mutual`
+            : "Sent you a friend request";
+
+        profileFriendPrimaryButton.textContent = "Accept";
+        profileFriendPrimaryButton.dataset.action = "accept";
+        profileFriendPrimaryButton.classList.remove("hidden");
+
+        profileFriendSecondaryButton.textContent = "Decline";
+        profileFriendSecondaryButton.dataset.action = "decline";
+        profileFriendSecondaryButton.classList.remove("hidden");
+        return;
+    }
+
+    if (friendRelationship.state === "outgoing_pending") {
+        profileFriendSummary.textContent = mutualCount > 0
+            ? `Request sent · ${formatNumber(mutualCount)} mutual`
+            : "Friend request sent";
+
+        profileFriendPrimaryButton.textContent = "Request sent";
+        profileFriendPrimaryButton.dataset.action = "none";
+        profileFriendPrimaryButton.disabled = true;
+        profileFriendPrimaryButton.classList.remove("hidden");
+
+        profileFriendSecondaryButton.textContent = "Cancel";
+        profileFriendSecondaryButton.dataset.action = "cancel";
+        profileFriendSecondaryButton.classList.remove("hidden");
+        return;
+    }
+
+    profileFriendSummary.textContent = mutualCount > 0
+        ? `${formatNumber(mutualCount)} mutual friends`
+        : "Not friends yet";
+
+    profileFriendPrimaryButton.textContent = "Add friend";
+    profileFriendPrimaryButton.dataset.action = "send";
+    profileFriendPrimaryButton.classList.remove("hidden");
+}
+
+async function loadFriendRelationship() {
+    if (!loadedProfile?.id) {
+        return;
+    }
+
+    const {
+        data,
+        error
+    } = await window.supabaseClient.rpc(
+        "get_friend_relationship",
+        {
+            p_user_id: loadedProfile.id
+        }
+    );
+
+    if (error) {
+        throw error;
+    }
+
+    renderFriendRelationship(data);
+}
+
+async function runProfileFriendAction(action) {
+    if (
+        friendActionBusy
+        || !loadedProfile?.id
+        || action === "none"
+    ) {
+        return;
+    }
+
+    friendActionBusy = true;
+    profileFriendPrimaryButton.disabled = true;
+    profileFriendSecondaryButton.disabled = true;
+    setMessage();
+
+    try {
+        let result;
+
+        if (action === "send") {
+            result = await window.supabaseClient.rpc(
+                "send_friend_request",
+                {
+                    p_target_user_id: loadedProfile.id
+                }
+            );
+        } else if (
+            action === "accept"
+            || action === "decline"
+        ) {
+            result = await window.supabaseClient.rpc(
+                "respond_to_friend_request",
+                {
+                    p_friendship_id:
+                        friendRelationship.friendship_id,
+                    p_accept: action === "accept"
+                }
+            );
+        } else if (action === "cancel") {
+            result = await window.supabaseClient.rpc(
+                "cancel_friend_request",
+                {
+                    p_friendship_id:
+                        friendRelationship.friendship_id
+                }
+            );
+        } else if (action === "remove") {
+            const confirmed = window.confirm(
+                `Remove ${loadedProfile.username} from your friends?`
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            result = await window.supabaseClient.rpc(
+                "remove_friend",
+                {
+                    p_friend_user_id: loadedProfile.id
+                }
+            );
+        }
+
+        if (result?.error) {
+            throw result.error;
+        }
+
+        const messages = {
+            send: "Friend request sent.",
+            accept: "Friend request accepted.",
+            decline: "Friend request declined.",
+            cancel: "Friend request cancelled.",
+            remove: "Friend removed."
+        };
+
+        setMessage(messages[action], "success");
+        await loadFriendRelationship();
+    } catch (error) {
+        console.error(error);
+        setMessage(
+            error.message || "The friend action failed.",
+            "error"
+        );
+    } finally {
+        friendActionBusy = false;
+
+        if (friendRelationship) {
+            renderFriendRelationship(friendRelationship);
+        }
+    }
+}
+
+function subscribeToProfileFriendships() {
+    if (
+        !currentUser
+        || friendshipProfileChannel
+    ) {
+        return;
+    }
+
+    friendshipProfileChannel =
+        window.supabaseClient
+            .channel(
+                `profile-friendships-${currentUser.id}`
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "player_friendships"
+                },
+                () => {
+                    loadFriendRelationship().catch(
+                        (error) => {
+                            console.warn(
+                                "Friend relationship could not be refreshed:",
+                                error
+                            );
+                        }
+                    );
+                }
+            )
+            .subscribe();
+}
+
+profileFriendPrimaryButton.addEventListener(
+    "click",
+    () => {
+        runProfileFriendAction(
+            profileFriendPrimaryButton.dataset.action
+        );
+    }
+);
+
+profileFriendSecondaryButton.addEventListener(
+    "click",
+    () => {
+        runProfileFriendAction(
+            profileFriendSecondaryButton.dataset.action
+        );
+    }
+);
 
 function statisticCard(label, value, detail = "") {
     const card = document.createElement("article");
@@ -894,10 +1163,18 @@ async function initialiseProfile() {
         await Promise.all([
             loadPlayerStatistics(),
             loadPlayerAchievements(),
+            loadFriendRelationship().catch((error) => {
+                console.warn(
+                    "Friend relationship could not be loaded:",
+                    error
+                );
+            }),
             loadedProfile?.is_self
                 ? loadCosmetics()
                 : Promise.resolve()
         ]);
+
+        subscribeToProfileFriendships();
     } catch (error) {
         console.error(error);
         setMessage(
@@ -907,5 +1184,13 @@ async function initialiseProfile() {
         profileBio.textContent = "Profile unavailable.";
     }
 }
+
+window.addEventListener("beforeunload", () => {
+    if (friendshipProfileChannel) {
+        window.supabaseClient.removeChannel(
+            friendshipProfileChannel
+        );
+    }
+});
 
 initialiseProfile();

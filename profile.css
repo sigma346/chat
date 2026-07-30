@@ -220,7 +220,7 @@
 
 .profile-stats {
     display: grid;
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    grid-template-columns: repeat(3, minmax(105px, 1fr));
     gap: 0.75rem;
 }
 
@@ -1482,3 +1482,93 @@
     }
 }
 
+
+
+/* ============================================================
+   Friends on public profiles
+   ============================================================ */
+
+.profile-friend-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1rem;
+}
+
+.profile-friend-summary {
+    color: #9ba8ba;
+    font-size: 0.88rem;
+}
+
+.profile-friend-buttons {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.profile-friend-button,
+.profile-friends-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0.5rem 0.72rem;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 0.68rem;
+    background: rgba(13, 21, 33, 0.72);
+    color: #e7eef8;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.profile-friend-button.primary {
+    border-color: rgba(98, 230, 189, 0.38);
+    background: rgba(31, 118, 93, 0.25);
+    color: #ddfff5;
+}
+
+.profile-friend-button.secondary {
+    border-color: rgba(251, 113, 133, 0.28);
+    color: #ffbdc7;
+}
+
+.profile-friend-button:hover,
+.profile-friend-button:focus-visible,
+.profile-friends-link:hover,
+.profile-friends-link:focus-visible {
+    border-color: rgba(98, 230, 189, 0.52);
+    color: #ffffff;
+}
+
+.profile-friend-button:disabled {
+    opacity: 0.58;
+    cursor: default;
+}
+
+@media (max-width: 880px) {
+    .profile-stats {
+        grid-template-columns: repeat(3, minmax(90px, 1fr));
+    }
+}
+
+@media (max-width: 620px) {
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-friend-actions,
+    .profile-friend-buttons {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .profile-friend-button,
+    .profile-friends-link {
+        width: 100%;
+    }
+}

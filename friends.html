@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Friends</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="friends.css">
+</head>
+<body>
+    <main class="page friends-page">
+        <div class="friends-layout">
+            <div id="site-navbar"></div>
+
+            <section class="panel friends-hero">
+                <div>
+                    <p class="eyebrow">SOCIAL</p>
+                    <h1>Friends</h1>
+                    <p class="description">
+                        Find players, manage requests and open their profiles.
+                    </p>
+                </div>
+
+                <div class="friends-summary">
+                    <div class="friends-summary-card">
+                        <span>Friends</span>
+                        <strong id="friend-count">0</strong>
+                    </div>
+
+                    <div class="friends-summary-card">
+                        <span>Incoming</span>
+                        <strong id="incoming-count">0</strong>
+                    </div>
+
+                    <div class="friends-summary-card">
+                        <span>Outgoing</span>
+                        <strong id="outgoing-count">0</strong>
+                    </div>
+                </div>
+            </section>
+
+            <p
+                id="friends-message"
+                class="form-message friends-message"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+            <section class="panel friend-search-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">FIND PLAYERS</p>
+                        <h2>Search usernames</h2>
+                    </div>
+                </div>
+
+                <form id="friend-search-form" class="friend-search-form">
+                    <label for="friend-search-input">
+                        Username
+                    </label>
+
+                    <div class="friend-search-row">
+                        <input
+                            id="friend-search-input"
+                            type="search"
+                            minlength="2"
+                            maxlength="20"
+                            autocomplete="off"
+                            placeholder="Search by username..."
+                            required
+                        >
+
+                        <button
+                            id="friend-search-button"
+                            type="submit"
+                        >
+                            Search
+                        </button>
+                    </div>
+                </form>
+
+                <div
+                    id="friend-search-results"
+                    class="friend-card-grid friend-search-results"
+                >
+                    <p class="friends-empty">
+                        Search for a player using at least two characters.
+                    </p>
+                </div>
+            </section>
+
+            <div class="friends-dashboard">
+                <section class="panel friend-section">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">REQUESTS</p>
+                            <h2>Incoming</h2>
+                        </div>
+
+                        <span
+                            id="incoming-section-count"
+                            class="friend-section-count"
+                        >
+                            0
+                        </span>
+                    </div>
+
+                    <div
+                        id="incoming-request-list"
+                        class="friend-card-grid"
+                    ></div>
+                </section>
+
+                <section class="panel friend-section">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">REQUESTS</p>
+                            <h2>Sent</h2>
+                        </div>
+
+                        <span
+                            id="outgoing-section-count"
+                            class="friend-section-count"
+                        >
+                            0
+                        </span>
+                    </div>
+
+                    <div
+                        id="outgoing-request-list"
+                        class="friend-card-grid"
+                    ></div>
+                </section>
+            </div>
+
+            <section class="panel friend-section">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">YOUR FRIENDS</p>
+                        <h2>Friend list</h2>
+                    </div>
+
+                    <label class="friend-filter-label">
+                        <span>Filter</span>
+                        <input
+                            id="friend-list-filter"
+                            type="search"
+                            maxlength="20"
+                            autocomplete="off"
+                            placeholder="Filter friends..."
+                        >
+                    </label>
+                </div>
+
+                <div
+                    id="friend-list"
+                    class="friend-card-grid friend-list-grid"
+                ></div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="friends.js"></script>
+</body>
+</html>

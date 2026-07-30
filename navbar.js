@@ -73,6 +73,12 @@
             files: ["profile.html"]
         },
         {
+            label: "Friends",
+            href: "friends.html",
+            files: ["friends.html"],
+            requestBadge: true
+        },
+        {
             label: "Donate",
             href: "donate.html",
             files: ["donate.html"]
@@ -161,7 +167,18 @@
         const link = document.createElement("a");
         link.href = item.href;
         link.className = "nav-link";
-        link.textContent = item.label;
+
+        const label = document.createElement("span");
+        label.textContent = item.label;
+        link.append(label);
+
+        if (item.requestBadge) {
+            const badge = document.createElement("span");
+            badge.id = "navbar-friend-request-count";
+            badge.className = "navbar-friend-request-count";
+            badge.hidden = true;
+            link.append(badge);
+        }
 
         if (itemIsActive(item)) {
             link.classList.add("active");
@@ -466,6 +483,26 @@
                 }
             }
 
+            .navbar-friend-request-count {
+                display: inline-grid;
+                place-items: center;
+                min-width: 1.25rem;
+                height: 1.25rem;
+                margin-left: 0.35rem;
+                padding: 0 0.28rem;
+                border: 1px solid rgba(255, 166, 184, 0.38);
+                border-radius: 999px;
+                background: rgba(190, 40, 75, 0.28);
+                color: #ffd7df;
+                font-size: 0.68rem;
+                font-weight: 800;
+                line-height: 1;
+            }
+
+            .navbar-friend-request-count[hidden] {
+                display: none !important;
+            }
+
             @media (prefers-reduced-motion: reduce) {
                 .nav-dropdown-toggle,
                 .nav-dropdown-arrow,
@@ -558,7 +595,7 @@
             + ".draw-layout, .hearts-layout, .blackjack-layout, "
             + ".disclaimer-layout, .horse-racing-layout, "
             + ".community-roulette-layout, .penguin-cross-layout, .leaderboards-layout, "
-            + ".donation-layout, .profile-layout"
+            + ".donation-layout, .profile-layout, .friends-layout"
         )
         || document.querySelector("main > div")
         || document.querySelector("main")
@@ -649,6 +686,100 @@
         });
 
         document.body.append(script);
+    }
+
+    let friendshipNavbarChannel = null;
+
+    function updateFriendRequestBadge(value) {
+        const badge = document.querySelector(
+            "#navbar-friend-request-count"
+        );
+
+        if (!badge) {
+            return;
+        }
+
+        const count = Math.max(
+            Number(value ?? 0),
+            0
+        );
+
+        badge.textContent = count > 99
+            ? "99+"
+            : String(count);
+
+        badge.hidden = count === 0;
+        badge.title = count === 1
+            ? "1 incoming friend request"
+            : `${count} incoming friend requests`;
+    }
+
+    async function loadFriendRequestCount() {
+        if (!window.supabaseClient) {
+            return;
+        }
+
+        try {
+            const {
+                data,
+                error
+            } = await window.supabaseClient.rpc(
+                "get_my_friend_request_count"
+            );
+
+            if (error) {
+                return;
+            }
+
+            updateFriendRequestBadge(data);
+        } catch (error) {
+            console.warn(
+                "Friend request count could not be loaded:",
+                error
+            );
+        }
+    }
+
+    async function subscribeToNavbarFriendships() {
+        if (
+            !window.supabaseClient
+            || friendshipNavbarChannel
+        ) {
+            return;
+        }
+
+        try {
+            const {
+                data: { user }
+            } = await window.supabaseClient.auth.getUser();
+
+            if (!user) {
+                return;
+            }
+
+            friendshipNavbarChannel =
+                window.supabaseClient
+                    .channel(
+                        `navbar-friendships-${user.id}`
+                    )
+                    .on(
+                        "postgres_changes",
+                        {
+                            event: "*",
+                            schema: "public",
+                            table: "player_friendships"
+                        },
+                        () => {
+                            loadFriendRequestCount();
+                        }
+                    )
+                    .subscribe();
+        } catch (error) {
+            console.warn(
+                "Friendship updates could not be subscribed:",
+                error
+            );
+        }
     }
 
     async function loadLevelProgress() {
@@ -783,6 +914,8 @@
         loadProfileLinkEnhancer();
         loadAchievementSync();
         loadLevelProgress();
+        loadFriendRequestCount();
+        subscribeToNavbarFriendships();
         showFriendlyModeBanner();
     }
 
