@@ -1,0 +1,573 @@
+.horse-racing-page {
+    align-items: start;
+}
+
+.horse-racing-layout {
+    display: grid;
+    gap: 12px;
+
+    width: min(1120px, 100%);
+}
+
+.horse-racing-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 24px;
+    padding: 24px;
+}
+
+.horse-wallet-card {
+    display: grid;
+    gap: 4px;
+
+    min-width: 155px;
+    padding: 12px 15px;
+
+    border: 1px solid #8b6f24;
+    border-radius: 12px;
+
+    background: rgba(139, 111, 36, 0.18);
+    text-align: right;
+}
+
+.horse-wallet-card span,
+.live-race-clock span,
+.next-race-clock span {
+    color: var(--muted);
+
+    font-size: 0.68rem;
+    font-weight: 750;
+
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.horse-wallet-card strong {
+    color: #ffe192;
+    font-size: 1.2rem;
+}
+
+.live-race-section,
+.betting-race-section,
+.last-race-section {
+    padding: 22px;
+}
+
+.live-race-section.hidden,
+.betting-race-section.hidden,
+.last-race-section.hidden,
+.my-bet-summary.hidden {
+    display: none;
+}
+
+.live-race-section {
+    border-color: #9a6d35;
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(190, 125, 42, 0.16),
+            transparent 42%
+        ),
+        var(--panel);
+}
+
+.race-section-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 24px;
+    margin-bottom: 18px;
+}
+
+.race-section-heading h2 {
+    margin: 0;
+}
+
+.live-eyebrow {
+    color: #ffbd70;
+}
+
+.live-race-clock,
+.next-race-clock {
+    display: grid;
+    justify-items: end;
+    gap: 4px;
+
+    min-width: 145px;
+}
+
+.live-race-clock strong,
+.next-race-clock strong {
+    color: #ffe192;
+    font-size: 1.45rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.next-race-clock small {
+    color: var(--muted);
+    text-align: right;
+}
+
+.live-race-lanes {
+    display: grid;
+    gap: 11px;
+}
+
+.live-horse-lane {
+    display: grid;
+    gap: 10px;
+
+    padding: 13px;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    background: rgba(12, 17, 25, 0.66);
+
+    transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.live-horse-lane.winning-live-lane {
+    border-color: #d7ad46;
+
+    box-shadow:
+        0 0 0 4px rgba(215, 173, 70, 0.12),
+        0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.horse-summary-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 14px;
+}
+
+.horse-summary-heading > div:first-child,
+.horse-pool-total {
+    display: grid;
+    gap: 3px;
+}
+
+.horse-summary-heading strong {
+    overflow-wrap: anywhere;
+}
+
+.horse-lane-label,
+.horse-pool-total span {
+    color: var(--muted);
+
+    font-size: 0.65rem;
+    font-weight: 750;
+
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.horse-pool-total {
+    justify-items: end;
+    text-align: right;
+}
+
+.horse-pool-total strong {
+    color: #ffe192;
+    font-size: 0.86rem;
+}
+
+.horse-progress-track {
+    position: relative;
+
+    height: 48px;
+    overflow: hidden;
+
+    border: 1px solid #38475d;
+    border-radius: 999px;
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.025) 0,
+            rgba(255, 255, 255, 0.025) 8%,
+            rgba(255, 255, 255, 0.055) 8%,
+            rgba(255, 255, 255, 0.055) 8.4%
+        ),
+        #111925;
+}
+
+.horse-progress-track::after {
+    content: "";
+
+    position: absolute;
+    top: 0;
+    right: 2%;
+    bottom: 0;
+
+    width: 4px;
+
+    background:
+        repeating-linear-gradient(
+            0deg,
+            #ffffff 0,
+            #ffffff 6px,
+            #161616 6px,
+            #161616 12px
+        );
+}
+
+.horse-progress-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+
+    width: 0;
+
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(41, 128, 96, 0.42),
+            rgba(74, 190, 148, 0.52)
+        );
+}
+
+.horse-progress-marker {
+    position: absolute;
+    top: 50%;
+    right: 0;
+
+    translate: 45% -50%;
+
+    font-size: 1.65rem;
+    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.45));
+}
+
+.horse-progress-text {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+
+    translate: 0 -50%;
+
+    color: rgba(255, 255, 255, 0.84);
+
+    font-size: 0.68rem;
+    font-weight: 850;
+    font-variant-numeric: tabular-nums;
+}
+
+.live-race-result {
+    min-height: 24px;
+    margin: 15px 0 0;
+
+    color: #ffe192;
+
+    font-size: 1rem;
+    font-weight: 850;
+    text-align: center;
+}
+
+.bet-control-bar {
+    display: grid;
+    grid-template-columns:
+        minmax(130px, 180px)
+        minmax(0, 1fr);
+
+    align-items: end;
+    gap: 12px;
+
+    margin-bottom: 15px;
+    padding: 13px;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    background: var(--panel-light);
+}
+
+.bet-amount-control {
+    display: grid;
+    gap: 6px;
+}
+
+.quick-bet-buttons {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.quick-bet-buttons button {
+    min-width: 58px;
+}
+
+.betting-horse-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 10px;
+}
+
+.betting-horse-card {
+    display: grid;
+    align-content: start;
+    gap: 11px;
+
+    min-width: 0;
+    padding: 13px;
+
+    border: 1px solid var(--border);
+    border-radius: 13px;
+
+    background: var(--panel-light);
+
+    transition:
+        border-color 160ms ease,
+        transform 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.betting-horse-card:hover {
+    transform: translateY(-2px);
+    border-color: #50647e;
+}
+
+.betting-horse-card.selected-horse {
+    border-color: var(--accent);
+
+    box-shadow:
+        0 0 0 4px rgba(85, 214, 169, 0.12);
+}
+
+.betting-horse-card.own-bet-horse {
+    border-color: #d7ad46;
+
+    background:
+        linear-gradient(
+            rgba(139, 111, 36, 0.12),
+            var(--panel-light)
+        );
+}
+
+.betting-horse-card .horse-summary-heading {
+    min-height: 56px;
+}
+
+.horse-bettor-list {
+    display: grid;
+    align-content: start;
+    gap: 5px;
+
+    max-height: 155px;
+    min-height: 44px;
+
+    overflow-y: auto;
+}
+
+.horse-bettor-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+
+    gap: 8px;
+
+    padding: 6px 7px;
+
+    border-radius: 7px;
+
+    background: rgba(10, 14, 21, 0.48);
+
+    font-size: 0.69rem;
+}
+
+.horse-bettor-item strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.horse-bettor-item span,
+.empty-bettor-list {
+    color: var(--muted);
+    font-size: 0.66rem;
+}
+
+.empty-bettor-list {
+    display: grid;
+    place-items: center;
+
+    min-height: 42px;
+
+    border: 1px dashed var(--border);
+    border-radius: 7px;
+}
+
+.back-horse-button {
+    align-self: end;
+    width: 100%;
+}
+
+.my-bet-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 14px;
+
+    margin-top: 14px;
+    padding: 12px 14px;
+
+    border: 1px solid #8b6f24;
+    border-radius: 11px;
+
+    background: rgba(139, 111, 36, 0.17);
+}
+
+.my-bet-summary span {
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.my-bet-summary strong {
+    color: #ffe192;
+}
+
+.fair-odds-note {
+    margin: 14px 0 0;
+
+    color: var(--muted);
+
+    font-size: 0.76rem;
+    line-height: 1.5;
+}
+
+.last-race-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+.last-race-section h2 {
+    margin: 0;
+}
+
+.previous-winner-card {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 24px;
+}
+
+.previous-winner-card > div:first-child {
+    display: grid;
+    gap: 3px;
+}
+
+.previous-winner-card span {
+    color: var(--muted);
+    font-size: 0.7rem;
+}
+
+.previous-winner-card strong {
+    color: #ffe192;
+    font-size: 1.05rem;
+}
+
+.previous-race-totals {
+    display: grid;
+    gap: 3px;
+
+    text-align: right;
+}
+
+@media (max-width: 950px) {
+    .betting-horse-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .horse-racing-header,
+    .race-section-heading,
+    .last-race-section {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .horse-wallet-card {
+        width: 100%;
+        text-align: left;
+    }
+
+    .live-race-clock,
+    .next-race-clock {
+        justify-items: start;
+    }
+
+    .next-race-clock small {
+        text-align: left;
+    }
+
+    .bet-control-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-bet-buttons {
+        justify-content: flex-start;
+    }
+
+    .previous-winner-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .previous-race-totals {
+        text-align: left;
+    }
+}
+
+@media (max-width: 540px) {
+    .horse-racing-header,
+    .live-race-section,
+    .betting-race-section,
+    .last-race-section {
+        padding: 16px;
+    }
+
+    .betting-horse-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-bet-buttons {
+        display: grid;
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+    .quick-bet-buttons button {
+        min-width: 0;
+    }
+
+    .horse-summary-heading {
+        gap: 8px;
+    }
+
+    .horse-progress-track {
+        height: 44px;
+    }
+
+    .my-bet-summary {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

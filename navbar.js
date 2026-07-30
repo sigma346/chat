@@ -27,6 +27,11 @@
             ]
         },
         {
+            label: "Horse Race",
+            href: "horse-racing.html",
+            files: ["horse-racing.html"]
+        },
+        {
             label: "Recovery",
             href: "recovery.html",
             files: ["recovery.html"]
@@ -125,7 +130,7 @@
         return document.querySelector(
             ".poker-layout, .plinko-layout, .recovery-layout, "
             + ".draw-layout, .hearts-layout, .blackjack-layout, "
-            + ".disclaimer-layout"
+            + ".disclaimer-layout, .horse-racing-layout"
         )
         || document.querySelector("main > div")
         || document.querySelector("main")
