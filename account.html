@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -13,38 +12,10 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="auth.css">
 </head>
-
 <body>
     <main class="page">
         <div class="account-layout">
-            <nav class="site-nav">
-                <a href="index.html" class="nav-link">
-                    Chat
-                </a>
-
-                <a href="poker.html" class="nav-link">
-                    Poker
-                </a>
-                
-                <a href="recovery.html" class="nav-link">
-                    Recovery
-                </a>
-
-                <a href="plinko.html" class="nav-link">
-                    Plinko
-                </a>
-
-                <a href="account.html" class="nav-link active">
-                    Account
-                </a>
-                <button
-                    id="logout-button"
-                    class="nav-button"
-                    type="button"
-                >
-                    Log out
-                </button>
-            </nav>
+            <div id="site-navbar"></div>
 
             <section class="panel auth-panel account-panel">
                 <p class="eyebrow">PLAYER ACCOUNT</p>
@@ -53,55 +24,41 @@
 
                 <div class="account-details">
                     <div class="account-stat">
-                        <span class="account-label">
-                            Username
-                        </span>
-
-                        <strong id="account-username">
-                            Loading...
-                        </strong>
+                        <span class="account-label">Username</span>
+                        <strong id="account-username">Loading...</strong>
                     </div>
 
                     <div class="account-stat">
-                        <span class="account-label">
-                            Email
-                        </span>
-
-                        <strong id="account-email">
-                            Loading...
-                        </strong>
+                        <span class="account-label">Email</span>
+                        <strong id="account-email">Loading...</strong>
                     </div>
 
                     <div class="account-stat">
-                        <span class="account-label">
-                            Player ID
-                        </span>
-
-                        <strong id="account-id">
-                            Loading...
-                        </strong>
+                        <span class="account-label">Player ID</span>
+                        <strong id="account-id">Loading...</strong>
                     </div>
 
                     <div class="account-stat">
-                        <span class="account-label">
-                            Play chips
-                        </span>
+                        <span class="account-label">Play chips</span>
+                        <strong id="account-chips">0</strong>
+                    </div>
 
-                        <strong id="account-chips">
-                            0
-                        </strong>
+                    <div class="account-stat">
+                        <span class="account-label">Account status</span>
+                        <strong id="account-role">Player</strong>
                     </div>
                 </div>
 
+                <p>
+                    <a id="public-profile-link" href="profile.html">
+                        View public profile
+                    </a>
+                </p>
+
                 <hr>
 
-                <form
-                    id="username-form"
-                    class="auth-form"
-                >
-                    <label for="new-username-input">
-                        Change username
-                    </label>
+                <form id="username-form" class="auth-form">
+                    <label for="new-username-input">Change username</label>
 
                     <input
                         id="new-username-input"
@@ -112,9 +69,7 @@
                         required
                     >
 
-                    <button type="submit">
-                        Save username
-                    </button>
+                    <button type="submit">Save username</button>
                 </form>
 
                 <p

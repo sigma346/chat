@@ -68,6 +68,11 @@
             files: ["leaderboards.html"]
         },
         {
+            label: "Profile",
+            href: "profile.html",
+            files: ["profile.html"]
+        },
+        {
             label: "Donate",
             href: "donate.html",
             files: ["donate.html"]
@@ -98,6 +103,47 @@
         return false;
     }
 
+    const hoverDropdownMedia = window.matchMedia(
+        "(hover: hover) and (pointer: fine)"
+    );
+
+    const hoverCloseTimers = new WeakMap();
+
+    function setDropdownOpen(dropdown, open) {
+        if (!dropdown) {
+            return;
+        }
+
+        dropdown.classList.toggle("open", open);
+
+        dropdown
+            .querySelector(".nav-dropdown-toggle")
+            ?.setAttribute(
+                "aria-expanded",
+                String(open)
+            );
+    }
+
+    function cancelDropdownClose(dropdown) {
+        const timer = hoverCloseTimers.get(dropdown);
+
+        if (timer) {
+            window.clearTimeout(timer);
+            hoverCloseTimers.delete(dropdown);
+        }
+    }
+
+    function scheduleDropdownClose(dropdown) {
+        cancelDropdownClose(dropdown);
+
+        const timer = window.setTimeout(() => {
+            setDropdownOpen(dropdown, false);
+            hoverCloseTimers.delete(dropdown);
+        }, 180);
+
+        hoverCloseTimers.set(dropdown, timer);
+    }
+
     function closeAllDropdowns(exceptDropdown = null) {
         document
             .querySelectorAll(".nav-dropdown.open")
@@ -106,16 +152,8 @@
                     return;
                 }
 
-                dropdown.classList.remove("open");
-
-                const toggle = dropdown.querySelector(
-                    ".nav-dropdown-toggle"
-                );
-
-                toggle?.setAttribute(
-                    "aria-expanded",
-                    "false"
-                );
+                cancelDropdownClose(dropdown);
+                setDropdownOpen(dropdown, false);
             });
     }
 
@@ -197,15 +235,7 @@
                 shouldOpen ? dropdown : null
             );
 
-            dropdown.classList.toggle(
-                "open",
-                shouldOpen
-            );
-
-            toggle.setAttribute(
-                "aria-expanded",
-                String(shouldOpen)
-            );
+            setDropdownOpen(dropdown, shouldOpen);
         });
 
         toggle.addEventListener("keydown", (event) => {
@@ -222,17 +252,35 @@
                 && !dropdown.classList.contains("open")
             ) {
                 event.preventDefault();
-                dropdown.classList.add("open");
-                toggle.setAttribute(
-                    "aria-expanded",
-                    "true"
-                );
+                setDropdownOpen(dropdown, true);
             }
 
             if (event.key === "ArrowDown") {
                 event.preventDefault();
                 menu.querySelector("a")?.focus();
             }
+        });
+
+        dropdown.addEventListener("pointerenter", () => {
+            if (!hoverDropdownMedia.matches) {
+                return;
+            }
+
+            cancelDropdownClose(dropdown);
+            closeAllDropdowns(dropdown);
+            setDropdownOpen(dropdown, true);
+        });
+
+        dropdown.addEventListener("pointerleave", () => {
+            if (!hoverDropdownMedia.matches) {
+                return;
+            }
+
+            scheduleDropdownClose(dropdown);
+        });
+
+        menu.addEventListener("pointerenter", () => {
+            cancelDropdownClose(dropdown);
         });
 
         dropdown.append(toggle, menu);
@@ -271,22 +319,17 @@
                 align-items: center;
                 justify-content: space-between;
                 gap: 0.45rem;
-
                 min-height: 44px;
                 padding: 0.72rem 1rem;
-
                 border: 1px solid rgba(148, 163, 184, 0.2);
                 border-radius: 0.95rem;
-
                 background: rgba(12, 18, 29, 0.92);
                 color: #e8edf7;
-
                 font: inherit;
                 font-weight: 600;
                 cursor: pointer;
                 white-space: nowrap;
                 text-decoration: none;
-
                 transition:
                     background 150ms ease,
                     border-color 150ms ease,
@@ -332,23 +375,18 @@
                 top: calc(100% + 0.55rem);
                 left: 0;
                 z-index: 1100;
-
                 display: grid;
                 min-width: 13rem;
                 padding: 0.45rem;
-
                 border: 1px solid rgba(148, 163, 184, 0.2);
                 border-radius: 0.9rem;
-
                 background: rgba(10, 15, 24, 0.98);
                 box-shadow: 0 18px 45px rgba(0, 0, 0, 0.34);
-
                 opacity: 0;
                 visibility: hidden;
                 transform: translateY(-0.35rem) scale(0.98);
                 transform-origin: top left;
                 pointer-events: none;
-
                 transition:
                     opacity 150ms ease,
                     transform 150ms ease,
@@ -366,13 +404,10 @@
             .nav-dropdown-item {
                 display: block;
                 padding: 0.72rem 0.85rem;
-
                 border-radius: 0.65rem;
-
                 color: #d9e2f1;
                 text-decoration: none;
                 white-space: nowrap;
-
                 transition:
                     background 130ms ease,
                     color 130ms ease,
@@ -472,7 +507,7 @@
         const levelLink = document.createElement("a");
         levelLink.id = "navbar-level-link";
         levelLink.className = "navbar-level-link";
-        levelLink.href = "account.html";
+        levelLink.href = "profile.html";
         levelLink.hidden = true;
 
         const levelText = document.createElement("strong");
@@ -523,7 +558,7 @@
             + ".draw-layout, .hearts-layout, .blackjack-layout, "
             + ".disclaimer-layout, .horse-racing-layout, "
             + ".community-roulette-layout, .penguin-cross-layout, .leaderboards-layout, "
-            + ".donation-layout"
+            + ".donation-layout, .profile-layout"
         )
         || document.querySelector("main > div")
         || document.querySelector("main")
@@ -572,6 +607,27 @@
             closeAllDropdowns();
             openToggle?.focus();
         });
+    }
+
+    function loadProfileLinkEnhancer() {
+        if (
+            document.querySelector(
+                'script[data-profile-links="true"]'
+            )
+        ) {
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = "profile-links.js";
+        script.dataset.profileLinks = "true";
+        script.addEventListener("error", () => {
+            console.warn(
+                "Player profile links could not be loaded."
+            );
+        });
+
+        document.body.append(script);
     }
 
     async function loadLevelProgress() {
@@ -703,6 +759,7 @@
     function initialiseSharedNavbar() {
         installDropdownDismissHandlers();
         mountNavbar();
+        loadProfileLinkEnhancer();
         loadLevelProgress();
         showFriendlyModeBanner();
     }

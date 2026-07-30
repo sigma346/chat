@@ -10,6 +10,12 @@ const accountId =
 const accountChips =
     document.querySelector("#account-chips");
 
+const accountRole =
+    document.querySelector("#account-role");
+
+const publicProfileLink =
+    document.querySelector("#public-profile-link");
+
 const usernameForm =
     document.querySelector("#username-form");
 
@@ -18,9 +24,6 @@ const newUsernameInput =
 
 const accountMessage =
     document.querySelector("#account-message");
-
-const logoutButton =
-    document.querySelector("#logout-button");
 
 let currentUser = null;
 
@@ -43,9 +46,7 @@ function showAccountMessage(message, type = "error") {
 
 async function loadAccount() {
     const {
-        data: {
-            user
-        },
+        data: { user },
         error: userError
     } = await window.supabaseClient.auth.getUser();
 
@@ -61,7 +62,7 @@ async function loadAccount() {
         error: profileError
     } = await window.supabaseClient
         .from("profiles")
-        .select("id, username, chips")
+        .select("id, username, chips, is_admin")
         .eq("id", user.id)
         .single();
 
@@ -77,6 +78,17 @@ async function loadAccount() {
 
     accountChips.textContent =
         formatChips(profile.chips);
+
+    accountRole.textContent = profile.is_admin
+        ? "Administrator"
+        : "Player";
+
+    accountRole.style.color = profile.is_admin
+        ? "#f8d66d"
+        : "";
+
+    publicProfileLink.href =
+        `profile.html?id=${encodeURIComponent(user.id)}`;
 
     newUsernameInput.value = profile.username;
 }
@@ -98,7 +110,6 @@ usernameForm.addEventListener(
             showAccountMessage(
                 "Username must be 3–20 characters using letters, numbers or underscores."
             );
-
             return;
         }
 
@@ -122,17 +133,6 @@ usernameForm.addEventListener(
             "Username updated.",
             "success"
         );
-    }
-);
-
-logoutButton.addEventListener(
-    "click",
-    async () => {
-        await window.supabaseClient.auth.signOut({
-            scope: "local"
-        });
-
-        window.location.href = "login.html";
     }
 );
 

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Player Profile</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+    <main class="page profile-page">
+        <div class="profile-layout">
+            <div id="site-navbar"></div>
+
+            <section
+                id="profile-hero"
+                class="panel profile-hero"
+                data-theme="theme_midnight"
+            >
+                <div
+                    id="profile-avatar-frame"
+                    class="profile-avatar-frame"
+                    data-frame="frame_standard"
+                >
+                    <div
+                        id="profile-avatar"
+                        class="profile-avatar"
+                        aria-hidden="true"
+                    >
+                        ?
+                    </div>
+
+                    <span
+                        id="profile-badge"
+                        class="profile-badge hidden"
+                        aria-label="Profile badge"
+                    ></span>
+                </div>
+
+                <div class="profile-identity">
+                    <p class="eyebrow">PLAYER PROFILE</p>
+
+                    <div class="profile-name-row">
+                        <h1 id="profile-username">Loading...</h1>
+
+                        <span
+                            id="profile-level"
+                            class="profile-level"
+                        >
+                            Lv. 1
+                        </span>
+
+                        <span
+                            id="profile-admin-status"
+                            class="profile-admin-status hidden"
+                        >
+                            Administrator
+                        </span>
+                    </div>
+
+                    <p
+                        id="profile-title"
+                        class="profile-title hidden"
+                    ></p>
+
+                    <p
+                        id="profile-bio"
+                        class="profile-bio"
+                    >
+                        Loading profile...
+                    </p>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <span>Wallet chips</span>
+                        <strong id="profile-chips">0</strong>
+                    </div>
+
+                    <div class="profile-stat">
+                        <span>Total XP</span>
+                        <strong id="profile-xp">0</strong>
+                    </div>
+                </div>
+            </section>
+
+            <p
+                id="profile-message"
+                class="form-message profile-message"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+            <section
+                id="profile-owner-panel"
+                class="profile-owner-grid hidden"
+            >
+                <section class="panel profile-editor-panel">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">CUSTOMISE</p>
+                            <h2>Public profile</h2>
+                        </div>
+
+                        <a
+                            class="secondary-link"
+                            href="account.html"
+                        >
+                            Account settings
+                        </a>
+                    </div>
+
+                    <form id="profile-bio-form" class="profile-bio-form">
+                        <label for="profile-bio-input">
+                            Bio
+                        </label>
+
+                        <textarea
+                            id="profile-bio-input"
+                            maxlength="160"
+                            rows="4"
+                            placeholder="Write a short public bio..."
+                        ></textarea>
+
+                        <div class="profile-form-footer">
+                            <span id="bio-character-count">0 / 160</span>
+
+                            <button
+                                id="save-profile-button"
+                                type="submit"
+                            >
+                                Save bio
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="panel cosmetic-shop-panel">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">COSMETIC SHOP</p>
+                            <h2>Unlock profile styles</h2>
+                        </div>
+
+                        <span class="shop-wallet">
+                            <strong id="shop-wallet-chips">0</strong>
+                            chips
+                        </span>
+                    </div>
+
+                    <p class="description">
+                        Cosmetics permanently unlock for your account. They change
+                        only how your profile looks and provide no gameplay benefit.
+                    </p>
+
+                    <div
+                        id="cosmetic-category-tabs"
+                        class="cosmetic-category-tabs"
+                        role="tablist"
+                        aria-label="Cosmetic category"
+                    >
+                        <button
+                            type="button"
+                            class="cosmetic-tab active"
+                            data-category="theme"
+                            role="tab"
+                            aria-selected="true"
+                        >
+                            Themes
+                        </button>
+
+                        <button
+                            type="button"
+                            class="cosmetic-tab"
+                            data-category="frame"
+                            role="tab"
+                            aria-selected="false"
+                        >
+                            Frames
+                        </button>
+
+                        <button
+                            type="button"
+                            class="cosmetic-tab"
+                            data-category="title"
+                            role="tab"
+                            aria-selected="false"
+                        >
+                            Titles
+                        </button>
+
+                        <button
+                            type="button"
+                            class="cosmetic-tab"
+                            data-category="badge"
+                            role="tab"
+                            aria-selected="false"
+                        >
+                            Badges
+                        </button>
+                    </div>
+
+                    <div
+                        id="cosmetic-grid"
+                        class="cosmetic-grid"
+                    >
+                        <p class="cosmetic-loading">
+                            Loading cosmetics...
+                        </p>
+                    </div>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="profile.js"></script>
+</body>
+</html>
