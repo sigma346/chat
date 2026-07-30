@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Daily Challenges</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="challenges.css">
+</head>
+
+<body>
+    <main class="page">
+        <div class="challenges-layout">
+            <div id="site-navbar"></div>
+
+            <section class="challenge-hero panel">
+                <div>
+                    <p class="eyebrow">DAILY PROGRESSION</p>
+
+                    <h1>Daily Challenges</h1>
+
+                    <p class="challenge-hero-copy">
+                        Complete a challenge to collect chips and XP.
+                        The finished slot is immediately replaced with
+                        another challenge of the same difficulty.
+                    </p>
+                </div>
+
+                <div class="challenge-reset-card">
+                    <span class="challenge-reset-label">
+                        New daily set in
+                    </span>
+
+                    <strong id="challenge-reset-countdown">
+                        Loading...
+                    </strong>
+
+                    <span id="challenge-date-label">
+                        Brisbane time
+                    </span>
+                </div>
+            </section>
+
+            <section class="challenge-summary-grid">
+                <article class="challenge-summary-card">
+                    <span>Completed today</span>
+                    <strong id="completed-today">0</strong>
+                </article>
+
+                <article class="challenge-summary-card">
+                    <span>Challenge chips</span>
+                    <strong id="challenge-chips-earned">
+                        0
+                    </strong>
+                </article>
+
+                <article class="challenge-summary-card">
+                    <span>Challenge XP</span>
+                    <strong id="challenge-xp-earned">
+                        0
+                    </strong>
+                </article>
+
+                <article class="challenge-summary-card">
+                    <span>Daily reroll</span>
+                    <strong id="reroll-status">
+                        Available
+                    </strong>
+                </article>
+            </section>
+
+            <section class="challenge-toolbar panel">
+                <div>
+                    <h2>Your active slots</h2>
+
+                    <p>
+                        The first completion today in each difficulty
+                        earns the bonus shown on that card.
+                    </p>
+                </div>
+
+                <div class="challenge-toolbar-actions">
+                    <button
+                        id="refresh-challenges-button"
+                        class="challenge-secondary-button"
+                        type="button"
+                    >
+                        Check progress
+                    </button>
+
+                    <button
+                        id="reroll-challenges-button"
+                        class="challenge-reroll-button"
+                        type="button"
+                    >
+                        Reroll all three
+                    </button>
+                </div>
+            </section>
+
+            <section
+                id="challenge-slot-grid"
+                class="challenge-slot-grid"
+                aria-live="polite"
+            >
+                <article class="challenge-loading-card">
+                    Loading daily challenges...
+                </article>
+            </section>
+
+            <section class="challenge-history panel">
+                <div class="challenge-section-heading">
+                    <div>
+                        <p class="eyebrow">TODAY'S RESULTS</p>
+                        <h2>Recent completions</h2>
+                    </div>
+
+                    <span class="challenge-history-note">
+                        Rewards are added automatically.
+                    </span>
+                </div>
+
+                <div
+                    id="challenge-history-list"
+                    class="challenge-history-list"
+                >
+                    <p class="challenge-empty">
+                        No challenges completed today.
+                    </p>
+                </div>
+            </section>
+
+            <p
+                id="challenge-message"
+                class="challenge-message"
+                role="status"
+                aria-live="polite"
+            ></p>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="challenges.js"></script>
+</body>
+</html>

@@ -63,6 +63,11 @@
             ]
         },
         {
+            label: "Challenges",
+            href: "challenges.html",
+            files: ["challenges.html"]
+        },
+        {
             label: "Leaderboards",
             href: "leaderboards.html",
             files: ["leaderboards.html"]
@@ -595,7 +600,8 @@
             + ".draw-layout, .hearts-layout, .blackjack-layout, "
             + ".disclaimer-layout, .horse-racing-layout, "
             + ".community-roulette-layout, .penguin-cross-layout, .leaderboards-layout, "
-            + ".donation-layout, .profile-layout, .friends-layout"
+            + ".donation-layout, .profile-layout, .friends-layout, "
+            + ".challenges-layout"
         )
         || document.querySelector("main > div")
         || document.querySelector("main")
@@ -682,6 +688,27 @@
         script.addEventListener("error", () => {
             console.warn(
                 "Achievement synchronisation could not be loaded."
+            );
+        });
+
+        document.body.append(script);
+    }
+
+    function loadDailyChallengeSync() {
+        if (
+            document.querySelector(
+                'script[data-daily-challenge-sync="true"]'
+            )
+        ) {
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = "daily-challenge-sync.js";
+        script.dataset.dailyChallengeSync = "true";
+        script.addEventListener("error", () => {
+            console.warn(
+                "Daily challenge synchronisation could not be loaded."
             );
         });
 
@@ -913,7 +940,13 @@
         mountNavbar();
         loadProfileLinkEnhancer();
         loadAchievementSync();
+        loadDailyChallengeSync();
         loadLevelProgress();
+
+        window.addEventListener(
+            "daily-challenges-completed",
+            loadLevelProgress
+        );
         loadFriendRequestCount();
         subscribeToNavbarFriendships();
         showFriendlyModeBanner();

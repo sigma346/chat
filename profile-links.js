@@ -10,7 +10,10 @@
         badge_penguin: "🐧",
         badge_dice: "⚄",
         badge_crown: "♛",
-        badge_admin_shield: "🛡"
+        badge_admin_shield: "🛡",
+        badge_daily_challenger: "✓",
+        badge_easy_going: "★",
+        badge_busy_day: "⚡"
     };
 
     const richPlayerCards = [
@@ -306,6 +309,18 @@
                 --player-theme-accent: rgba(232, 201, 99, 0.86);
                 --player-theme-soft: rgba(28, 151, 102, 0.18);
                 --player-theme-surface: rgba(8, 42, 29, 0.9);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_challenge_master"] {
+                --player-theme-accent: rgba(115, 211, 255, 0.88);
+                --player-theme-soft: rgba(117, 91, 235, 0.2);
+                --player-theme-surface: rgba(14, 18, 51, 0.92);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_triple_crown"] {
+                --player-theme-accent: rgba(255, 216, 101, 0.9);
+                --player-theme-soft: rgba(75, 211, 185, 0.18);
+                --player-theme-surface: rgba(31, 20, 51, 0.92);
             }
 
             .cosmetic-rich-player-card.admin-player-card {
@@ -673,11 +688,75 @@
                     );
             }
 
+            .game-profile-avatar-frame[data-player-frame="frame_challenge_chain"] {
+                border-color: #73d9d0;
+                background:
+                    repeating-linear-gradient(
+                        135deg,
+                        #193b4c 0 5px,
+                        #79ddd0 5px 8px,
+                        #293060 8px 13px
+                    );
+                box-shadow:
+                    0 0 0 2px rgba(115, 217, 208, 0.13),
+                    0 0 15px rgba(100, 185, 230, 0.26),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_hard_mode"] {
+                border-color: #ff6f89;
+                background:
+                    conic-gradient(
+                        from 45deg,
+                        #170d17,
+                        #a41e3f,
+                        #ff8b62,
+                        #3f1026,
+                        #170d17
+                    );
+                box-shadow:
+                    0 0 16px rgba(235, 69, 102, 0.3),
+                    0 7px 18px rgba(0, 0, 0, 0.24);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_challenge_marathon"] {
+                border-color: #9bbdff;
+                background:
+                    conic-gradient(
+                        from 0deg,
+                        #16284d,
+                        #63d6ef,
+                        #8b69df,
+                        #f2c76d,
+                        #16284d
+                    );
+                box-shadow:
+                    0 0 0 2px rgba(155, 189, 255, 0.14),
+                    0 0 18px rgba(125, 115, 226, 0.3),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+                animation:
+                    cosmetic-challenge-marathon-pulse
+                    2.3s ease-in-out infinite;
+            }
+
             .profile-enhanced-text-chip {
                 display: inline-flex !important;
                 align-items: center;
                 flex-wrap: wrap;
                 gap: 0.24rem;
+            }
+
+            @keyframes cosmetic-challenge-marathon-pulse {
+                0%,
+                100% {
+                    filter: saturate(0.9);
+                    transform: translateZ(0) scale(1);
+                }
+
+                50% {
+                    filter: saturate(1.3);
+                    transform: translateZ(0) scale(1.035);
+                }
             }
 
             @keyframes cosmetic-achievement-silver-pulse {
@@ -904,7 +983,8 @@
             @media (prefers-reduced-motion: reduce) {
                 .game-profile-avatar-frame[data-player-frame="frame_neon"],
                 .game-profile-avatar-frame[data-player-frame="frame_silver_pulse"],
-                .game-profile-avatar-frame[data-player-frame="frame_hot_streak"] {
+                .game-profile-avatar-frame[data-player-frame="frame_hot_streak"],
+                .game-profile-avatar-frame[data-player-frame="frame_challenge_marathon"] {
                     animation: none;
                 }
             }

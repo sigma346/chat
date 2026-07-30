@@ -83,7 +83,10 @@ const badgeSymbols = {
     badge_plinko_profit: "•",
     badge_ice_crossing: "❄",
     badge_horse_winner: "♞",
-    badge_green_zero: "0"
+    badge_green_zero: "0",
+    badge_daily_challenger: "✓",
+    badge_easy_going: "★",
+    badge_busy_day: "⚡"
 };
 
 const categoryNames = {
