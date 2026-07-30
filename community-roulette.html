@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Community Roulette</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="community-roulette.css">
+</head>
+
+<body>
+    <main class="page community-roulette-page">
+        <div class="community-roulette-layout">
+            <div id="site-navbar"></div>
+
+            <header class="panel roulette-header">
+                <div>
+                    <p class="eyebrow">
+                        GLOBAL TWO-MINUTE EVENT
+                    </p>
+
+                    <h1>Community Roulette</h1>
+
+                    <p class="description">
+                        Everyone bets on the same European wheel. Betting
+                        closes every two minutes, then the wheel spins for
+                        fifteen seconds.
+                    </p>
+                </div>
+
+                <div class="roulette-wallet-card">
+                    <span>Wallet chips</span>
+
+                    <strong id="wallet-balance">
+                        0
+                    </strong>
+                </div>
+            </header>
+
+            <section
+                id="live-spin-section"
+                class="panel live-spin-section hidden"
+            >
+                <div class="roulette-section-heading">
+                    <div>
+                        <p class="eyebrow live-eyebrow">
+                            LIVE NOW
+                        </p>
+
+                        <h2>The wheel is spinning</h2>
+                    </div>
+
+                    <div class="roulette-countdown-card">
+                        <span>Time remaining</span>
+
+                        <strong id="live-spin-countdown">
+                            00:15
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="roulette-wheel-shell live-wheel-shell">
+                    <canvas
+                        id="roulette-canvas"
+                        aria-label="Community roulette wheel"
+                    ></canvas>
+                </div>
+
+                <p
+                    id="live-spin-result"
+                    class="live-spin-result"
+                ></p>
+            </section>
+
+            <section
+                id="betting-section"
+                class="panel betting-section"
+            >
+                <div class="roulette-section-heading">
+                    <div>
+                        <p class="eyebrow">
+                            NEXT ROUND
+                        </p>
+
+                        <h2>Build your bet slip</h2>
+
+                        <p class="description">
+                            Choose several selections, then submit the whole
+                            slip once. All bets and totals are public.
+                        </p>
+                    </div>
+
+                    <div class="roulette-countdown-card">
+                        <span>Betting closes in</span>
+
+                        <strong id="betting-countdown">
+                            --:--
+                        </strong>
+
+                        <small id="betting-start-time">
+                            Loading schedule...
+                        </small>
+                    </div>
+                </div>
+
+                <div class="roulette-bet-toolbar">
+                    <div class="roulette-amount-control">
+                        <label for="bet-amount-input">
+                            Amount for next selection
+                        </label>
+
+                        <input
+                            id="bet-amount-input"
+                            type="number"
+                            min="10"
+                            max="5000"
+                            step="1"
+                            value="100"
+                        >
+                    </div>
+
+                    <div class="quick-bet-buttons">
+                        <button
+                            type="button"
+                            class="secondary-button quick-bet-button"
+                            data-bet="10"
+                        >
+                            10
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button quick-bet-button"
+                            data-bet="50"
+                        >
+                            50
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button quick-bet-button"
+                            data-bet="100"
+                        >
+                            100
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button quick-bet-button"
+                            data-bet="500"
+                        >
+                            500
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button quick-bet-button"
+                            data-bet="1000"
+                        >
+                            1,000
+                        </button>
+                    </div>
+                </div>
+
+                <section class="roulette-table-section">
+                    <div class="roulette-table-heading">
+                        <div>
+                            <p class="eyebrow">
+                                STRAIGHT NUMBERS
+                            </p>
+
+                            <h3>Pick a number</h3>
+                        </div>
+
+                        <span>
+                            Fair return: 37×
+                        </span>
+                    </div>
+
+                    <div
+                        id="roulette-number-board"
+                        class="roulette-number-board"
+                    ></div>
+                </section>
+
+                <section class="outside-bets-section">
+                    <div class="roulette-table-heading">
+                        <div>
+                            <p class="eyebrow">
+                                OUTSIDE BETS
+                            </p>
+
+                            <h3>Colours, ranges and groups</h3>
+                        </div>
+                    </div>
+
+                    <div
+                        id="outside-bet-grid"
+                        class="outside-bet-grid"
+                    ></div>
+                </section>
+
+                <section class="advanced-bets-section">
+                    <div class="roulette-table-heading">
+                        <div>
+                            <p class="eyebrow">
+                                INSIDE COMBINATIONS
+                            </p>
+
+                            <h3>Advanced table bets</h3>
+                        </div>
+                    </div>
+
+                    <div class="advanced-bet-builder">
+                        <div>
+                            <label for="advanced-bet-type">
+                                Bet type
+                            </label>
+
+                            <select id="advanced-bet-type">
+                                <option value="split">
+                                    Split, 2 numbers
+                                </option>
+
+                                <option value="street">
+                                    Street, 3 numbers
+                                </option>
+
+                                <option value="trio">
+                                    Zero trio, 3 numbers
+                                </option>
+
+                                <option value="corner">
+                                    Corner, 4 numbers
+                                </option>
+
+                                <option value="six_line">
+                                    Six line, 6 numbers
+                                </option>
+
+                                <option value="first_four">
+                                    First four, 0-1-2-3
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="advanced-bet-value">
+                                Numbers or starting number
+                            </label>
+
+                            <input
+                                id="advanced-bet-value"
+                                type="text"
+                                value="1-2"
+                                placeholder="Example: 1-2"
+                            >
+                        </div>
+
+                        <button
+                            id="add-advanced-bet-button"
+                            type="button"
+                        >
+                            Add selection
+                        </button>
+                    </div>
+
+                    <p
+                        id="advanced-bet-help"
+                        class="advanced-bet-help"
+                    >
+                        Split example: 1-2 or 1-4.
+                    </p>
+                </section>
+
+                <section class="roulette-slip-section">
+                    <div class="roulette-table-heading">
+                        <div>
+                            <p class="eyebrow">
+                                YOUR BET SLIP
+                            </p>
+
+                            <h3>Selections</h3>
+                        </div>
+
+                        <strong id="bet-slip-total">
+                            0 chips
+                        </strong>
+                    </div>
+
+                    <div
+                        id="bet-slip-list"
+                        class="bet-slip-list"
+                    >
+                        <p class="empty-bet-slip">
+                            Select a number or outside bet to begin.
+                        </p>
+                    </div>
+
+                    <button
+                        id="submit-bet-slip-button"
+                        type="button"
+                        disabled
+                    >
+                        Submit bet slip
+                    </button>
+                </section>
+
+                <div
+                    id="my-submitted-slip"
+                    class="my-submitted-slip hidden"
+                ></div>
+
+                <p class="roulette-fairness-note">
+                    Red/black, odd/even and low/high are exact 50/50 bets
+                    whenever the result is not green. A green zero refunds
+                    those selections. Every other payout uses all 37 wheel
+                    outcomes, so the expected long-run return equals the
+                    amount wagered.
+                </p>
+            </section>
+
+            <section class="roulette-community-grid">
+                <section class="panel public-totals-panel">
+                    <div class="roulette-table-heading">
+                        <div>
+                            <p class="eyebrow">
+                                COMMUNITY TOTALS
+                            </p>
+
+                            <h2>Where the chips are</h2>
+                        </div>
+
+                        <strong id="round-total-pool">
+                            0 chips
+                        </strong>
+                    </div>
+
+                    <div
+                        id="public-option-totals"
+                        class="public-option-totals"
+                    >
+                        <p class="empty-community-data">
+                            No bets have been placed yet.
+                        </p>
+                    </div>
+                </section>
+
+                <section class="panel public-bets-panel">
+                    <div class="roulette-table-heading">
+                        <div>
+                            <p class="eyebrow">
+                                PUBLIC BETS
+                            </p>
+
+                            <h2>Recent selections</h2>
+                        </div>
+                    </div>
+
+                    <div
+                        id="public-bet-feed"
+                        class="public-bet-feed"
+                    >
+                        <p class="empty-community-data">
+                            Nobody has bet yet.
+                        </p>
+                    </div>
+                </section>
+            </section>
+
+            <section
+                id="previous-result-section"
+                class="panel previous-result-section hidden"
+            >
+                <div>
+                    <p class="eyebrow">
+                        PREVIOUS RESULT
+                    </p>
+
+                    <h2>Last spin</h2>
+                </div>
+
+                <div id="previous-result"></div>
+            </section>
+
+            <p
+                id="roulette-message"
+                class="form-message"
+                role="alert"
+            ></p>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="community-roulette.js"></script>
+</body>
+</html>

@@ -32,6 +32,11 @@
             files: ["horse-racing.html"]
         },
         {
+            label: "Roulette",
+            href: "community-roulette.html",
+            files: ["community-roulette.html"]
+        },
+        {
             label: "Recovery",
             href: "recovery.html",
             files: ["recovery.html"]
@@ -130,7 +135,8 @@
         return document.querySelector(
             ".poker-layout, .plinko-layout, .recovery-layout, "
             + ".draw-layout, .hearts-layout, .blackjack-layout, "
-            + ".disclaimer-layout, .horse-racing-layout"
+            + ".disclaimer-layout, .horse-racing-layout, "
+            + ".community-roulette-layout"
         )
         || document.querySelector("main > div")
         || document.querySelector("main")
