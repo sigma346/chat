@@ -20,7 +20,7 @@
             files: ["index.html", ""]
         },
         {
-            label: "Games",
+            label: "Card Games",
             href: "poker.html",
             files: [
                 "poker.html",
@@ -28,19 +28,39 @@
             ]
         },
         {
-            label: "Horse Race",
-            href: "horse-racing.html",
-            files: ["horse-racing.html"]
+            label: "Single Player",
+            children: [
+                {
+                    label: "Plinko",
+                    href: "plinko.html",
+                    files: ["plinko.html"]
+                },
+                {
+                    label: "Penguin Cross",
+                    href: "penguin-cross.html",
+                    files: ["penguin-cross.html"]
+                },
+                {
+                    label: "Asteroid Salvage",
+                    href: "recovery.html",
+                    files: ["recovery.html"]
+                }
+            ]
         },
         {
-            label: "Roulette",
-            href: "community-roulette.html",
-            files: ["community-roulette.html"]
-        },
-        {
-            label: "Penguin Cross",
-            href: "penguin-cross.html",
-            files: ["penguin-cross.html"]
+            label: "Community",
+            children: [
+                {
+                    label: "Horse Racing",
+                    href: "horse-racing.html",
+                    files: ["horse-racing.html"]
+                },
+                {
+                    label: "Roulette",
+                    href: "community-roulette.html",
+                    files: ["community-roulette.html"]
+                }
+            ]
         },
         {
             label: "Leaderboards",
@@ -51,16 +71,6 @@
             label: "Donate",
             href: "donate.html",
             files: ["donate.html"]
-        },
-        {
-            label: "Recovery",
-            href: "recovery.html",
-            files: ["recovery.html"]
-        },
-        {
-            label: "Plinko",
-            href: "plinko.html",
-            files: ["plinko.html"]
         },
         {
             label: "Account",
@@ -74,7 +84,369 @@
         }
     ];
 
+    function itemIsActive(item) {
+        if (Array.isArray(item.files)) {
+            return item.files.includes(currentFile);
+        }
+
+        if (Array.isArray(item.children)) {
+            return item.children.some(
+                (child) => itemIsActive(child)
+            );
+        }
+
+        return false;
+    }
+
+    function closeAllDropdowns(exceptDropdown = null) {
+        document
+            .querySelectorAll(".nav-dropdown.open")
+            .forEach((dropdown) => {
+                if (dropdown === exceptDropdown) {
+                    return;
+                }
+
+                dropdown.classList.remove("open");
+
+                const toggle = dropdown.querySelector(
+                    ".nav-dropdown-toggle"
+                );
+
+                toggle?.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
+            });
+    }
+
+    function createNormalNavigationLink(item) {
+        const link = document.createElement("a");
+        link.href = item.href;
+        link.className = "nav-link";
+        link.textContent = item.label;
+
+        if (itemIsActive(item)) {
+            link.classList.add("active");
+            link.setAttribute("aria-current", "page");
+        }
+
+        return link;
+    }
+
+    function createDropdownNavigationItem(item) {
+        const dropdown = document.createElement("div");
+        dropdown.className = "nav-dropdown";
+
+        if (itemIsActive(item)) {
+            dropdown.classList.add("active");
+        }
+
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "nav-link nav-dropdown-toggle";
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.setAttribute("aria-haspopup", "true");
+
+        const label = document.createElement("span");
+        label.textContent = item.label;
+
+        const arrow = document.createElement("span");
+        arrow.className = "nav-dropdown-arrow";
+        arrow.setAttribute("aria-hidden", "true");
+        arrow.textContent = "▾";
+
+        toggle.append(label, arrow);
+
+        const menu = document.createElement("div");
+        menu.className = "nav-dropdown-menu";
+        menu.setAttribute("role", "menu");
+        menu.setAttribute(
+            "aria-label",
+            `${item.label} games`
+        );
+
+        for (const child of item.children) {
+            const link = document.createElement("a");
+            link.href = child.href;
+            link.className = "nav-dropdown-item";
+            link.textContent = child.label;
+            link.setAttribute("role", "menuitem");
+
+            if (itemIsActive(child)) {
+                link.classList.add("active");
+                link.setAttribute(
+                    "aria-current",
+                    "page"
+                );
+            }
+
+            link.addEventListener("click", () => {
+                closeAllDropdowns();
+            });
+
+            menu.append(link);
+        }
+
+        toggle.addEventListener("click", (event) => {
+            event.stopPropagation();
+
+            const shouldOpen =
+                !dropdown.classList.contains("open");
+
+            closeAllDropdowns(
+                shouldOpen ? dropdown : null
+            );
+
+            dropdown.classList.toggle(
+                "open",
+                shouldOpen
+            );
+
+            toggle.setAttribute(
+                "aria-expanded",
+                String(shouldOpen)
+            );
+        });
+
+        toggle.addEventListener("keydown", (event) => {
+            if (
+                event.key !== "ArrowDown"
+                && event.key !== "Enter"
+                && event.key !== " "
+            ) {
+                return;
+            }
+
+            if (
+                event.key === "ArrowDown"
+                && !dropdown.classList.contains("open")
+            ) {
+                event.preventDefault();
+                dropdown.classList.add("open");
+                toggle.setAttribute(
+                    "aria-expanded",
+                    "true"
+                );
+            }
+
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                menu.querySelector("a")?.focus();
+            }
+        });
+
+        dropdown.append(toggle, menu);
+        return dropdown;
+    }
+
+    function injectDropdownStyles() {
+        if (
+            document.querySelector(
+                "#shared-navbar-dropdown-styles"
+            )
+        ) {
+            return;
+        }
+
+        const style = document.createElement("style");
+        style.id = "shared-navbar-dropdown-styles";
+        style.textContent = `
+            .shared-site-nav {
+                position: relative;
+                z-index: 1000;
+            }
+
+            .shared-site-nav .site-nav-links {
+                align-items: center;
+            }
+
+            .nav-dropdown {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .nav-dropdown-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.45rem;
+
+                min-height: 44px;
+                padding: 0.72rem 1rem;
+
+                border: 1px solid rgba(148, 163, 184, 0.2);
+                border-radius: 0.95rem;
+
+                background: rgba(12, 18, 29, 0.92);
+                color: #e8edf7;
+
+                font: inherit;
+                font-weight: 600;
+                cursor: pointer;
+                white-space: nowrap;
+                text-decoration: none;
+
+                transition:
+                    background 150ms ease,
+                    border-color 150ms ease,
+                    color 150ms ease,
+                    box-shadow 150ms ease,
+                    transform 150ms ease;
+            }
+
+            .nav-dropdown-toggle:hover,
+            .nav-dropdown-toggle:focus-visible {
+                background: rgba(20, 28, 42, 0.98);
+                border-color: rgba(148, 163, 184, 0.32);
+                color: #ffffff;
+                outline: none;
+                box-shadow: 0 0 0 1px rgba(98, 230, 189, 0.08);
+            }
+
+            .nav-dropdown.open > .nav-dropdown-toggle,
+            .nav-dropdown.active > .nav-dropdown-toggle {
+                background: rgba(18, 26, 39, 0.98);
+                color: #ffffff;
+                border-color: rgba(98, 230, 189, 0.28);
+            }
+
+            .nav-dropdown-arrow {
+                display: inline-block;
+                font-size: 0.72em;
+                color: #9fb0c7;
+                transition:
+                    transform 160ms ease,
+                    color 160ms ease,
+                    opacity 160ms ease;
+            }
+
+            .nav-dropdown.open .nav-dropdown-arrow {
+                transform: rotate(180deg);
+                color: #dce6f5;
+                opacity: 1;
+            }
+
+            .nav-dropdown-menu {
+                position: absolute;
+                top: calc(100% + 0.55rem);
+                left: 0;
+                z-index: 1100;
+
+                display: grid;
+                min-width: 13rem;
+                padding: 0.45rem;
+
+                border: 1px solid rgba(148, 163, 184, 0.2);
+                border-radius: 0.9rem;
+
+                background: rgba(10, 15, 24, 0.98);
+                box-shadow: 0 18px 45px rgba(0, 0, 0, 0.34);
+
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-0.35rem) scale(0.98);
+                transform-origin: top left;
+                pointer-events: none;
+
+                transition:
+                    opacity 150ms ease,
+                    transform 150ms ease,
+                    visibility 150ms ease;
+            }
+
+            .nav-dropdown.open .nav-dropdown-menu,
+            .nav-dropdown:focus-within .nav-dropdown-menu {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0) scale(1);
+                pointer-events: auto;
+            }
+
+            .nav-dropdown-item {
+                display: block;
+                padding: 0.72rem 0.85rem;
+
+                border-radius: 0.65rem;
+
+                color: #d9e2f1;
+                text-decoration: none;
+                white-space: nowrap;
+
+                transition:
+                    background 130ms ease,
+                    color 130ms ease,
+                    transform 130ms ease;
+            }
+
+            .nav-dropdown-item:hover,
+            .nav-dropdown-item:focus-visible {
+                background: rgba(98, 230, 189, 0.1);
+                color: #ffffff;
+                outline: none;
+                transform: translateX(0.12rem);
+            }
+
+            .nav-dropdown-item.active {
+                background: rgba(98, 230, 189, 0.14);
+                color: #ffffff;
+                font-weight: 700;
+            }
+
+            @media (max-width: 860px) {
+                .shared-site-nav .site-nav-links {
+                    align-items: stretch;
+                }
+
+                .nav-dropdown {
+                    width: 100%;
+                    display: block;
+                }
+
+                .nav-dropdown-toggle {
+                    width: 100%;
+                }
+
+                .nav-dropdown-menu {
+                    position: static;
+                    min-width: 0;
+                    width: 100%;
+                    margin-top: 0.3rem;
+                    box-shadow: none;
+                    transform: none;
+                    display: none;
+                    opacity: 1;
+                    visibility: visible;
+                    pointer-events: auto;
+                }
+
+                .nav-dropdown.open .nav-dropdown-menu,
+                .nav-dropdown:focus-within .nav-dropdown-menu {
+                    display: grid;
+                    transform: none;
+                }
+
+                .nav-dropdown-item {
+                    white-space: normal;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .nav-dropdown-toggle,
+                .nav-dropdown-arrow,
+                .nav-dropdown-menu,
+                .nav-dropdown-item {
+                    transition: none;
+                }
+            }
+        `;
+
+        document.head.append(style);
+    }
+
     function buildNavbar() {
+        injectDropdownStyles();
+
         const navbar = document.createElement("nav");
         navbar.className = "site-nav shared-site-nav";
         navbar.setAttribute("aria-label", "Main navigation");
@@ -83,17 +455,15 @@
         links.className = "site-nav-links";
 
         for (const item of navigationItems) {
-            const link = document.createElement("a");
-            link.href = item.href;
-            link.className = "nav-link";
-            link.textContent = item.label;
-
-            if (item.files.includes(currentFile)) {
-                link.classList.add("active");
-                link.setAttribute("aria-current", "page");
+            if (Array.isArray(item.children)) {
+                links.append(
+                    createDropdownNavigationItem(item)
+                );
+            } else {
+                links.append(
+                    createNormalNavigationLink(item)
+                );
             }
-
-            links.append(link);
         }
 
         const accountControls = document.createElement("div");
@@ -175,6 +545,33 @@
         }
 
         return navbar;
+    }
+
+    function installDropdownDismissHandlers() {
+        document.addEventListener("click", (event) => {
+            if (
+                !event.target.closest(
+                    ".nav-dropdown"
+                )
+            ) {
+                closeAllDropdowns();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            const openToggle =
+                document.querySelector(
+                    ".nav-dropdown.open "
+                    + ".nav-dropdown-toggle"
+                );
+
+            closeAllDropdowns();
+            openToggle?.focus();
+        });
     }
 
     async function loadLevelProgress() {
@@ -304,6 +701,7 @@
     }
 
     function initialiseSharedNavbar() {
+        installDropdownDismissHandlers();
         mountNavbar();
         loadLevelProgress();
         showFriendlyModeBanner();
