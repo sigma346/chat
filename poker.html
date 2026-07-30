@@ -7,7 +7,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Education Perfect</title>
+    <title>Card Games</title>
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="poker.css">
@@ -24,7 +24,7 @@
                     <h1>Card-game lobby</h1>
                     <p class="description">
                         Create competitive matches using wallet chips,
-                        or friendly matches using practice-only stacks.
+                        friendly practice matches, or private Solitaire deals.
                     </p>
                 </div>
 
@@ -83,6 +83,14 @@
 
                             <option value="hearts">
                                 Hearts
+                            </option>
+
+                            <option value="solitaire_klondike">
+                                Klondike Solitaire
+                            </option>
+
+                            <option value="solitaire_spider">
+                                Spider Solitaire
                             </option>
                         </select>
                     </div>
@@ -244,6 +252,42 @@
                                 step="1"
                                 value="500"
                             >
+                        </div>
+                    </div>
+
+                    <div
+                        id="solitaire-settings"
+                        class="game-specific-settings hidden solitaire-create-settings"
+                    >
+                        <div class="form-field">
+                            <label for="solitaire-option-input">
+                                Solitaire rules
+                            </label>
+
+                            <select id="solitaire-option-input"></select>
+                        </div>
+
+                        <div class="form-field">
+                            <label id="solitaire-entry-label" for="solitaire-entry-input">
+                                Entry fee
+                            </label>
+
+                            <input
+                                id="solitaire-entry-input"
+                                type="number"
+                                min="10"
+                                max="5000"
+                                step="1"
+                                value="100"
+                            >
+                        </div>
+
+                        <div class="solitaire-payout-preview">
+                            <span>Win return</span>
+                            <strong id="solitaire-payout-preview">Loading...</strong>
+                            <small id="solitaire-fairness-preview">
+                                Calibrated to the selected variant.
+                            </small>
                         </div>
                     </div>
 

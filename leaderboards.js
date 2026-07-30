@@ -56,6 +56,20 @@ const leaderboardDefinitions = {
         description:
             "Net entry-stake profit from completed competitive Hearts matches."
     },
+    solitaire_klondike: {
+        title: "Klondike Solitaire profit",
+        kicker: "LIFETIME GAME PROFIT",
+        valueHeading: "Profit",
+        description:
+            "Win returns minus entry fees across completed competitive Klondike deals."
+    },
+    solitaire_spider: {
+        title: "Spider Solitaire profit",
+        kicker: "LIFETIME GAME PROFIT",
+        valueHeading: "Profit",
+        description:
+            "Win returns minus entry fees across completed competitive Spider deals."
+    },
     recovery: {
         title: "Asteroid Salvage earnings",
         kicker: "LIFETIME GAME EARNINGS",
@@ -93,7 +107,7 @@ let refreshInterval = null;
 
 function formatChips(value, signed = false) {
     const amount = Number(value ?? 0);
-    const formatted = new Intl.NumberFormat("en-GB").format(
+    const formatted = new Intl.NumberFormat("en-AU").format(
         Math.abs(amount)
     );
 
@@ -280,6 +294,19 @@ async function loadLeaderboard() {
                     p_limit: 50
                 }
             );
+        } else if (
+            selectedLeaderboard === "solitaire_klondike"
+            || selectedLeaderboard === "solitaire_spider"
+        ) {
+            result = await window.supabaseClient.rpc(
+                "get_solitaire_profit_leaderboard",
+                {
+                    p_game: selectedLeaderboard === "solitaire_klondike"
+                        ? "klondike"
+                        : "spider",
+                    p_limit: 50
+                }
+            );
         } else {
             result = await window.supabaseClient.rpc(
                 "get_game_profit_leaderboard",
@@ -298,7 +325,7 @@ async function loadLeaderboard() {
 
         leaderboardUpdatedAt.textContent =
             `Updated ${new Intl.DateTimeFormat(
-                "en-GB",
+                "en-AU",
                 {
                     hour: "2-digit",
                     minute: "2-digit",

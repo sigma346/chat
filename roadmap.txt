@@ -11,7 +11,7 @@ Card Game Variants:
 -Spades - Future
 -Baccarat - Future
 -Gin Rummy - Future
--Solitaire - Future
+-Solitaire - ADDED
 
 Horse racing every hour, players can bet on the horses leading up to the race - ADDED
 

@@ -1530,3 +1530,57 @@ select:focus {
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
+
+/* Append to the bottom of /poker.css */
+
+.solitaire-create-settings {
+    align-items: end;
+}
+
+.solitaire-payout-preview {
+    min-width: 220px;
+    padding: 11px 13px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.solitaire-payout-preview span,
+.solitaire-payout-preview strong,
+.solitaire-payout-preview small {
+    display: block;
+}
+
+.solitaire-payout-preview span {
+    color: var(--muted-text, #aab3be);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+.solitaire-payout-preview strong {
+    margin-top: 3px;
+    font-size: 1.05rem;
+}
+
+.solitaire-payout-preview small {
+    margin-top: 3px;
+    color: var(--muted-text, #aab3be);
+}
+
+.solitaire-private-badge {
+    display: inline-flex;
+    margin-left: 7px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: rgba(116, 187, 255, 0.12);
+    color: #9bd0ff;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.game-type-badge.solitaire_klondike,
+.game-type-badge.solitaire_spider {
+    background: rgba(87, 197, 148, 0.14);
+    color: #79e1b3;
+}

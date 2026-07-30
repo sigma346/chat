@@ -46,6 +46,24 @@ const standardBuyInSettings =
 const heartsSettings =
     document.querySelector("#hearts-settings");
 
+const solitaireSettings =
+    document.querySelector("#solitaire-settings");
+
+const solitaireOptionInput =
+    document.querySelector("#solitaire-option-input");
+
+const solitaireEntryInput =
+    document.querySelector("#solitaire-entry-input");
+
+const solitaireEntryLabel =
+    document.querySelector("#solitaire-entry-label");
+
+const solitairePayoutPreview =
+    document.querySelector("#solitaire-payout-preview");
+
+const solitaireFairnessPreview =
+    document.querySelector("#solitaire-fairness-preview");
+
 const smallBlindInput =
     document.querySelector("#small-blind-input");
 
@@ -93,6 +111,7 @@ let walletChips = 0;
 let lobbyChannel = null;
 let refreshTimer = null;
 let loadingGames = false;
+let solitairePayoutOptions = [];
 
 
 function formatChips(value) {
@@ -112,6 +131,12 @@ function showListMessage(message = "") {
 }
 
 
+function isSolitaireType(gameType) {
+    return gameType === "solitaire_klondike"
+        || gameType === "solitaire_spider";
+}
+
+
 function gamePageFor(gameTable) {
     switch (gameTable.game_type) {
         case "blackjack":
@@ -122,6 +147,10 @@ function gamePageFor(gameTable) {
 
         case "hearts":
             return "hearts-table.html";
+
+        case "solitaire_klondike":
+        case "solitaire_spider":
+            return "solitaire-table.html";
 
         default:
             return "poker-table.html";
@@ -140,9 +169,26 @@ function gameLabel(gameType) {
         case "hearts":
             return "Hearts";
 
+        case "solitaire_klondike":
+            return "Klondike Solitaire";
+
+        case "solitaire_spider":
+            return "Spider Solitaire";
+
         default:
             return "Texas Hold'em";
     }
+}
+
+
+function solitaireOptionLabel(gameType, optionValue) {
+    const option = Number(optionValue);
+
+    if (gameType === "solitaire_klondike") {
+        return option === 3 ? "Draw 3" : "Draw 1";
+    }
+
+    return `${option} suit${option === 1 ? "" : "s"}`;
 }
 
 
@@ -154,6 +200,95 @@ function gameUsesBlinds(gameType) {
 
 function isFriendlyGame(gameTable) {
     return gameTable?.friendly_mode === true;
+}
+
+
+function selectedSolitairePayoutOption() {
+    const gameType = gameTypeInput.value;
+    const option = Number(solitaireOptionInput.value);
+
+    return solitairePayoutOptions.find(
+        (item) =>
+            item.game_type === gameType
+            && Number(item.solitaire_option) === option
+    ) ?? null;
+}
+
+
+function updateSolitairePayoutPreview() {
+    const gameType = gameTypeInput.value;
+
+    if (!isSolitaireType(gameType)) {
+        return;
+    }
+
+    const entryFee = Number.parseInt(
+        solitaireEntryInput.value,
+        10
+    );
+    const payoutOption = selectedSolitairePayoutOption();
+    const friendly = friendlyModeInput.checked;
+
+    if (friendly) {
+        solitairePayoutPreview.textContent = "Practice only";
+        solitaireFairnessPreview.textContent =
+            "Friendly deals do not change wallet chips or award XP.";
+        return;
+    }
+
+    if (!Number.isSafeInteger(entryFee) || entryFee <= 0) {
+        solitairePayoutPreview.textContent = "Enter a fee";
+        return;
+    }
+
+    if (!payoutOption) {
+        solitairePayoutPreview.textContent = "Set when deal starts";
+        solitaireFairnessPreview.textContent =
+            "The server freezes the win return when the deal begins.";
+        return;
+    }
+
+    const targetWinRate =
+        Number(payoutOption.target_win_bps) / 100;
+    const payout = Math.max(
+        entryFee,
+        Math.round(
+            entryFee
+            * 10000
+            / Number(payoutOption.target_win_bps)
+        )
+    );
+
+    solitairePayoutPreview.textContent =
+        `${formatChips(payout)} chips`;
+    solitaireFairnessPreview.textContent =
+        `${targetWinRate.toFixed(0)}% calibration · ${Number(payoutOption.xp_reward)} XP for a win`;
+}
+
+
+function rebuildSolitaireOptions() {
+    const gameType = gameTypeInput.value;
+    solitaireOptionInput.replaceChildren();
+
+    const options = gameType === "solitaire_spider"
+        ? [
+            [1, "1 suit · Beginner"],
+            [2, "2 suits · Intermediate"],
+            [4, "4 suits · Expert"]
+        ]
+        : [
+            [1, "Draw 1"],
+            [3, "Draw 3"]
+        ];
+
+    for (const [value, label] of options) {
+        const option = document.createElement("option");
+        option.value = String(value);
+        option.textContent = label;
+        solitaireOptionInput.append(option);
+    }
+
+    updateSolitairePayoutPreview();
 }
 
 
@@ -176,6 +311,10 @@ function rebuildPlayerOptions() {
         minimum = 4;
         maximum = 4;
         preferred = 4;
+    } else if (isSolitaireType(gameType)) {
+        minimum = 1;
+        maximum = 1;
+        preferred = 1;
     }
 
     maximumPlayersInput.replaceChildren();
@@ -200,21 +339,28 @@ function updateGameTypeFields() {
     const usesBlinds = gameUsesBlinds(gameType);
     const isBlackjack = gameType === "blackjack";
     const isHearts = gameType === "hearts";
+    const isSolitaire = isSolitaireType(gameType);
     const isFriendly = friendlyModeInput.checked;
 
     blindSettings.classList.toggle("hidden", !usesBlinds);
     blackjackSettings.classList.toggle("hidden", !isBlackjack);
-    standardBuyInSettings.classList.toggle("hidden", isHearts);
+    standardBuyInSettings.classList.toggle(
+        "hidden",
+        isHearts || isSolitaire
+    );
     heartsSettings.classList.toggle("hidden", !isHearts);
+    solitaireSettings.classList.toggle("hidden", !isSolitaire);
 
     smallBlindInput.required = usesBlinds;
     bigBlindInput.required = usesBlinds;
     blackjackMinimumBetInput.required = isBlackjack;
     blackjackMaximumBetInput.required = isBlackjack;
-    minimumBuyInInput.required = !isHearts;
-    maximumBuyInInput.required = !isHearts;
-    creatorBuyInInput.required = !isHearts;
+    minimumBuyInInput.required = !isHearts && !isSolitaire;
+    maximumBuyInInput.required = !isHearts && !isSolitaire;
+    creatorBuyInInput.required = !isHearts && !isSolitaire;
     heartsEntryStakeInput.required = isHearts;
+    solitaireEntryInput.required = isSolitaire;
+    solitaireOptionInput.required = isSolitaire;
 
     minimumBuyInLabel.textContent = isFriendly
         ? "Minimum practice stack"
@@ -232,9 +378,18 @@ function updateGameTypeFields() {
         ? "Practice stake per player"
         : "Entry stake per player";
 
-    rebuildPlayerOptions();
-}
+    solitaireEntryLabel.textContent = isFriendly
+        ? "Practice entry"
+        : "Entry fee";
 
+    rebuildPlayerOptions();
+
+    if (isSolitaire) {
+        rebuildSolitaireOptions();
+    }
+
+    updateSolitairePayoutPreview();
+}
 
 
 function parseWholeNumber(input, fieldName) {
@@ -266,6 +421,7 @@ function createGameCard(gameTable, seatsAtTable) {
     const currentSeat = seatsAtTable.find(
         (seat) => seat.user_id === currentUser.id
     );
+    const solitaireGame = isSolitaireType(gameTable.game_type);
 
     const gameIsFull =
         seatsAtTable.length >= Number(gameTable.max_players);
@@ -302,12 +458,22 @@ function createGameCard(gameTable, seatsAtTable) {
         titleGroup.append(friendlyBadge);
     }
 
+    if (solitaireGame) {
+        const privateBadge = document.createElement("span");
+        privateBadge.className = "solitaire-private-badge";
+        privateBadge.textContent = "Private";
+        titleGroup.append(privateBadge);
+    }
+
     const status = document.createElement("span");
     status.className =
         `match-status ${gameTable.status === "playing" ? "playing" : "waiting"}`;
-    status.textContent =
-        gameTable.status === "playing"
-            ? "In progress"
+    status.textContent = gameTable.status === "playing"
+        ? solitaireGame
+            ? "Deal active"
+            : "In progress"
+        : solitaireGame
+            ? "Deal finished"
             : "Waiting";
 
     heading.append(titleGroup, status);
@@ -315,63 +481,81 @@ function createGameCard(gameTable, seatsAtTable) {
     const information = document.createElement("div");
     information.className = "match-information";
 
-    information.append(
-        createInformationItem(
-            "Seats",
-            `${seatsAtTable.length}/${gameTable.max_players}`
-        )
-    );
-
-    if (gameTable.game_type === "hearts") {
+    if (solitaireGame) {
         information.append(
             createInformationItem(
-                isFriendlyGame(gameTable)
-                    ? "Practice stake"
-                    : "Entry stake",
-                `${formatChips(gameTable.min_buy_in)} each`
+                "Rules",
+                solitaireOptionLabel(
+                    gameTable.game_type,
+                    gameTable.solitaire_option
+                )
             ),
             createInformationItem(
-                "Format",
-                "First to 100 points"
+                isFriendlyGame(gameTable)
+                    ? "Practice entry"
+                    : "Entry fee",
+                `${formatChips(gameTable.min_buy_in)} chips`
             )
         );
     } else {
         information.append(
             createInformationItem(
-                isFriendlyGame(gameTable)
-                    ? "Practice stack"
-                    : "Buy-in",
-                `${formatChips(gameTable.min_buy_in)}–${formatChips(gameTable.max_buy_in)}`
+                "Seats",
+                `${seatsAtTable.length}/${gameTable.max_players}`
             )
         );
 
-        if (gameTable.game_type === "blackjack") {
+        if (gameTable.game_type === "hearts") {
             information.append(
                 createInformationItem(
-                    "Bet limits",
-                    `${formatChips(gameTable.blackjack_min_bet)}–${formatChips(gameTable.blackjack_max_bet)}`
+                    isFriendlyGame(gameTable)
+                        ? "Practice stake"
+                        : "Entry stake",
+                    `${formatChips(gameTable.min_buy_in)} each`
+                ),
+                createInformationItem(
+                    "Format",
+                    "First to 100 points"
                 )
             );
         } else {
             information.append(
                 createInformationItem(
-                    "Blinds",
-                    `${formatChips(gameTable.small_blind)} / ${formatChips(gameTable.big_blind)}`
+                    isFriendlyGame(gameTable)
+                        ? "Practice stack"
+                        : "Buy-in",
+                    `${formatChips(gameTable.min_buy_in)}–${formatChips(gameTable.max_buy_in)}`
+                )
+            );
+
+            if (gameTable.game_type === "blackjack") {
+                information.append(
+                    createInformationItem(
+                        "Bet limits",
+                        `${formatChips(gameTable.blackjack_min_bet)}–${formatChips(gameTable.blackjack_max_bet)}`
+                    )
+                );
+            } else {
+                information.append(
+                    createInformationItem(
+                        "Blinds",
+                        `${formatChips(gameTable.small_blind)} / ${formatChips(gameTable.big_blind)}`
+                    )
+                );
+            }
+        }
+
+        if (
+            gameTable.status === "playing"
+            && gameTable.game_type !== "hearts"
+        ) {
+            information.append(
+                createInformationItem(
+                    "Next round queue",
+                    `${queuedCount} player${queuedCount === 1 ? "" : "s"}`
                 )
             );
         }
-    }
-
-    if (
-        gameTable.status === "playing"
-        && gameTable.game_type !== "hearts"
-    ) {
-        information.append(
-            createInformationItem(
-                "Next round queue",
-                `${queuedCount} player${queuedCount === 1 ? "" : "s"}`
-            )
-        );
     }
 
     information.append(
@@ -379,7 +563,9 @@ function createGameCard(gameTable, seatsAtTable) {
             "Rewards",
             isFriendlyGame(gameTable)
                 ? "No wallet changes or XP"
-                : "Wallet chips and XP eligible"
+                : solitaireGame
+                    ? "Win return and XP"
+                    : "Wallet chips and XP eligible"
         )
     );
 
@@ -391,11 +577,21 @@ function createGameCard(gameTable, seatsAtTable) {
         openButton.className = "button-link";
         openButton.href =
             `${gamePageFor(gameTable)}?id=${encodeURIComponent(gameTable.id)}`;
-        openButton.textContent = currentSeat.queued_for_next_hand
-            ? "Open queue"
-            : "Open game";
+        openButton.textContent = solitaireGame
+            ? gameTable.status === "playing"
+                ? "Resume deal"
+                : "Open table"
+            : currentSeat.queued_for_next_hand
+                ? "Open queue"
+                : "Open game";
 
         controls.append(openButton);
+    } else if (solitaireGame) {
+        const unavailable = document.createElement("button");
+        unavailable.type = "button";
+        unavailable.disabled = true;
+        unavailable.textContent = "Private table";
+        controls.append(unavailable);
     } else if (activeHeartsMatch) {
         const unavailable = document.createElement("button");
         unavailable.type = "button";
@@ -532,8 +728,9 @@ function renderActiveGames(gameTables, seats) {
             ? "Friendly"
             : "Competitive";
 
-        details.textContent =
-            `${gameLabel(gameTable.game_type)} · ${economyText} · ${stateText} · ${formatChips(ownSeat.stack)} chips`;
+        details.textContent = isSolitaireType(gameTable.game_type)
+            ? `${gameLabel(gameTable.game_type)} · ${solitaireOptionLabel(gameTable.game_type, gameTable.solitaire_option)} · ${economyText} · ${stateText} · ${formatChips(gameTable.min_buy_in)} entry`
+            : `${gameLabel(gameTable.game_type)} · ${economyText} · ${stateText} · ${formatChips(ownSeat.stack)} chips`;
 
         link.append(title, details);
         activeMatchList.append(link);
@@ -545,11 +742,21 @@ function renderGameList(gameTables, seats) {
     gameList.replaceChildren();
 
     const availableGames = gameTables
-        .filter(
-            (table) =>
+        .filter((table) => {
+            const availableStatus =
                 table.status === "waiting"
-                || table.status === "playing"
-        )
+                || table.status === "playing";
+
+            if (!availableStatus) {
+                return false;
+            }
+
+            if (isSolitaireType(table.game_type)) {
+                return table.host_id === currentUser.id;
+            }
+
+            return true;
+        })
         .sort((first, second) => {
             if (first.status !== second.status) {
                 return first.status === "waiting" ? -1 : 1;
@@ -602,7 +809,7 @@ async function loadGames() {
             window.supabaseClient
                 .from("poker_tables")
                 .select(
-                    "id, host_id, name, status, game_type, friendly_mode, small_blind, big_blind, blackjack_min_bet, blackjack_max_bet, min_buy_in, max_buy_in, max_players, created_at"
+                    "id, host_id, name, status, game_type, friendly_mode, small_blind, big_blind, blackjack_min_bet, blackjack_max_bet, min_buy_in, max_buy_in, max_players, solitaire_option, created_at"
                 )
                 .in("status", ["waiting", "playing"])
                 .order("created_at", { ascending: false }),
@@ -665,6 +872,7 @@ createGameForm.addEventListener("submit", async (event) => {
     try {
         const gameType = gameTypeInput.value;
         const heartsGame = gameType === "hearts";
+        const solitaireGame = isSolitaireType(gameType);
         const usesBlinds = gameUsesBlinds(gameType);
 
         const heartsStake = heartsGame
@@ -674,26 +882,48 @@ createGameForm.addEventListener("submit", async (event) => {
             )
             : null;
 
-        const minimumBuyIn = heartsGame
-            ? heartsStake
-            : parseWholeNumber(
-                minimumBuyInInput,
-                "Minimum buy-in"
-            );
+        const solitaireEntry = solitaireGame
+            ? parseWholeNumber(
+                solitaireEntryInput,
+                "Solitaire entry fee"
+            )
+            : null;
 
-        const maximumBuyIn = heartsGame
-            ? heartsStake
-            : parseWholeNumber(
-                maximumBuyInInput,
-                "Maximum buy-in"
+        if (
+            solitaireGame
+            && (solitaireEntry < 10 || solitaireEntry > 5000)
+        ) {
+            throw new Error(
+                "Solitaire entry fees must be between 10 and 5,000 chips."
             );
+        }
 
-        const creatorBuyIn = heartsGame
-            ? heartsStake
-            : parseWholeNumber(
-                creatorBuyInInput,
-                "Your buy-in"
-            );
+        const minimumBuyIn = solitaireGame
+            ? solitaireEntry
+            : heartsGame
+                ? heartsStake
+                : parseWholeNumber(
+                    minimumBuyInInput,
+                    "Minimum buy-in"
+                );
+
+        const maximumBuyIn = solitaireGame
+            ? solitaireEntry
+            : heartsGame
+                ? heartsStake
+                : parseWholeNumber(
+                    maximumBuyInInput,
+                    "Maximum buy-in"
+                );
+
+        const creatorBuyIn = solitaireGame
+            ? solitaireEntry
+            : heartsGame
+                ? heartsStake
+                : parseWholeNumber(
+                    creatorBuyInInput,
+                    "Your buy-in"
+                );
 
         const maximumPlayers = parseWholeNumber(
             maximumPlayersInput,
@@ -722,6 +952,13 @@ createGameForm.addEventListener("submit", async (event) => {
             )
             : 0;
 
+        const solitaireOption = solitaireGame
+            ? parseWholeNumber(
+                solitaireOptionInput,
+                "Solitaire rules"
+            )
+            : null;
+
         const { data: tableId, error } =
             await window.supabaseClient.rpc(
                 "create_game_table",
@@ -736,7 +973,8 @@ createGameForm.addEventListener("submit", async (event) => {
                     p_max_buy_in: maximumBuyIn,
                     p_max_players: maximumPlayers,
                     p_buy_in: creatorBuyIn,
-                    p_friendly_mode: friendlyModeInput.checked
+                    p_friendly_mode: friendlyModeInput.checked,
+                    p_solitaire_option: solitaireOption
                 }
             );
 
@@ -765,6 +1003,16 @@ gameTypeInput.addEventListener(
 friendlyModeInput.addEventListener(
     "change",
     updateGameTypeFields
+);
+
+solitaireOptionInput.addEventListener(
+    "change",
+    updateSolitairePayoutPreview
+);
+
+solitaireEntryInput.addEventListener(
+    "input",
+    updateSolitairePayoutPreview
 );
 
 refreshGamesButton.addEventListener(
@@ -824,6 +1072,20 @@ async function initialiseLobby() {
         }
 
         currentUser = user;
+
+        const payoutResult = await window.supabaseClient.rpc(
+            "get_solitaire_payout_options"
+        );
+
+        if (!payoutResult.error) {
+            solitairePayoutOptions = payoutResult.data ?? [];
+        } else {
+            console.warn(
+                "Solitaire payout options could not be loaded.",
+                payoutResult.error
+            );
+        }
+
         updateGameTypeFields();
         await loadGames();
         subscribeToLobby();

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Solitaire</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="solitaire.css">
+</head>
+<body>
+    <main class="page solitaire-page">
+        <div class="solitaire-layout">
+            <div id="site-navbar"></div>
+
+            <header class="panel solitaire-header">
+                <div class="solitaire-heading">
+                    <p class="eyebrow">PRIVATE CARD TABLE</p>
+                    <h1 id="solitaire-title">Loading Solitaire...</h1>
+                    <p id="solitaire-description" class="description">
+                        Restoring your deal before the cards develop opinions.
+                    </p>
+                </div>
+
+                <div class="solitaire-summary-grid">
+                    <div class="solitaire-summary-item">
+                        <span>Wallet</span>
+                        <strong id="solitaire-wallet">0</strong>
+                    </div>
+
+                    <div class="solitaire-summary-item">
+                        <span id="solitaire-entry-label">Entry</span>
+                        <strong id="solitaire-entry">0</strong>
+                    </div>
+
+                    <div class="solitaire-summary-item">
+                        <span>Win return</span>
+                        <strong id="solitaire-payout">0</strong>
+                    </div>
+
+                    <div class="solitaire-summary-item">
+                        <span>Moves</span>
+                        <strong id="solitaire-moves">0</strong>
+                    </div>
+
+                    <div class="solitaire-summary-item">
+                        <span>Time</span>
+                        <strong id="solitaire-time">00:00</strong>
+                    </div>
+                </div>
+            </header>
+
+            <section
+                id="friendly-solitaire-banner"
+                class="panel friendly-solitaire-banner hidden"
+            >
+                <strong>Friendly practice deal</strong>
+                <span>
+                    This table changes no wallet chips and awards no XP.
+                </span>
+            </section>
+
+            <section class="panel solitaire-toolbar-panel">
+                <div class="solitaire-toolbar">
+                    <div class="solitaire-toolbar-group solitaire-play-controls">
+                        <button
+                            id="new-solitaire-game-button"
+                            type="button"
+                            class="primary-action hidden"
+                        >
+                            Start another deal
+                        </button>
+
+                        <button
+                            id="undo-solitaire-button"
+                            type="button"
+                            class="secondary-button"
+                        >
+                            Undo
+                        </button>
+
+                        <button
+                            id="hint-solitaire-button"
+                            type="button"
+                            class="secondary-button"
+                        >
+                            Hint
+                        </button>
+
+                        <button
+                            id="restart-solitaire-button"
+                            type="button"
+                            class="secondary-button"
+                        >
+                            Restart deal
+                        </button>
+
+                        <button
+                            id="abandon-solitaire-button"
+                            type="button"
+                            class="danger-button"
+                        >
+                            Give up
+                        </button>
+                    </div>
+
+                    <div class="solitaire-toolbar-group solitaire-table-controls">
+                        <button
+                            id="close-solitaire-table-button"
+                            type="button"
+                            class="danger-button subtle-danger"
+                        >
+                            Close table
+                        </button>
+
+                        <a class="button-link secondary-link" href="poker.html">
+                            Card-game lobby
+                        </a>
+                    </div>
+                </div>
+
+                <p
+                    id="solitaire-message"
+                    class="form-message solitaire-message"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+            </section>
+
+            <section class="panel solitaire-board-panel">
+                <div
+                    id="solitaire-board"
+                    class="solitaire-board loading-board"
+                    aria-label="Solitaire board"
+                >
+                    <div class="solitaire-loading">
+                        Shuffling cards...
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel solitaire-rules-panel">
+                <details>
+                    <summary>Rules and payout information</summary>
+
+                    <div id="solitaire-rules-copy" class="solitaire-rules-copy">
+                        <p>Loading the selected rules...</p>
+                    </div>
+                </details>
+            </section>
+        </div>
+    </main>
+
+    <div
+        id="solitaire-result-overlay"
+        class="solitaire-result-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="solitaire-result-title"
+    >
+        <div class="solitaire-result-card">
+            <p id="solitaire-result-kicker" class="eyebrow">DEAL COMPLETE</p>
+            <h2 id="solitaire-result-title">Result</h2>
+            <p id="solitaire-result-copy"></p>
+
+            <div class="solitaire-result-actions">
+                <button
+                    id="overlay-new-game-button"
+                    type="button"
+                    class="primary-action"
+                >
+                    Start another deal
+                </button>
+
+                <button
+                    id="dismiss-result-button"
+                    type="button"
+                    class="secondary-button"
+                >
+                    View board
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="solitaire-table.js"></script>
+</body>
+</html>
