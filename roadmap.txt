@@ -1,6 +1,6 @@
 POTENTIAL FEATURES:
 
--XP and Leveling system
+-XP and Leveling system - ADDED
 
 Card Game Variants:
 
@@ -13,7 +13,7 @@ Card Game Variants:
 -Gin Rummy - Future
 -Solitaire - Future
 
-Horse racing every hour, players can bet on the horses leading up to the race
+Horse racing every hour, players can bet on the horses leading up to the race - ADDED
 
 Global stock trading, completely random changes to each stock every day.
 
@@ -21,7 +21,12 @@ Cosmetic items available for puchase with chips
 
 Emotes in Game
 
-Friendly mode
+Friendly mode - ADDED
 
-Chat notifications
+Chat notifications - ADDED
+
+Roulette - ADDED
+
+Penguin Risk Game
+
 

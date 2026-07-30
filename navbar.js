@@ -37,6 +37,16 @@
             files: ["community-roulette.html"]
         },
         {
+            label: "Leaderboards",
+            href: "leaderboards.html",
+            files: ["leaderboards.html"]
+        },
+        {
+            label: "Donate",
+            href: "donate.html",
+            files: ["donate.html"]
+        },
+        {
             label: "Recovery",
             href: "recovery.html",
             files: ["recovery.html"]
@@ -136,7 +146,8 @@
             ".poker-layout, .plinko-layout, .recovery-layout, "
             + ".draw-layout, .hearts-layout, .blackjack-layout, "
             + ".disclaimer-layout, .horse-racing-layout, "
-            + ".community-roulette-layout"
+            + ".community-roulette-layout, .leaderboards-layout, "
+            + ".donation-layout"
         )
         || document.querySelector("main > div")
         || document.querySelector("main")

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Leaderboards</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="leaderboards.css">
+</head>
+<body>
+    <main class="page leaderboards-page">
+        <div class="leaderboards-layout">
+            <div id="site-navbar"></div>
+
+            <header class="panel leaderboards-header">
+                <div>
+                    <p class="eyebrow">GLOBAL STANDINGS</p>
+                    <h1>Leaderboards</h1>
+                    <p class="description">
+                        Compare total competitive bankrolls and lifetime profit
+                        in each game. Friendly matches and donations do not
+                        affect game-profit standings.
+                    </p>
+                </div>
+
+                <button
+                    id="refresh-leaderboard-button"
+                    class="secondary-button"
+                    type="button"
+                >
+                    Refresh
+                </button>
+            </header>
+
+            <section class="panel leaderboard-controls-panel">
+                <div
+                    id="leaderboard-tabs"
+                    class="leaderboard-tabs"
+                    role="tablist"
+                    aria-label="Leaderboard category"
+                >
+                    <button
+                        type="button"
+                        class="leaderboard-tab active"
+                        data-leaderboard="chips"
+                        role="tab"
+                        aria-selected="true"
+                    >
+                        Total chips
+                    </button>
+
+                    <button type="button" class="leaderboard-tab" data-leaderboard="poker" role="tab" aria-selected="false">
+                        Texas Hold'em
+                    </button>
+
+                    <button type="button" class="leaderboard-tab" data-leaderboard="five_card_draw" role="tab" aria-selected="false">
+                        Five-Card Draw
+                    </button>
+
+                    <button type="button" class="leaderboard-tab" data-leaderboard="blackjack" role="tab" aria-selected="false">
+                        Blackjack
+                    </button>
+
+                    <button type="button" class="leaderboard-tab" data-leaderboard="hearts" role="tab" aria-selected="false">
+                        Hearts
+                    </button>
+
+                    <button type="button" class="leaderboard-tab" data-leaderboard="recovery" role="tab" aria-selected="false">
+                        Asteroid Salvage
+                    </button>
+
+                    <button type="button" class="leaderboard-tab" data-leaderboard="plinko" role="tab" aria-selected="false">
+                        Plinko
+                    </button>
+
+                    <button type="button" class="leaderboard-tab" data-leaderboard="horse_racing" role="tab" aria-selected="false">
+                        Horse Racing
+                    </button>
+
+                    <button type="button" class="leaderboard-tab" data-leaderboard="roulette" role="tab" aria-selected="false">
+                        Roulette
+                    </button>
+                </div>
+            </section>
+
+            <section class="panel leaderboard-panel">
+                <div class="leaderboard-heading">
+                    <div>
+                        <p id="leaderboard-kicker" class="eyebrow">
+                            COMPETITIVE BANKROLL
+                        </p>
+                        <h2 id="leaderboard-title">Total chips</h2>
+                        <p id="leaderboard-description" class="description">
+                            Wallet chips plus chips held in competitive card
+                            games, including chips committed to active hands.
+                        </p>
+                    </div>
+
+                    <span id="leaderboard-updated-at" class="leaderboard-updated-at">
+                        Loading...
+                    </span>
+                </div>
+
+                <div class="leaderboard-table-wrap">
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Rank</th>
+                                <th scope="col">Player</th>
+                                <th scope="col">Level</th>
+                                <th id="value-column-heading" scope="col">
+                                    Total chips
+                                </th>
+                                <th id="plays-column-heading" scope="col" class="hidden">
+                                    Played
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="leaderboard-body">
+                            <tr>
+                                <td colspan="5" class="leaderboard-empty">
+                                    Loading leaderboard...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p
+                    id="leaderboard-message"
+                    class="form-message"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="leaderboards.js"></script>
+</body>
+</html>

@@ -1,16 +1,59 @@
 (() => {
     if (!window.supabaseClient) {
         console.warn(
-            "Chat event notifications require supabase-client.js first."
+            "Chat notifications require supabase-client.js first."
         );
         return;
     }
 
-    const renderedNotificationIds = new Set();
-    let notificationChannel = null;
+    const MAX_CHAT_NOTIFICATIONS = 3;
+    const MAX_STORED_NOTIFICATIONS = 20;
+    const MAX_HIDDEN_KEYS = 100;
+    const HIDDEN_STORAGE_KEY = "hidden-chat-notifications-v1";
+
+    const notifications = new Map();
+    const hiddenNotificationKeys = loadHiddenNotificationKeys();
+
+    let currentUser = null;
+    let publicChannel = null;
+    let personalChannel = null;
+    let renderQueued = false;
+    let rendering = false;
+    let chatObserver = null;
 
 
-    function formatNotificationTime(value) {
+    function loadHiddenNotificationKeys() {
+        try {
+            const stored = JSON.parse(
+                window.localStorage.getItem(HIDDEN_STORAGE_KEY) || "[]"
+            );
+
+            return new Set(
+                Array.isArray(stored)
+                    ? stored.filter((value) => typeof value === "string")
+                    : []
+            );
+        } catch (error) {
+            console.warn("Hidden notifications could not be loaded:", error);
+            return new Set();
+        }
+    }
+
+
+    function saveHiddenNotificationKeys() {
+        try {
+            const keys = [...hiddenNotificationKeys].slice(-MAX_HIDDEN_KEYS);
+            window.localStorage.setItem(
+                HIDDEN_STORAGE_KEY,
+                JSON.stringify(keys)
+            );
+        } catch (error) {
+            console.warn("Hidden notifications could not be saved:", error);
+        }
+    }
+
+
+    function formatTime(value) {
         return new Intl.DateTimeFormat(
             "en-GB",
             {
@@ -21,249 +64,299 @@
     }
 
 
-    function findChatMount() {
-        return document.querySelector(
-            "#chat-container, .chat-container, .chat-panel, "
-            + "#messages-container, .messages-container, main"
-        ) || document.body;
+    function isUsefulNotification(notification) {
+        const eventKey = String(notification.event_key ?? "");
+
+        if (
+            eventKey.startsWith("roulette-warning:")
+            || eventKey.startsWith("roulette-spin:")
+        ) {
+            return false;
+        }
+
+        return Boolean(
+            notification.id
+            && notification.title
+            && notification.message
+            && notification.created_at
+        );
     }
 
 
-    function createNotificationPanel() {
-        const existing = document.querySelector(
-            "#global-event-notifications"
-        );
+    function notificationKey(notification) {
+        return `${notification.source}:${notification.id}`;
+    }
 
-        if (existing) {
-            return existing;
+
+    function storeNotification(notification) {
+        if (!isUsefulNotification(notification)) {
+            return;
         }
 
-        const panel = document.createElement("section");
-        panel.id = "global-event-notifications";
-        panel.className = "global-event-notifications";
+        const key = notificationKey(notification);
 
-        const heading = document.createElement("button");
-        heading.type = "button";
-        heading.className = "event-notification-heading";
-        heading.setAttribute("aria-expanded", "true");
+        if (hiddenNotificationKeys.has(key)) {
+            return;
+        }
 
-        const headingCopy = document.createElement("span");
+        notifications.set(key, notification);
 
-        const title = document.createElement("strong");
-        title.textContent = "Global event notifications";
+        const ordered = [...notifications.values()].sort(
+            (left, right) =>
+                new Date(right.created_at)
+                - new Date(left.created_at)
+        );
 
-        const description = document.createElement("small");
-        description.textContent =
-            "Roulette results and other shared events";
+        for (const stale of ordered.slice(MAX_STORED_NOTIFICATIONS)) {
+            notifications.delete(notificationKey(stale));
+        }
+    }
 
-        headingCopy.append(title, description);
 
-        const toggleText = document.createElement("span");
-        toggleText.className = "event-notification-toggle";
-        toggleText.textContent = "Hide";
+    function hideNotification(notification) {
+        const key = notificationKey(notification);
+        hiddenNotificationKeys.add(key);
+        notifications.delete(key);
+        saveHiddenNotificationKeys();
+        queueRender();
+    }
 
-        heading.append(headingCopy, toggleText);
 
-        const list = document.createElement("div");
-        list.id = "global-event-notification-list";
-        list.className = "global-event-notification-list";
+    function findChatMessageList() {
+        const selectors = [
+            "#chat-messages",
+            ".chat-messages",
+            "[data-chat-messages]",
+            "#messages",
+            ".messages",
+            "#messages-container",
+            ".messages-container"
+        ];
 
-        const empty = document.createElement("p");
-        empty.className = "empty-event-notification";
-        empty.textContent = "No global event notifications yet.";
+        for (const selector of selectors) {
+            const candidate = document.querySelector(selector);
 
-        list.append(empty);
-        panel.append(heading, list);
-
-        heading.addEventListener(
-            "click",
-            () => {
-                const collapsed = panel.classList.toggle(
-                    "collapsed"
-                );
-
-                heading.setAttribute(
-                    "aria-expanded",
-                    String(!collapsed)
-                );
-
-                toggleText.textContent = collapsed
-                    ? "Show"
-                    : "Hide";
+            if (candidate) {
+                return candidate;
             }
-        );
-
-        const mount = findChatMount();
-
-        const likelyMessageList = mount.querySelector(
-            "#chat-messages, .chat-messages, #messages, "
-            + ".messages, [data-chat-messages]"
-        );
-
-        if (likelyMessageList) {
-            likelyMessageList.before(panel);
-        } else {
-            mount.prepend(panel);
         }
 
-        return panel;
+        return null;
     }
 
 
-    function createNotificationCard(notification) {
-        const card = document.createElement("article");
-        card.className =
-            `event-notification-card event-${notification.category}`;
-        card.dataset.notificationId = String(notification.id);
+    function ensureFallbackMount() {
+        let fallback = document.querySelector(
+            "#chat-notification-fallback"
+        );
+
+        if (fallback) {
+            return fallback;
+        }
+
+        fallback = document.createElement("section");
+        fallback.id = "chat-notification-fallback";
+        fallback.className = "chat-notification-fallback";
+        fallback.setAttribute("aria-label", "Chat notifications");
+
+        const navbar = document.querySelector(".shared-site-nav");
+
+        if (navbar) {
+            navbar.insertAdjacentElement("afterend", fallback);
+        } else {
+            const main = document.querySelector("main") || document.body;
+            main.prepend(fallback);
+        }
+
+        return fallback;
+    }
+
+
+    function createNotificationMessage(notification) {
+        const article = document.createElement("article");
+        article.className =
+            `chat-system-notification notification-${notification.category}`;
+        article.dataset.chatNotification = notificationKey(notification);
 
         const icon = document.createElement("span");
-        icon.className = "event-notification-icon";
-        icon.textContent = notification.category === "roulette"
-            ? "◉"
-            : "◆";
+        icon.className = "chat-system-notification-icon";
+        icon.setAttribute("aria-hidden", "true");
 
-        const copy = document.createElement("div");
-        copy.className = "event-notification-copy";
+        if (notification.category === "roulette") {
+            icon.textContent = "◉";
+        } else if (notification.category === "donation") {
+            icon.textContent = "◆";
+        } else if (notification.category === "horse_racing") {
+            icon.textContent = "♞";
+        } else {
+            icon.textContent = "●";
+        }
 
-        const header = document.createElement("div");
+        const content = document.createElement("div");
+        content.className = "chat-system-notification-content";
+
+        const summary = document.createElement("div");
+        summary.className = "chat-system-notification-summary";
 
         const title = document.createElement("strong");
         title.textContent = notification.title;
 
+        const message = document.createElement("span");
+        message.className = "chat-system-notification-message";
+        message.textContent = notification.message;
+        message.title = notification.message;
+
+        summary.append(title, message);
+        content.append(summary);
+
+        const actions = document.createElement("div");
+        actions.className = "chat-system-notification-actions";
+
         const time = document.createElement("time");
         time.dateTime = notification.created_at;
-        time.textContent = formatNotificationTime(
-            notification.created_at
-        );
-
-        header.append(title, time);
-
-        const message = document.createElement("p");
-        message.textContent = notification.message;
-
-        copy.append(header, message);
+        time.textContent = formatTime(notification.created_at);
+        actions.append(time);
 
         if (notification.link_url) {
             const link = document.createElement("a");
             link.href = notification.link_url;
-            link.textContent = "Open event";
-            link.className = "event-notification-link";
-            copy.append(link);
+            link.textContent = "Open";
+            link.className = "chat-system-notification-link";
+            actions.append(link);
         }
 
-        card.append(icon, copy);
-        return card;
+        const hideButton = document.createElement("button");
+        hideButton.type = "button";
+        hideButton.className = "chat-system-notification-hide";
+        hideButton.textContent = "Hide";
+        hideButton.title = "Hide this notification";
+        hideButton.setAttribute(
+            "aria-label",
+            `Hide notification: ${notification.title}`
+        );
+        hideButton.addEventListener("click", () => {
+            hideNotification(notification);
+        });
+        actions.append(hideButton);
+
+        article.append(icon, content, actions);
+        return article;
     }
 
 
-    function renderNotification(
-        notification,
-        prepend = true
-    ) {
-        const id = String(notification.id);
-
-        if (renderedNotificationIds.has(id)) {
+    function renderNotifications() {
+        if (rendering) {
             return;
         }
 
-        renderedNotificationIds.add(id);
+        rendering = true;
+        chatObserver?.disconnect();
 
-        const list = document.querySelector(
-            "#global-event-notification-list"
-        );
-
-        if (!list) {
-            return;
-        }
-
-        list.querySelector(
-            ".empty-event-notification"
-        )?.remove();
-
-        const card = createNotificationCard(notification);
-
-        if (prepend) {
-            list.prepend(card);
-        } else {
-            list.append(card);
-        }
-
-        while (list.children.length > 15) {
-            const finalChild = list.lastElementChild;
-
-            if (finalChild) {
-                renderedNotificationIds.delete(
-                    finalChild.dataset.notificationId
-                );
-                finalChild.remove();
-            }
-        }
-    }
-
-
-    function showNotificationToast(notification) {
-        let toast = document.querySelector(
-            "#global-event-toast"
-        );
-
-        if (!toast) {
-            toast = document.createElement("a");
-            toast.id = "global-event-toast";
-            toast.className = "global-event-toast";
-            document.body.append(toast);
-        }
-
-        toast.href = notification.link_url || "#";
-        toast.textContent =
-            `${notification.title}: ${notification.message}`;
-
-        toast.classList.add("visible");
-
-        window.clearTimeout(
-            showNotificationToast.timeout
-        );
-
-        showNotificationToast.timeout =
-            window.setTimeout(
-                () => {
-                    toast.classList.remove("visible");
-                },
-                6500
+        try {
+            const chatList = findChatMessageList();
+            const fallback = document.querySelector(
+                "#chat-notification-fallback"
             );
+
+            document
+                .querySelectorAll("[data-chat-notification]")
+                .forEach((element) => element.remove());
+
+            const recent = [...notifications.values()]
+                .sort(
+                    (left, right) =>
+                        new Date(left.created_at)
+                        - new Date(right.created_at)
+                )
+                .slice(-MAX_CHAT_NOTIFICATIONS);
+
+            if (!recent.length) {
+                fallback?.remove();
+                return;
+            }
+
+            const mount = chatList || fallback || ensureFallbackMount();
+
+            for (const notification of recent) {
+                mount.append(
+                    createNotificationMessage(notification)
+                );
+            }
+
+            if (chatList && fallback) {
+                fallback.remove();
+            }
+        } finally {
+            rendering = false;
+            observeChatRenders();
+        }
+    }
+
+
+    function queueRender() {
+        if (renderQueued) {
+            return;
+        }
+
+        renderQueued = true;
+
+        window.requestAnimationFrame(() => {
+            renderQueued = false;
+            renderNotifications();
+        });
     }
 
 
     async function loadRecentNotifications() {
-        const {
-            data,
-            error
-        } = await window.supabaseClient
-            .from("site_notifications")
-            .select(
-                "id, category, title, message, link_url, created_at"
-            )
-            .order(
-                "created_at",
-                {
-                    ascending: false
-                }
-            )
-            .limit(15);
+        const [publicResult, personalResult] = await Promise.all([
+            window.supabaseClient
+                .from("site_notifications")
+                .select(
+                    "id, event_key, category, title, message, link_url, created_at"
+                )
+                .order("created_at", { ascending: false })
+                .limit(20),
 
-        if (error) {
-            throw error;
+            window.supabaseClient
+                .from("user_notifications")
+                .select(
+                    "id, category, title, message, link_url, created_at, read_at"
+                )
+                .eq("user_id", currentUser.id)
+                .order("created_at", { ascending: false })
+                .limit(20)
+        ]);
+
+        if (publicResult.error) {
+            throw publicResult.error;
         }
 
-        for (const notification of [...(data ?? [])].reverse()) {
-            renderNotification(notification, false);
+        if (personalResult.error) {
+            throw personalResult.error;
         }
+
+        for (const item of publicResult.data ?? []) {
+            storeNotification({
+                ...item,
+                source: "public"
+            });
+        }
+
+        for (const item of personalResult.data ?? []) {
+            storeNotification({
+                ...item,
+                event_key: null,
+                source: "personal"
+            });
+        }
+
+        queueRender();
     }
 
 
     function subscribeToNotifications() {
-        notificationChannel = window.supabaseClient
-            .channel("chat-global-event-notifications")
-
+        publicChannel = window.supabaseClient
+            .channel("chat-public-event-notifications")
             .on(
                 "postgres_changes",
                 {
@@ -272,55 +365,93 @@
                     table: "site_notifications"
                 },
                 (payload) => {
-                    renderNotification(
-                        payload.new,
-                        true
-                    );
-
-                    showNotificationToast(
-                        payload.new
-                    );
+                    storeNotification({
+                        ...payload.new,
+                        source: "public"
+                    });
+                    queueRender();
                 }
             )
-
             .subscribe();
+
+        personalChannel = window.supabaseClient
+            .channel(`chat-personal-notifications-${currentUser.id}`)
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "user_notifications",
+                    filter: `user_id=eq.${currentUser.id}`
+                },
+                (payload) => {
+                    storeNotification({
+                        ...payload.new,
+                        event_key: null,
+                        source: "personal"
+                    });
+                    queueRender();
+                }
+            )
+            .subscribe();
+    }
+
+
+    function observeChatRenders() {
+        if (!chatObserver) {
+            chatObserver = new MutationObserver(() => {
+                if (!rendering) {
+                    queueRender();
+                }
+            });
+        }
+
+        chatObserver.disconnect();
+        chatObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
     }
 
 
     async function initialiseChatNotifications() {
         try {
             const {
-                data: {
-                    user
-                }
+                data: { user },
+                error
             } = await window.supabaseClient.auth.getUser();
+
+            if (error) {
+                throw error;
+            }
 
             if (!user) {
                 return;
             }
 
-            createNotificationPanel();
+            currentUser = user;
+
             await loadRecentNotifications();
             subscribeToNotifications();
+            observeChatRenders();
         } catch (error) {
             console.warn(
-                "Global chat notifications could not be loaded:",
+                "Chat notifications could not be loaded:",
                 error
             );
         }
     }
 
 
-    window.addEventListener(
-        "beforeunload",
-        () => {
-            if (notificationChannel) {
-                window.supabaseClient.removeChannel(
-                    notificationChannel
-                );
-            }
+    window.addEventListener("beforeunload", () => {
+        if (publicChannel) {
+            window.supabaseClient.removeChannel(publicChannel);
         }
-    );
+
+        if (personalChannel) {
+            window.supabaseClient.removeChannel(personalChannel);
+        }
+    });
 
 
     initialiseChatNotifications();

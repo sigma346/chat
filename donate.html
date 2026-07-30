@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Donate Chips</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="donate.css">
+</head>
+<body>
+    <main class="page donation-page">
+        <div class="donation-layout">
+            <div id="site-navbar"></div>
+
+            <header class="panel donation-header">
+                <div>
+                    <p class="eyebrow">PLAYER-TO-PLAYER TRANSFERS</p>
+                    <h1>Donate chips</h1>
+                    <p class="description">
+                        Send wallet chips directly to another account. Chips
+                        currently held at a card table must be cashed out first.
+                    </p>
+                </div>
+
+                <div class="donation-wallet-card">
+                    <span>Wallet balance</span>
+                    <strong id="wallet-balance">0</strong>
+                </div>
+            </header>
+
+            <section class="panel donation-form-panel">
+                <div>
+                    <p class="eyebrow">NEW DONATION</p>
+                    <h2>Choose a recipient</h2>
+                </div>
+
+                <form id="donation-form" novalidate>
+                    <div class="donation-form-grid">
+                        <div class="donation-field recipient-field">
+                            <label for="recipient-username">
+                                Recipient username
+                            </label>
+
+                            <input
+                                id="recipient-username"
+                                name="recipientUsername"
+                                type="text"
+                                autocomplete="off"
+                                maxlength="80"
+                                placeholder="Start typing a username"
+                                required
+                            >
+
+                            <div
+                                id="recipient-results"
+                                class="recipient-results hidden"
+                            ></div>
+                        </div>
+
+                        <div class="donation-field">
+                            <label for="donation-amount">
+                                Amount
+                            </label>
+
+                            <input
+                                id="donation-amount"
+                                name="amount"
+                                type="number"
+                                min="1"
+                                max="1000000"
+                                step="1"
+                                value="100"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="donation-quick-amounts">
+                        <button type="button" data-amount="10">10</button>
+                        <button type="button" data-amount="50">50</button>
+                        <button type="button" data-amount="100">100</button>
+                        <button type="button" data-amount="500">500</button>
+                        <button type="button" data-amount="1000">1,000</button>
+                    </div>
+
+                    <div class="donation-field">
+                        <label for="donation-note">
+                            Note <span>optional</span>
+                        </label>
+
+                        <textarea
+                            id="donation-note"
+                            name="note"
+                            maxlength="120"
+                            rows="3"
+                            placeholder="A brief message for the recipient"
+                        ></textarea>
+
+                        <small id="note-character-count">0 / 120</small>
+                    </div>
+
+                    <div class="donation-submit-row">
+                        <p class="donation-warning">
+                            Donations are final and cannot be reversed from the
+                            website.
+                        </p>
+
+                        <button
+                            id="submit-donation-button"
+                            class="primary-button"
+                            type="submit"
+                        >
+                            Send donation
+                        </button>
+                    </div>
+                </form>
+
+                <p
+                    id="donation-message"
+                    class="form-message"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+            </section>
+
+            <section class="panel donation-history-panel">
+                <div class="donation-section-heading">
+                    <div>
+                        <p class="eyebrow">RECENT ACTIVITY</p>
+                        <h2>Your donations</h2>
+                    </div>
+
+                    <button
+                        id="refresh-donations-button"
+                        class="secondary-button"
+                        type="button"
+                    >
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="donation-history" class="donation-history">
+                    <p class="empty-state">Loading donations...</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="donate.js"></script>
+</body>
+</html>
