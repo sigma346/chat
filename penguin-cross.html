@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Penguin Cross</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="penguin-cross.css">
+</head>
+<body>
+    <main class="page penguin-cross-page">
+        <div class="penguin-cross-layout">
+            <div id="site-navbar"></div>
+
+            <header class="panel penguin-header">
+                <div>
+                    <p class="eyebrow">SINGLE-PLAYER PUSH YOUR LUCK</p>
+                    <h1>Penguin Cross</h1>
+                    <p class="description">
+                        Cross ten unstable ice tiles. Each safe step raises
+                        your cash-out return. One broken tile sinks the whole bet.
+                    </p>
+                </div>
+
+                <div class="penguin-wallet-card">
+                    <span>Wallet chips</span>
+                    <strong id="penguin-wallet">0</strong>
+                </div>
+            </header>
+
+            <section
+                id="penguin-setup-panel"
+                class="panel penguin-setup-panel"
+            >
+                <div class="setup-copy">
+                    <p class="eyebrow">NEW CROSSING</p>
+                    <h2>Choose your stake</h2>
+                    <p class="description">
+                        Every tile is independently 80% safe. Cash out after
+                        any successful step, or keep waddling towards the far shore.
+                    </p>
+                </div>
+
+                <div class="penguin-bet-controls">
+                    <label for="penguin-bet-input">Entry bet</label>
+                    <div class="bet-input-row">
+                        <input
+                            id="penguin-bet-input"
+                            type="number"
+                            min="10"
+                            max="5000"
+                            step="1"
+                            value="100"
+                            inputmode="numeric"
+                        >
+                        <button
+                            id="start-penguin-button"
+                            class="primary-button"
+                            type="button"
+                        >
+                            Start crossing
+                        </button>
+                    </div>
+
+                    <div class="penguin-quick-bets" aria-label="Quick bets">
+                        <button type="button" class="secondary-button" data-bet="10">10</button>
+                        <button type="button" class="secondary-button" data-bet="50">50</button>
+                        <button type="button" class="secondary-button" data-bet="100">100</button>
+                        <button type="button" class="secondary-button" data-bet="500">500</button>
+                        <button type="button" class="secondary-button" data-bet="1000">1,000</button>
+                    </div>
+                </div>
+            </section>
+
+            <section
+                id="penguin-game-panel"
+                class="panel penguin-game-panel hidden"
+            >
+                <div class="penguin-game-heading">
+                    <div>
+                        <p class="eyebrow">CROSSING IN PROGRESS</p>
+                        <h2 id="penguin-game-title">Step 0 of 10</h2>
+                        <p id="penguin-action-text" class="description">
+                            The penguin is ready on the shore.
+                        </p>
+                    </div>
+
+                    <div class="penguin-current-stats">
+                        <div>
+                            <span>Bet</span>
+                            <strong id="penguin-current-bet">0</strong>
+                        </div>
+                        <div>
+                            <span>Multiplier</span>
+                            <strong id="penguin-current-multiplier">1.0000×</strong>
+                        </div>
+                        <div>
+                            <span>Estimated cash out</span>
+                            <strong id="penguin-current-cashout">0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    id="penguin-crossing-stage"
+                    class="penguin-crossing-stage"
+                    aria-label="Ten ice tiles"
+                >
+                    <div class="penguin-water" aria-hidden="true"></div>
+                    <div class="penguin-shore penguin-shore-start">
+                        <span>Start</span>
+                    </div>
+                    <div
+                        id="penguin-ice-track"
+                        class="penguin-ice-track"
+                    ></div>
+                    <div class="penguin-shore penguin-shore-finish">
+                        <span>Finish</span>
+                    </div>
+                    <div id="penguin-splash" class="penguin-splash" aria-hidden="true">
+                        <span>💦</span>
+                    </div>
+                </div>
+
+                <div class="penguin-controls">
+                    <button
+                        id="penguin-step-button"
+                        class="primary-button penguin-step-button"
+                        type="button"
+                    >
+                        Take next step
+                    </button>
+
+                    <button
+                        id="penguin-cashout-button"
+                        class="secondary-button penguin-cashout-button"
+                        type="button"
+                        disabled
+                    >
+                        Cash out
+                    </button>
+                </div>
+            </section>
+
+            <section
+                id="penguin-result-panel"
+                class="panel penguin-result-panel hidden"
+                aria-live="polite"
+            >
+                <div id="penguin-result-icon" class="penguin-result-icon">🐧</div>
+                <div>
+                    <p id="penguin-result-kicker" class="eyebrow">CROSSING COMPLETE</p>
+                    <h2 id="penguin-result-title">Result</h2>
+                    <p id="penguin-result-description" class="description"></p>
+                </div>
+                <button
+                    id="penguin-play-again-button"
+                    class="primary-button"
+                    type="button"
+                >
+                    Play again
+                </button>
+            </section>
+
+            <section class="panel penguin-fairness-panel">
+                <div class="fairness-copy">
+                    <p class="eyebrow">FAIR RETURN TABLE</p>
+                    <h2>Every stopping point is break-even on average</h2>
+                    <p class="description">
+                        A tile is safe 80% of the time. The multiplier after
+                        each safe step is the reciprocal of the chance of
+                        reaching that step, so the expected return remains 100%.
+                    </p>
+                </div>
+                <div id="penguin-multiplier-grid" class="penguin-multiplier-grid"></div>
+            </section>
+
+            <section class="panel penguin-history-panel">
+                <div class="history-heading">
+                    <div>
+                        <p class="eyebrow">RECENT CROSSINGS</p>
+                        <h2>Your results</h2>
+                    </div>
+                    <button
+                        id="penguin-refresh-button"
+                        class="secondary-button"
+                        type="button"
+                    >
+                        Refresh
+                    </button>
+                </div>
+                <div id="penguin-history-list" class="penguin-history-list"></div>
+            </section>
+
+            <p
+                id="penguin-message"
+                class="form-message"
+                role="alert"
+                aria-live="polite"
+            ></p>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="penguin-cross.js"></script>
+</body>
+</html>

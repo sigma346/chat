@@ -9,7 +9,8 @@
         "poker-table.html",
         "blackjack-table.html",
         "five-card-draw-table.html",
-        "hearts-table.html"
+        "hearts-table.html",
+        "solitaire-table.html"
     ]);
 
     const navigationItems = [
@@ -35,6 +36,11 @@
             label: "Roulette",
             href: "community-roulette.html",
             files: ["community-roulette.html"]
+        },
+        {
+            label: "Penguin Cross",
+            href: "penguin-cross.html",
+            files: ["penguin-cross.html"]
         },
         {
             label: "Leaderboards",
@@ -146,7 +152,7 @@
             ".poker-layout, .plinko-layout, .recovery-layout, "
             + ".draw-layout, .hearts-layout, .blackjack-layout, "
             + ".disclaimer-layout, .horse-racing-layout, "
-            + ".community-roulette-layout, .leaderboards-layout, "
+            + ".community-roulette-layout, .penguin-cross-layout, .leaderboards-layout, "
             + ".donation-layout"
         )
         || document.querySelector("main > div")

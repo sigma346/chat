@@ -84,6 +84,13 @@ const leaderboardDefinitions = {
         description:
             "Total Plinko payouts minus all Plinko bets."
     },
+    penguin_cross: {
+        title: "Penguin Cross profit",
+        kicker: "LIFETIME GAME PROFIT",
+        valueHeading: "Profit",
+        description:
+            "Total Penguin Cross cash-out returns minus entry bets across completed crossings."
+    },
     horse_racing: {
         title: "Horse Racing profit",
         kicker: "LIFETIME GAME PROFIT",
@@ -304,6 +311,13 @@ async function loadLeaderboard() {
                     p_game: selectedLeaderboard === "solitaire_klondike"
                         ? "klondike"
                         : "spider",
+                    p_limit: 50
+                }
+            );
+        } else if (selectedLeaderboard === "penguin_cross") {
+            result = await window.supabaseClient.rpc(
+                "get_penguin_cross_profit_leaderboard",
+                {
                     p_limit: 50
                 }
             );
