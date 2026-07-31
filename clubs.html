@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>Clubs</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="clubs.css?v=3">
+</head>
+<body class="clubs-page">
+    <main class="page">
+        <div class="clubs-layout">
+            <div id="site-navbar"></div>
+
+            <header class="panel clubs-hero">
+                <div>
+                    <p class="eyebrow">PLAYER CLUBS</p>
+                    <h1>Clubs</h1>
+                    <p class="description">
+                        Build a club, recruit players and earn permanent
+                        club points and XP from positive game profit.
+                    </p>
+                </div>
+
+                <div class="club-formula">
+                    <span>10 profit = 1 point</span>
+                    <span>25 profit = 1 XP</span>
+                </div>
+            </header>
+
+            <p
+                id="clubs-message"
+                class="form-message"
+                role="alert"
+                aria-live="polite"
+            ></p>
+
+            <section
+                id="club-detail-panel"
+                class="panel club-detail-panel hidden"
+            >
+                <div class="club-detail-heading">
+                    <div>
+                        <p class="eyebrow">CLUB PROFILE</p>
+                        <div class="club-title-row">
+                            <span id="club-detail-tag" class="club-tag">
+                                TAG
+                            </span>
+                            <h2 id="club-detail-name">Club</h2>
+                        </div>
+                        <p
+                            id="club-detail-description"
+                            class="description"
+                        ></p>
+                    </div>
+
+                    <div id="club-primary-actions" class="club-actions">
+                        <button
+                            id="club-join-button"
+                            type="button"
+                            class="hidden"
+                        >
+                            Join club
+                        </button>
+
+                        <button
+                            id="club-cancel-request-button"
+                            type="button"
+                            class="secondary-button hidden"
+                        >
+                            Cancel request
+                        </button>
+
+                        <button
+                            id="club-leave-button"
+                            type="button"
+                            class="danger-button hidden"
+                        >
+                            Leave club
+                        </button>
+                    </div>
+                </div>
+
+                <div class="club-stat-grid">
+                    <article class="club-stat">
+                        <span>Level</span>
+                        <strong id="club-detail-level">1</strong>
+                    </article>
+
+                    <article class="club-stat">
+                        <span>Club points</span>
+                        <strong id="club-detail-points">0</strong>
+                    </article>
+
+                    <article class="club-stat">
+                        <span>Club XP</span>
+                        <strong id="club-detail-xp">0</strong>
+                    </article>
+
+                    <article class="club-stat">
+                        <span>Members</span>
+                        <strong id="club-detail-members">0 / 30</strong>
+                    </article>
+                </div>
+
+                <div class="club-xp-area">
+                    <div class="club-xp-labels">
+                        <span id="club-level-progress-label">
+                            Level progress
+                        </span>
+                        <span id="club-level-progress-value">0 / 500 XP</span>
+                    </div>
+                    <div class="club-xp-track">
+                        <span id="club-xp-fill"></span>
+                    </div>
+                </div>
+
+                <div class="club-content-grid">
+                    <section>
+                        <div class="section-heading">
+                            <div>
+                                <p class="eyebrow">ROSTER</p>
+                                <h3>Members</h3>
+                            </div>
+                        </div>
+                        <div id="club-member-list" class="club-member-list"></div>
+                    </section>
+
+                    <section>
+                        <div class="section-heading">
+                            <div>
+                                <p class="eyebrow">RECENT</p>
+                                <h3>Club contributions</h3>
+                            </div>
+                        </div>
+                        <div
+                            id="club-activity-list"
+                            class="club-activity-list"
+                        ></div>
+                    </section>
+                </div>
+
+                <section
+                    id="club-requests-section"
+                    class="club-manager-section hidden"
+                >
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">REQUESTS</p>
+                            <h3>Join requests</h3>
+                        </div>
+                    </div>
+
+                    <div
+                        id="club-request-list"
+                        class="club-request-list"
+                    ></div>
+                </section>
+
+                <section
+                    id="club-settings-section"
+                    class="club-manager-section hidden"
+                >
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">MANAGEMENT</p>
+                            <h3>Club settings</h3>
+                        </div>
+                    </div>
+
+                    <form id="club-settings-form" class="club-form">
+                        <label>
+                            Club name
+                            <input
+                                id="club-settings-name"
+                                type="text"
+                                minlength="3"
+                                maxlength="30"
+                                required
+                            >
+                        </label>
+
+                        <label>
+                            Tag
+                            <input
+                                id="club-settings-tag"
+                                type="text"
+                                minlength="2"
+                                maxlength="5"
+                                pattern="[A-Za-z0-9]+"
+                                required
+                            >
+                        </label>
+
+                        <label class="club-form-wide">
+                            Description
+                            <textarea
+                                id="club-settings-description"
+                                maxlength="240"
+                                rows="3"
+                            ></textarea>
+                        </label>
+
+                        <label>
+                            Joining
+                            <select id="club-settings-policy">
+                                <option value="open">Open</option>
+                                <option value="approval">
+                                    Approval required
+                                </option>
+                            </select>
+                        </label>
+
+                        <div class="club-form-actions">
+                            <button type="submit">Save club</button>
+
+                            <button
+                                id="club-disband-button"
+                                type="button"
+                                class="danger-button hidden"
+                            >
+                                Disband club
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </section>
+
+            <div class="club-discovery-grid">
+                <section
+                    id="club-create-panel"
+                    class="panel club-create-panel"
+                >
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">FOUND A CLUB</p>
+                            <h2>Create your own</h2>
+                        </div>
+                        <span>Free to create</span>
+                    </div>
+
+                    <form id="club-create-form" class="club-form">
+                        <label>
+                            Club name
+                            <input
+                                id="club-create-name"
+                                type="text"
+                                minlength="3"
+                                maxlength="30"
+                                placeholder="Queensland Card Society"
+                                required
+                            >
+                        </label>
+
+                        <label>
+                            Tag
+                            <input
+                                id="club-create-tag"
+                                type="text"
+                                minlength="2"
+                                maxlength="5"
+                                pattern="[A-Za-z0-9]+"
+                                placeholder="QCS"
+                                required
+                            >
+                        </label>
+
+                        <label class="club-form-wide">
+                            Description
+                            <textarea
+                                id="club-create-description"
+                                maxlength="240"
+                                rows="3"
+                                placeholder="What is your club about?"
+                            ></textarea>
+                        </label>
+
+                        <label>
+                            Joining
+                            <select id="club-create-policy">
+                                <option value="open">Open</option>
+                                <option value="approval">
+                                    Approval required
+                                </option>
+                            </select>
+                        </label>
+
+                        <div class="club-form-actions">
+                            <button type="submit">Create club</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="panel club-directory-panel">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">DISCOVER</p>
+                            <h2>Club directory</h2>
+                        </div>
+
+                        <form id="club-search-form" class="club-search-form">
+                            <label class="screen-reader-only" for="club-search-input">
+                                Search clubs
+                            </label>
+                            <input
+                                id="club-search-input"
+                                type="search"
+                                maxlength="30"
+                                placeholder="Search name or tag"
+                            >
+                            <button type="submit">Search</button>
+                        </form>
+                    </div>
+
+                    <div id="club-directory-list" class="club-directory-list">
+                        <p class="club-empty">Loading clubs...</p>
+                    </div>
+                </section>
+
+            </div>
+
+            <section class="panel club-leaderboard-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">GLOBAL RANKING</p>
+                        <h2>Club leaderboard</h2>
+                    </div>
+                    <button
+                        id="club-refresh-button"
+                        type="button"
+                        class="secondary-button"
+                    >
+                        Refresh
+                    </button>
+                </div>
+
+                <div class="club-table-wrap">
+                    <table class="club-leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Club</th>
+                                <th>Level</th>
+                                <th>Members</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody id="club-leaderboard-body">
+                            <tr>
+                                <td colspan="5">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="clubs.js"></script>
+</body>
+</html>

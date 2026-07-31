@@ -1,0 +1,564 @@
+/*
+ * CLUBS PAGE LAYOUT FIX
+ *
+ * Everything is scoped to .clubs-page so this page cannot alter buttons,
+ * headings, forms, panels, or hidden elements elsewhere on the site.
+ */
+
+.clubs-page,
+.clubs-page * {
+    box-sizing: border-box;
+}
+
+.clubs-page .clubs-layout {
+    width: min(1180px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 1rem 0 4rem;
+}
+
+.clubs-page .clubs-layout > * + * {
+    margin-top: 1rem;
+}
+
+.clubs-page .hidden {
+    display: none !important;
+}
+
+/*
+ * Do not rely on the shared .panel class for spacing.
+ * These panels need their own padding, otherwise the first glyph begins
+ * directly on the border and gets clipped by overflow.
+ */
+.clubs-page .clubs-hero,
+.clubs-page .club-detail-panel,
+.clubs-page .club-create-panel,
+.clubs-page .club-directory-panel,
+.clubs-page .club-leaderboard-panel {
+    overflow: visible;
+}
+
+.clubs-page .club-detail-panel,
+.clubs-page .club-create-panel,
+.clubs-page .club-directory-panel,
+.clubs-page .club-leaderboard-panel {
+    padding: 1rem;
+}
+
+/*
+ * Neutralise any global eyebrow positioning inherited from style.css.
+ * The labels should always sit inside the panel, not overlap its border.
+ */
+.clubs-page .eyebrow {
+    position: static;
+    inset: auto;
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 0 0.35rem;
+    padding: 0;
+    overflow: visible;
+    transform: none;
+    line-height: 1.2;
+    text-indent: 0;
+}
+
+.clubs-page .clubs-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1.35rem 1.5rem;
+}
+
+.clubs-page .clubs-hero h1,
+.clubs-page .club-title-row h2,
+.clubs-page .section-heading h2,
+.clubs-page .section-heading h3 {
+    margin: 0;
+    line-height: 1.1;
+}
+
+.clubs-page .clubs-hero .description {
+    max-width: 42rem;
+    margin-bottom: 0;
+}
+
+.clubs-page .club-formula {
+    display: grid;
+    gap: 0.45rem;
+    justify-items: end;
+}
+
+.clubs-page .club-formula span,
+.clubs-page .club-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.9rem;
+    width: max-content;
+    max-width: 100%;
+    padding: 0.28rem 0.65rem;
+    border: 1px solid rgba(98, 230, 189, 0.25);
+    border-radius: 999px;
+    background: rgba(98, 230, 189, 0.07);
+    color: #8ff1d2;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.035em;
+}
+
+.clubs-page .club-detail-heading,
+.clubs-page .section-heading,
+.clubs-page .club-title-row,
+.clubs-page .club-actions,
+.clubs-page .club-form-actions,
+.clubs-page .club-xp-labels,
+.clubs-page .club-directory-heading,
+.clubs-page .club-member-main,
+.clubs-page .club-member-actions,
+.clubs-page .club-request-actions {
+    display: flex;
+    align-items: center;
+}
+
+.clubs-page .club-detail-heading,
+.clubs-page .section-heading,
+.clubs-page .club-xp-labels {
+    justify-content: space-between;
+}
+
+.clubs-page .club-detail-heading {
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.clubs-page .club-title-row {
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.clubs-page .club-actions,
+.clubs-page .club-form-actions,
+.clubs-page .club-member-actions,
+.clubs-page .club-request-actions {
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+
+.clubs-page .club-discovery-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(20rem, 0.9fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.clubs-page .club-discovery-grid > * {
+    min-width: 0;
+    margin: 0;
+}
+
+.clubs-page .club-create-panel.hidden + .club-directory-panel {
+    grid-column: 1 / -1;
+}
+
+.clubs-page .club-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-top: 1rem;
+}
+
+.clubs-page .club-stat {
+    min-width: 0;
+    padding: 0.8rem;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 0.78rem;
+    background: rgba(15, 23, 36, 0.56);
+}
+
+.clubs-page .club-stat span {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #9eacc0;
+    font-size: 0.7rem;
+}
+
+.clubs-page .club-stat strong {
+    display: block;
+    overflow: hidden;
+    font-size: 1.02rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.clubs-page .club-xp-area {
+    margin-top: 0.9rem;
+}
+
+.clubs-page .club-xp-labels {
+    margin-bottom: 0.35rem;
+    color: #aab7ca;
+    font-size: 0.72rem;
+}
+
+.clubs-page .club-xp-track {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.14);
+}
+
+.clubs-page .club-xp-track span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: #62e6bd;
+    transition: width 220ms ease;
+}
+
+.clubs-page .club-content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    gap: 0.85rem;
+    margin-top: 1rem;
+}
+
+.clubs-page .club-content-grid > section,
+.clubs-page .club-manager-section {
+    min-width: 0;
+    padding: 0.9rem;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 0.85rem;
+    background: rgba(10, 16, 26, 0.42);
+}
+
+.clubs-page .club-manager-section {
+    margin-top: 0.85rem;
+}
+
+.clubs-page .club-member-list,
+.clubs-page .club-activity-list,
+.clubs-page .club-request-list,
+.clubs-page .club-directory-list {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.7rem;
+}
+
+.clubs-page .club-member,
+.clubs-page .club-activity,
+.clubs-page .club-request,
+.clubs-page .club-directory-card {
+    min-width: 0;
+    padding: 0.7rem;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 0.72rem;
+    background: rgba(20, 29, 43, 0.62);
+}
+
+.clubs-page .club-member {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.clubs-page .club-member-main {
+    min-width: 0;
+    gap: 0.55rem;
+}
+
+.clubs-page .club-member-avatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 2.15rem;
+    height: 2.15rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 0.62rem;
+    background: rgba(8, 13, 21, 0.78);
+    font-size: 0.66rem;
+    font-weight: 900;
+}
+
+.clubs-page .club-member-copy {
+    min-width: 0;
+}
+
+.clubs-page .club-member-name,
+.clubs-page .club-directory-name {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    color: #f5f7fb;
+    font-weight: 800;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.clubs-page .club-member-name:hover,
+.clubs-page .club-directory-name:hover {
+    color: #8ff1d2;
+}
+
+.clubs-page .club-member-meta,
+.clubs-page .club-activity-meta,
+.clubs-page .club-directory-meta,
+.clubs-page .club-request-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.55rem;
+    margin-top: 0.16rem;
+    color: #9eacc0;
+    font-size: 0.68rem;
+}
+
+.clubs-page .club-role {
+    display: inline-flex;
+    width: max-content;
+    max-width: 100%;
+    padding: 0.16rem 0.38rem;
+    border-radius: 999px;
+    background: rgba(98, 230, 189, 0.08);
+    color: #8ff1d2;
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.clubs-page .club-activity {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.7rem;
+}
+
+.clubs-page .club-activity-reward {
+    color: #8ff1d2;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-align: right;
+}
+
+.clubs-page .club-request {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.clubs-page .club-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-top: 0.8rem;
+}
+
+.clubs-page .club-form label {
+    display: grid;
+    gap: 0.3rem;
+    min-width: 0;
+    color: #c6d0df;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.clubs-page .club-form input,
+.clubs-page .club-form textarea,
+.clubs-page .club-form select,
+.clubs-page .club-search-form input {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 0.68rem;
+    background: rgba(9, 14, 23, 0.8);
+    color: #f4f7fb;
+    font: inherit;
+}
+
+.clubs-page .club-form input,
+.clubs-page .club-form select,
+.clubs-page .club-search-form input {
+    min-height: 2.55rem;
+    padding: 0.55rem 0.65rem;
+}
+
+.clubs-page .club-form textarea {
+    min-height: 5.5rem;
+    resize: vertical;
+    padding: 0.6rem 0.65rem;
+}
+
+.clubs-page .club-form-wide,
+.clubs-page .club-form-actions {
+    grid-column: 1 / -1;
+}
+
+.clubs-page .club-search-form {
+    display: flex;
+    gap: 0.45rem;
+    width: min(22rem, 100%);
+}
+
+.clubs-page .club-directory-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.8rem;
+    align-items: center;
+}
+
+.clubs-page .club-directory-heading {
+    min-width: 0;
+    gap: 0.55rem;
+}
+
+.clubs-page .club-directory-description {
+    margin: 0.35rem 0 0;
+    color: #aab7ca;
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
+.clubs-page .club-table-wrap {
+    overflow-x: auto;
+    margin-top: 0.7rem;
+}
+
+.clubs-page .club-leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.clubs-page .club-leaderboard-table th,
+.clubs-page .club-leaderboard-table td {
+    padding: 0.7rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    text-align: left;
+}
+
+.clubs-page .club-leaderboard-table th {
+    color: #9eacc0;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.clubs-page .club-empty {
+    margin: 0;
+    padding: 0.8rem;
+    color: #9eacc0;
+    font-size: 0.78rem;
+    text-align: center;
+}
+
+.clubs-page .secondary-button,
+.clubs-page .danger-button {
+    min-height: 2.35rem;
+    padding: 0.45rem 0.68rem;
+    border-radius: 0.64rem;
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.clubs-page .secondary-button {
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: rgba(16, 24, 36, 0.76);
+    color: #e9eef7;
+}
+
+.clubs-page .danger-button {
+    border: 1px solid rgba(255, 112, 142, 0.33);
+    background: rgba(150, 28, 57, 0.16);
+    color: #ffb4c4;
+}
+
+.clubs-page button:disabled {
+    opacity: 0.55;
+    cursor: wait;
+}
+
+@media (max-width: 980px) {
+    .clubs-page .club-discovery-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .clubs-page .club-content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .clubs-page .clubs-hero,
+    .clubs-page .club-detail-heading,
+    .clubs-page .section-heading {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
+    .clubs-page .clubs-hero,
+    .clubs-page .club-detail-heading,
+    .clubs-page .section-heading {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .clubs-page .club-formula {
+        justify-items: start;
+    }
+
+    .clubs-page .club-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .clubs-page .club-search-form {
+        width: 100%;
+    }
+}
+
+@media (max-width: 620px) {
+    .clubs-page .clubs-layout {
+        width: min(100% - 1rem, 1180px);
+    }
+
+    .clubs-page .club-form {
+        grid-template-columns: 1fr;
+    }
+
+    .clubs-page .club-form-wide,
+    .clubs-page .club-form-actions {
+        grid-column: auto;
+    }
+
+    .clubs-page .club-member,
+    .clubs-page .club-request,
+    .clubs-page .club-directory-card,
+    .clubs-page .club-activity {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
+    .clubs-page .club-request,
+    .clubs-page .club-detail-heading {
+        align-items: stretch;
+    }
+
+    .clubs-page .club-member-actions,
+    .clubs-page .club-request-actions,
+    .clubs-page .club-activity-reward {
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    .clubs-page .club-search-form {
+        flex-direction: column;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .clubs-page .club-xp-track span {
+        transition: none;
+    }
+}

@@ -68,36 +68,50 @@
             files: ["challenges.html"]
         },
         {
+            label: "Social",
+            children: [
+                {
+                    label: "Clubs",
+                    href: "clubs.html",
+                    files: ["clubs.html"]
+                },
+                {
+                    label: "Friends",
+                    href: "friends.html",
+                    files: ["friends.html"]
+                },
+                {
+                    label: "Profile",
+                    href: "profile.html",
+                    files: ["profile.html"]
+                }
+            ]
+        },
+        {
             label: "Leaderboards",
             href: "leaderboards.html",
             files: ["leaderboards.html"]
         },
         {
-            label: "Profile",
-            href: "profile.html",
-            files: ["profile.html"]
+            label: "More",
+            children: [
+                {
+                    label: "Donate",
+                    href: "donate.html",
+                    files: ["donate.html"]
+                },
+                {
+                    label: "Account",
+                    href: "account.html",
+                    files: ["account.html"]
+                },
+                {
+                    label: "Disclaimer",
+                    href: "disclaimer.html",
+                    files: ["disclaimer.html"]
+                }
+            ]
         },
-        {
-            label: "Friends",
-            href: "friends.html",
-            files: ["friends.html"],
-            requestBadge: true
-        },
-        {
-            label: "Donate",
-            href: "donate.html",
-            files: ["donate.html"]
-        },
-        {
-            label: "Account",
-            href: "account.html",
-            files: ["account.html"]
-        },
-        {
-            label: "Disclaimer",
-            href: "disclaimer.html",
-            files: ["disclaimer.html"]
-        }
     ];
 
     function itemIsActive(item) {
