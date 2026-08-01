@@ -17,7 +17,7 @@ Horse racing every hour, players can bet on the horses leading up to the race - 
 
 Global stock trading, completely random changes to each stock every day.
 
-Cosmetic items available for puchase with chips
+Cosmetic items available for puchase with chips - ADDED
 
 Emotes in Game
 
@@ -28,5 +28,18 @@ Chat notifications - ADDED
 Roulette - ADDED
 
 Penguin Risk Game - ADDED
+Mines
+Russian Roulette
+
+Fix max bets issue
+
+Daily events, such as unlimited max bet for an hour
 
 Add more achievements
+
+
+MINOR:
+
+Change friday night table to random string
+Fix solitaire ui
+Nerf solitaire?

@@ -31,8 +31,11 @@ const tableError = document.querySelector("#table-error");
 
 let gameState = null;
 let gameChannel = null;
+let statePollTimer = null;
 let refreshTimer = null;
 let requestInProgress = false;
+let stateLoadInProgress = false;
+let stateLoadQueued = false;
 let selectedPassCards = new Set();
 let selectedPlayCard = null;
 let selectedHandId = null;
@@ -229,6 +232,12 @@ function createBadge(text, className) {
 function createPlayerSeat(player) {
     const seat = document.createElement("article");
     seat.className = "hearts-player-seat";
+    seat.dataset.userId = String(player.user_id ?? "");
+
+    if (player.is_bot) {
+        seat.dataset.isBot = "true";
+        seat.classList.add("card-bot-seat-highlight");
+    }
 
     if (player.is_turn) {
         seat.classList.add("active-turn-seat");
@@ -239,12 +248,29 @@ function createPlayerSeat(player) {
 
     const name = document.createElement("strong");
     name.textContent = player.username;
+    name.dataset.profileUserId = String(player.user_id ?? "");
+    name.dataset.profileUsername = String(player.username ?? "");
+
+    if (player.is_bot) {
+        // Do not ask the normal profile/cosmetic enhancer to decorate a
+        // server-only bot identity. It has no auth.users account.
+        name.dataset.cosmeticProfileState = "linked";
+    }
 
     const badges = document.createElement("div");
     badges.className = "poker-badge-row";
 
     if (player.is_host) {
         badges.append(createBadge("Host", "host-badge"));
+    }
+
+    if (player.is_bot) {
+        badges.append(
+            createBadge(
+                "BOT",
+                "card-bot-inline-badge"
+            )
+        );
     }
 
     if (player.is_turn) {
@@ -282,7 +308,8 @@ function createPlayerSeat(player) {
     const canKick =
         gameState.table.status === "waiting"
         && gameState.table.host_id === gameState.you.user_id
-        && player.user_id !== gameState.you.user_id;
+        && player.user_id !== gameState.you.user_id
+        && !player.is_bot;
 
     if (canKick) {
         const kickButton = document.createElement("button");
@@ -301,7 +328,11 @@ function createPlayerSeat(player) {
 function renderPlayers() {
     playerGrid.replaceChildren();
 
-    for (const player of gameState.players) {
+    for (const player of (
+        Array.isArray(gameState?.players)
+            ? gameState.players
+            : []
+    )) {
         playerGrid.append(createPlayerSeat(player));
     }
 }
@@ -310,7 +341,11 @@ function renderPlayers() {
 function renderScores() {
     scoreList.replaceChildren();
 
-    const sortedPlayers = [...gameState.players].sort(
+    const sortedPlayers = [
+        ...(Array.isArray(gameState?.players)
+            ? gameState.players
+            : [])
+    ].sort(
         (first, second) => Number(first.score) - Number(second.score)
     );
 
@@ -333,7 +368,11 @@ function renderScores() {
 function renderCurrentTrick() {
     currentTrickElement.replaceChildren();
 
-    if (!gameState.current_trick.length) {
+    const currentTrick = Array.isArray(gameState?.current_trick)
+        ? gameState.current_trick
+        : [];
+
+    if (!currentTrick.length) {
         const empty = document.createElement("p");
         empty.className = "description";
         empty.textContent = gameState.hand?.status === "playing"
@@ -343,7 +382,7 @@ function renderCurrentTrick() {
         return;
     }
 
-    for (const play of gameState.current_trick) {
+    for (const play of currentTrick) {
         const item = document.createElement("div");
         item.className = "trick-card-item";
 
@@ -397,14 +436,18 @@ function renderOwnCards() {
 function renderTrickHistory() {
     trickHistory.replaceChildren();
 
-    if (!gameState.recent_tricks.length) {
+    const recentTricks = Array.isArray(gameState?.recent_tricks)
+        ? gameState.recent_tricks
+        : [];
+
+    if (!recentTricks.length) {
         const item = document.createElement("li");
         item.textContent = "No completed tricks yet.";
         trickHistory.append(item);
         return;
     }
 
-    for (const trick of gameState.recent_tricks) {
+    for (const trick of recentTricks) {
         const item = document.createElement("li");
 
         const number = document.createElement("strong");
@@ -488,6 +531,27 @@ function configureControls() {
 
 
 function renderGameState(state) {
+    if (
+        !state
+        || typeof state !== "object"
+        || !state.table
+        || !state.you
+    ) {
+        throw new Error(
+            "The Hearts server returned an incomplete game state."
+        );
+    }
+
+    state.players = Array.isArray(state.players)
+        ? state.players
+        : [];
+    state.current_trick = Array.isArray(state.current_trick)
+        ? state.current_trick
+        : [];
+    state.recent_tricks = Array.isArray(state.recent_tricks)
+        ? state.recent_tricks
+        : [];
+
     gameState = state;
     showError();
 
@@ -555,6 +619,12 @@ function renderGameState(state) {
 
     leaveGameButton.disabled =
         requestInProgress || state.table.status !== "waiting";
+
+    window.dispatchEvent(
+        new CustomEvent("hearts-state-rendered", {
+            detail: state
+        })
+    );
 }
 
 
@@ -563,22 +633,66 @@ async function loadGameState() {
         throw new Error("No Hearts game ID was supplied.");
     }
 
-    const { data, error } = await window.supabaseClient.rpc(
-        "get_hearts_state",
-        { p_table_id: tableId }
-    );
-
-    if (error) {
-        if (error.message?.toLowerCase().includes("not seated")) {
-            window.location.href = "poker.html";
-            return;
-        }
-
-        throw error;
+    if (stateLoadInProgress) {
+        stateLoadQueued = true;
+        return;
     }
 
-    renderGameState(data);
+    stateLoadInProgress = true;
+
+    try {
+        const { data, error } = await window.supabaseClient.rpc(
+            "get_hearts_state",
+            { p_table_id: tableId }
+        );
+
+        if (error) {
+            if (
+                error.message
+                    ?.toLowerCase()
+                    .includes("not seated")
+            ) {
+                window.location.href = "poker.html";
+                return;
+            }
+
+            throw error;
+        }
+
+        renderGameState(data);
+    } finally {
+        stateLoadInProgress = false;
+
+        if (stateLoadQueued) {
+            stateLoadQueued = false;
+            window.setTimeout(() => {
+                loadGameState().catch((error) => {
+                    console.error(error);
+                    showError(
+                        error.message
+                        || "The Hearts table could not refresh."
+                    );
+                });
+            }, 0);
+        }
+    }
 }
+
+
+window.refreshHeartsTableState = loadGameState;
+
+window.addEventListener(
+    "card-bot-table-changed",
+    () => {
+        loadGameState().catch((error) => {
+            console.error(error);
+            showError(
+                error.message
+                || "The Hearts table could not refresh after changing bots."
+            );
+        });
+    }
+);
 
 
 async function kickPlayer(player) {
@@ -800,84 +914,47 @@ function scheduleRefresh() {
 }
 
 
-function subscribeToGame() {
-    gameChannel = window.supabaseClient
-        .channel(`hearts-${tableId}`)
-        .on(
-            "postgres_changes",
-            {
-                event: "*",
-                schema: "public",
-                table: "poker_tables",
-                filter: `id=eq.${tableId}`
-            },
-            scheduleRefresh
-        )
-        .on(
-            "postgres_changes",
-            {
-                event: "*",
-                schema: "public",
-                table: "poker_seats",
-                filter: `table_id=eq.${tableId}`
-            },
-            scheduleRefresh
-        )
-        .on(
-            "postgres_changes",
-            {
-                event: "*",
-                schema: "public",
-                table: "hearts_games",
-                filter: `table_id=eq.${tableId}`
-            },
-            scheduleRefresh
-        )
-        .on(
-            "postgres_changes",
-            {
-                event: "*",
-                schema: "public",
-                table: "hearts_game_players",
-                filter: `table_id=eq.${tableId}`
-            },
-            scheduleRefresh
-        )
-        .on(
-            "postgres_changes",
-            {
-                event: "*",
-                schema: "public",
-                table: "hearts_hands",
-                filter: `table_id=eq.${tableId}`
-            },
-            scheduleRefresh
-        )
-        .on(
-            "postgres_changes",
-            {
-                event: "*",
-                schema: "public",
-                table: "hearts_hand_players",
-                filter: `table_id=eq.${tableId}`
-            },
-            scheduleRefresh
-        )
-        .on(
-            "postgres_changes",
-            {
-                event: "*",
-                schema: "public",
-                table: "hearts_plays",
-                filter: `table_id=eq.${tableId}`
-            },
-            scheduleRefresh
-        )
-        .subscribe();
+function startStatePolling() {
+    window.clearInterval(statePollTimer);
+
+    statePollTimer = window.setInterval(() => {
+        if (
+            document.visibilityState !== "visible"
+            || requestInProgress
+            || stateLoadInProgress
+        ) {
+            return;
+        }
+
+        loadGameState().catch((error) => {
+            console.error(error);
+            showError(
+                error.message
+                || "The Hearts table could not refresh."
+            );
+        });
+    }, 1500);
 }
 
 
+window.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") {
+        return;
+    }
+
+    loadGameState().catch((error) => {
+        console.error(error);
+        showError(
+            error.message
+            || "The Hearts table could not refresh."
+        );
+    });
+});
+
+
 window.addEventListener("beforeunload", () => {
+    window.clearInterval(statePollTimer);
+
     if (gameChannel) {
         window.supabaseClient.removeChannel(gameChannel);
     }
@@ -897,7 +974,7 @@ async function initialiseGame() {
         }
 
         await loadGameState();
-        subscribeToGame();
+        startStatePolling();
     } catch (error) {
         console.error(error);
         tableNameLabel.textContent = "Hearts failed to load";

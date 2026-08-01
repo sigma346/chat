@@ -729,6 +729,42 @@
         document.body.append(script);
     }
 
+    function loadCardBotSystem() {
+        const isHeartsPage =
+            currentFile === "hearts-table.html";
+
+        const scriptName = isHeartsPage
+            ? "hearts-bots.js?v=29"
+            : "card-bots.js?v=29";
+
+        const datasetName = isHeartsPage
+            ? "heartsBots"
+            : "cardBots";
+
+        if (
+            document.querySelector(
+                isHeartsPage
+                    ? 'script[data-hearts-bots="true"]'
+                    : 'script[data-card-bots="true"]'
+            )
+        ) {
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = scriptName;
+        script.dataset[datasetName] = "true";
+        script.addEventListener("error", () => {
+            console.warn(
+                isHeartsPage
+                    ? "The Hearts bot controller could not be loaded."
+                    : "The card bot controller could not be loaded."
+            );
+        });
+
+        document.body.append(script);
+    }
+
     let friendshipNavbarChannel = null;
 
     function updateFriendRequestBadge(value) {
@@ -952,17 +988,33 @@
     function initialiseSharedNavbar() {
         installDropdownDismissHandlers();
         mountNavbar();
-        loadProfileLinkEnhancer();
-        loadAchievementSync();
-        loadDailyChallengeSync();
-        loadLevelProgress();
 
-        window.addEventListener(
-            "daily-challenges-completed",
-            loadLevelProgress
-        );
-        loadFriendRequestCount();
-        subscribeToNavbarFriendships();
+        const heartsSafeMode =
+            currentFile === "hearts-table.html";
+
+        /*
+         * Hearts safe mode deliberately avoids the global profile/cosmetic
+         * enhancer and unrelated synchronisation observers. The profile
+         * enhancer watches Hearts seats with ResizeObserver and a whole-body
+         * MutationObserver; changing the seat count can otherwise cause
+         * repeated layout/decorate cycles.
+         */
+        if (!heartsSafeMode) {
+            loadProfileLinkEnhancer();
+            loadAchievementSync();
+            loadDailyChallengeSync();
+
+            window.addEventListener(
+                "daily-challenges-completed",
+                loadLevelProgress
+            );
+
+            loadFriendRequestCount();
+            subscribeToNavbarFriendships();
+        }
+
+        loadCardBotSystem();
+        loadLevelProgress();
         showFriendlyModeBanner();
     }
 
