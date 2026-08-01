@@ -734,8 +734,8 @@
             currentFile === "hearts-table.html";
 
         const scriptName = isHeartsPage
-            ? "hearts-bots.js?v=29"
-            : "card-bots.js?v=29";
+            ? "hearts-bots.js?v=30"
+            : "card-bots.js?v=30";
 
         const datasetName = isHeartsPage
             ? "heartsBots"
@@ -759,6 +759,34 @@
                 isHeartsPage
                     ? "The Hearts bot controller could not be loaded."
                     : "The card bot controller could not be loaded."
+            );
+        });
+
+        document.body.append(script);
+    }
+
+    function loadCardGameGuide() {
+        if (
+            currentFile !== "poker.html"
+            && !gamePageFiles.has(currentFile)
+        ) {
+            return;
+        }
+
+        if (
+            document.querySelector(
+                'script[data-card-game-guide="true"]'
+            )
+        ) {
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = "card-game-guide.js?v=30";
+        script.dataset.cardGameGuide = "true";
+        script.addEventListener("error", () => {
+            console.warn(
+                "The card-game guide could not be loaded."
             );
         });
 
@@ -1014,6 +1042,7 @@
         }
 
         loadCardBotSystem();
+        loadCardGameGuide();
         loadLevelProgress();
         showFriendlyModeBanner();
     }

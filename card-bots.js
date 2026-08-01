@@ -402,15 +402,24 @@
             ></p>
         `;
 
-        const waitingControls =
-            document.querySelector("#waiting-controls")
-            || document.querySelector("#waiting-room-controls")
-            || document.querySelector("#game-controls");
+        const placementAnchor = {
+            "poker-table.html":
+                document.querySelector("#action-controls"),
+            "five-card-draw-table.html":
+                document.querySelector("#draw-controls"),
+            "blackjack-table.html":
+                document.querySelector(".blackjack-host-controls")
+        }[currentPage]
+        || document.querySelector("#action-controls")
+        || document.querySelector("#betting-controls")
+        || document.querySelector("#waiting-controls")
+        || document.querySelector("#waiting-room-controls")
+        || document.querySelector("#game-controls");
 
-        if (waitingControls?.parentNode) {
-            waitingControls.parentNode.insertBefore(
-                panel,
-                waitingControls
+        if (placementAnchor?.parentNode) {
+            placementAnchor.insertAdjacentElement(
+                "afterend",
+                panel
             );
         } else {
             const target =

@@ -226,13 +226,15 @@
             ></p>
         `;
 
-        const waitingControls =
-            document.querySelector("#waiting-controls");
+        const actionAnchor =
+            document.querySelector("#play-controls")
+            || document.querySelector("#pass-controls")
+            || document.querySelector("#waiting-controls");
 
-        if (waitingControls?.parentNode) {
-            waitingControls.parentNode.insertBefore(
-                panel,
-                waitingControls
+        if (actionAnchor?.parentNode) {
+            actionAnchor.insertAdjacentElement(
+                "afterend",
+                panel
             );
         } else {
             document.querySelector(".hearts-panel")?.append(panel);
