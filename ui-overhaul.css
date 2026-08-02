@@ -613,7 +613,7 @@ html.ui-overhaul .button-link:active {
     transform: translateY(1px) scale(0.992);
 }
 
-html.ui-overhaul button:not(.secondary-button):not(.danger-button):not(.nav-button):not(.nav-link):not(.nav-dropdown-toggle):not(.ui-command-trigger):not(.ui-mobile-nav-toggle):not(.card-game-guide-close):not(.card-game-guide-tab):not(.card-game-guide-toggle) {
+html.ui-overhaul button:not(.secondary-button):not(.danger-button):not(.nav-button):not(.nav-link):not(.nav-dropdown-toggle):not(.ui-command-trigger):not(.ui-mobile-nav-toggle):not(.card-game-guide-close):not(.card-game-guide-tab):not(.card-game-guide-toggle):not(.roulette-number):not(.outside-bet-button) {
     border: 1px solid rgba(98, 230, 189, 0.38);
     background:
         linear-gradient(
@@ -1976,4 +1976,112 @@ html.ui-reduce-motion * {
         animation-iteration-count: 1 !important;
         transition-duration: 0.001ms !important;
     }
+}
+
+
+/* ----------------------------------------------------------------
+   COMMUNITY ROULETTE COLOUR PRESERVATION
+   The shared primary-button treatment must never flatten semantic
+   roulette colours into the site's accent green.
+   ---------------------------------------------------------------- */
+
+html.ui-overhaul body.community-roulette-page
+button.roulette-number {
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 7px 16px rgba(0, 0, 0, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+}
+
+html.ui-overhaul body.community-roulette-page
+button.roulette-number.roulette-number-red {
+    border-color: rgba(245, 117, 137, 0.34) !important;
+    background:
+        linear-gradient(
+            180deg,
+            #b74255,
+            #8f2b3b
+        ) !important;
+}
+
+html.ui-overhaul body.community-roulette-page
+button.roulette-number.roulette-number-black {
+    border-color: rgba(154, 170, 194, 0.24) !important;
+    background:
+        linear-gradient(
+            180deg,
+            #252d3b,
+            #141a24
+        ) !important;
+}
+
+html.ui-overhaul body.community-roulette-page
+button.roulette-number.roulette-number-green {
+    border-color: rgba(92, 219, 166, 0.34) !important;
+    background:
+        linear-gradient(
+            180deg,
+            #22845e,
+            #135d42
+        ) !important;
+}
+
+html.ui-overhaul body.community-roulette-page
+button.outside-bet-button {
+    border: 1px solid var(--ui-border-strong) !important;
+    background: rgba(25, 35, 50, 0.82) !important;
+    color: var(--ui-text) !important;
+    box-shadow: none !important;
+}
+
+html.ui-overhaul body.community-roulette-page
+button.outside-bet-button.red-bet {
+    border-color: rgba(245, 117, 137, 0.38) !important;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(183, 66, 85, 0.34),
+            rgba(110, 35, 49, 0.28)
+        ) !important;
+}
+
+html.ui-overhaul body.community-roulette-page
+button.outside-bet-button.black-bet {
+    border-color: rgba(154, 170, 194, 0.3) !important;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(41, 50, 66, 0.94),
+            rgba(19, 25, 35, 0.94)
+        ) !important;
+}
+
+html.ui-overhaul body.community-roulette-page
+button.outside-bet-button.green-bet {
+    border-color: rgba(92, 219, 166, 0.35) !important;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(34, 132, 94, 0.34),
+            rgba(16, 79, 56, 0.3)
+        ) !important;
+}
+
+html.ui-overhaul body.community-roulette-page
+:is(
+    button.roulette-number,
+    button.outside-bet-button
+):hover:not(:disabled) {
+    filter: brightness(1.09) !important;
+    border-color: rgba(255, 225, 146, 0.72) !important;
+    transform: translateY(-1px);
+}
+
+html.ui-overhaul body.community-roulette-page
+:is(
+    button.roulette-number,
+    button.outside-bet-button
+):active:not(:disabled) {
+    transform: translateY(0) scale(0.985);
 }

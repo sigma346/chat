@@ -130,7 +130,7 @@
 
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "ui-overhaul.css?v=32";
+        link.href = "ui-overhaul.css?v=33";
         link.dataset.uiOverhaul = "true";
         document.head.append(link);
     }
@@ -145,7 +145,7 @@
         }
 
         const script = document.createElement("script");
-        script.src = "ui-overhaul.js?v=32";
+        script.src = "ui-overhaul.js?v=33";
         script.dataset.uiOverhaul = "true";
         script.addEventListener("error", () => {
             console.warn(

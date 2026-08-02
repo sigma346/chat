@@ -172,6 +172,38 @@
     }
 
 
+    function resolveNotificationLink(value) {
+        const rawValue = String(value ?? "").trim();
+
+        if (!rawValue) {
+            return null;
+        }
+
+        /*
+         * Preserve explicit protocols and in-page anchors. For ordinary site
+         * pages, remove a leading slash and resolve from the current project
+         * directory. This keeps links inside /chat/ on GitHub Pages rather
+         * than sending them to the domain root.
+         */
+        if (
+            /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(rawValue)
+            || rawValue.startsWith("#")
+        ) {
+            return rawValue;
+        }
+
+        const projectBase = new URL(
+            "./",
+            window.location.href
+        );
+
+        return new URL(
+            rawValue.replace(/^\/+/, ""),
+            projectBase
+        ).href;
+    }
+
+
     function createNotificationMessage(notification) {
         const article = document.createElement("article");
         article.className =
@@ -219,7 +251,9 @@
 
         if (notification.link_url) {
             const link = document.createElement("a");
-            link.href = notification.link_url;
+            link.href = resolveNotificationLink(
+                notification.link_url
+            );
             link.textContent = "Open";
             link.className = "chat-system-notification-link";
             actions.append(link);
