@@ -59,6 +59,11 @@
                     label: "Roulette",
                     href: "community-roulette.html",
                     files: ["community-roulette.html"]
+                },
+                {
+                    label: "Russian Roulette",
+                    href: "community-russian-roulette.html",
+                    files: ["community-russian-roulette.html"]
                 }
             ]
         },
@@ -125,7 +130,7 @@
 
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "ui-overhaul.css?v=31";
+        link.href = "ui-overhaul.css?v=32";
         link.dataset.uiOverhaul = "true";
         document.head.append(link);
     }
@@ -140,7 +145,7 @@
         }
 
         const script = document.createElement("script");
-        script.src = "ui-overhaul.js?v=31";
+        script.src = "ui-overhaul.js?v=32";
         script.dataset.uiOverhaul = "true";
         script.addEventListener("error", () => {
             console.warn(

@@ -557,6 +557,36 @@ html.ui-overhaul .friendly-mode-banner span {
     font-size: 0.74rem;
 }
 
+
+/* Navbar alignment correction: links and buttons now share the same flex
+   baseline instead of relying on anchor line boxes. */
+html.ui-overhaul .shared-site-nav
+:is(
+    .nav-link,
+    .nav-button,
+    .nav-dropdown-toggle,
+    .ui-command-trigger,
+    .ui-mobile-nav-toggle,
+    .navbar-level-link
+) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+html.ui-overhaul .shared-site-nav .navbar-level-link {
+    flex-direction: column;
+}
+
+html.ui-overhaul .shared-site-nav .nav-dropdown {
+    align-self: stretch;
+}
+
+html.ui-overhaul .shared-site-nav .nav-dropdown > .nav-dropdown-toggle {
+    height: 100%;
+}
+
 /* ----------------------------------------------------------------
    BUTTONS, INPUTS, FORMS
    ---------------------------------------------------------------- */

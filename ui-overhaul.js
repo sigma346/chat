@@ -60,6 +60,12 @@
             keywords: "community wheel bets"
         },
         {
+            group: "Community",
+            label: "Russian Roulette",
+            href: "community-russian-roulette.html",
+            keywords: "community chamber survival queue play leave"
+        },
+        {
             group: "Progress",
             label: "Challenges",
             href: "challenges.html",
