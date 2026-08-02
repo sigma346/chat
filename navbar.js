@@ -114,6 +114,43 @@
         },
     ];
 
+    function loadUiOverhaulStyles() {
+        if (
+            document.querySelector(
+                'link[data-ui-overhaul="true"]'
+            )
+        ) {
+            return;
+        }
+
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "ui-overhaul.css?v=31";
+        link.dataset.uiOverhaul = "true";
+        document.head.append(link);
+    }
+
+    function loadUiOverhaulScript() {
+        if (
+            document.querySelector(
+                'script[data-ui-overhaul="true"]'
+            )
+        ) {
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = "ui-overhaul.js?v=31";
+        script.dataset.uiOverhaul = "true";
+        script.addEventListener("error", () => {
+            console.warn(
+                "The shared interface overhaul could not be loaded."
+            );
+        });
+
+        document.body.append(script);
+    }
+
     function itemIsActive(item) {
         if (Array.isArray(item.files)) {
             return item.files.includes(currentFile);
@@ -1014,6 +1051,7 @@
     }
 
     function initialiseSharedNavbar() {
+        loadUiOverhaulStyles();
         installDropdownDismissHandlers();
         mountNavbar();
 
@@ -1043,6 +1081,7 @@
 
         loadCardBotSystem();
         loadCardGameGuide();
+        loadUiOverhaulScript();
         loadLevelProgress();
         showFriendlyModeBanner();
     }

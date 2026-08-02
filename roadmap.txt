@@ -43,3 +43,4 @@ MINOR:
 Change friday night table to random string
 Fix solitaire ui
 Nerf solitaire?
+Bots give achievements and challenges
