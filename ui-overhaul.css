@@ -613,19 +613,135 @@ html.ui-overhaul .button-link:active {
     transform: translateY(1px) scale(0.992);
 }
 
-html.ui-overhaul button:not(.secondary-button):not(.danger-button):not(.nav-button):not(.nav-link):not(.nav-dropdown-toggle):not(.ui-command-trigger):not(.ui-mobile-nav-toggle):not(.card-game-guide-close):not(.card-game-guide-tab):not(.card-game-guide-toggle):not(.roulette-number):not(.outside-bet-button) {
-    border: 1px solid rgba(98, 230, 189, 0.38);
+/*
+ * Button hierarchy
+ *
+ * The previous overhaul used a long :not(...) selector that treated every
+ * unrecognised button as a glowing primary action. Apart from being visually
+ * exhausting, it overrode page-specific controls. Buttons now receive a
+ * deliberate role class from ui-overhaul.js.
+ */
+
+html.ui-overhaul button:not([class]) {
+    border: 1px solid rgba(148, 163, 184, 0.22);
     background:
         linear-gradient(
             180deg,
-            #71ecc7,
-            #48d5aa
+            rgba(37, 49, 68, 0.94),
+            rgba(24, 33, 47, 0.94)
+        );
+    color: var(--ui-text-soft);
+    box-shadow:
+        0 7px 18px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+html.ui-overhaul
+:is(
+    button.ui-neutral-button,
+    .button-link.ui-neutral-button
+) {
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(37, 49, 68, 0.94),
+            rgba(24, 33, 47, 0.94)
+        );
+    color: var(--ui-text-soft);
+    box-shadow:
+        0 7px 18px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+html.ui-overhaul
+:is(
+    button.ui-primary-button,
+    .button-link.ui-primary-button
+) {
+    border: 1px solid rgba(98, 230, 189, 0.34);
+    background:
+        linear-gradient(
+            180deg,
+            #68dfbb,
+            #40c79e
         );
     color: #06120e;
     box-shadow:
-        0 8px 22px rgba(39, 188, 144, 0.14),
-        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+        0 7px 18px rgba(39, 188, 144, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
+
+html.ui-overhaul
+:is(
+    button.ui-warning-button,
+    .button-link.ui-warning-button
+) {
+    border: 1px solid rgba(243, 197, 107, 0.34);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(108, 79, 30, 0.96),
+            rgba(72, 52, 22, 0.96)
+        );
+    color: #ffe3a7;
+    box-shadow:
+        0 7px 18px rgba(74, 50, 11, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+html.ui-overhaul
+:is(
+    button.ui-danger-button,
+    .button-link.ui-danger-button
+) {
+    border: 1px solid rgba(255, 143, 163, 0.38);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(126, 43, 62, 0.96),
+            rgba(83, 28, 42, 0.96)
+        );
+    color: #ffd0d8;
+    box-shadow:
+        0 7px 18px rgba(96, 24, 40, 0.13),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html.ui-overhaul
+:is(
+    button.ui-info-button,
+    .button-link.ui-info-button
+) {
+    border: 1px solid rgba(115, 169, 255, 0.34);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(48, 82, 135, 0.96),
+            rgba(31, 55, 94, 0.96)
+        );
+    color: #d8e7ff;
+    box-shadow:
+        0 7px 18px rgba(31, 61, 108, 0.13),
+        inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+html.ui-overhaul
+:is(
+    button.ui-neutral-button,
+    button.ui-primary-button,
+    button.ui-warning-button,
+    button.ui-danger-button,
+    button.ui-info-button,
+    .button-link.ui-neutral-button,
+    .button-link.ui-primary-button,
+    .button-link.ui-warning-button,
+    .button-link.ui-danger-button,
+    .button-link.ui-info-button
+):hover:not(:disabled) {
+    filter: brightness(1.055);
+}
+
 
 html.ui-overhaul button:not(:disabled):hover,
 html.ui-overhaul .button-link:hover {
@@ -636,17 +752,29 @@ html.ui-overhaul .secondary-button,
 html.ui-overhaul .secondary-link,
 html.ui-overhaul .button-link.secondary-link {
     border: 1px solid var(--ui-border-strong);
-    background: rgba(148, 163, 184, 0.055);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(42, 54, 73, 0.82),
+            rgba(25, 34, 48, 0.82)
+        );
     color: var(--ui-text-soft);
-    box-shadow: none;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 html.ui-overhaul .danger-button,
 html.ui-overhaul .subtle-danger {
     border: 1px solid rgba(255, 143, 163, 0.36);
-    background: rgba(173, 43, 72, 0.15);
-    color: #ffb8c5;
-    box-shadow: none;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(112, 39, 57, 0.58),
+            rgba(71, 27, 39, 0.58)
+        );
+    color: #ffc3cd;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 html.ui-overhaul button:disabled,

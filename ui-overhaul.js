@@ -1012,11 +1012,154 @@
         header.append(button);
     }
 
+
+    function classifyUnstyledButtons(root = document) {
+        const buttons = root.querySelectorAll?.(
+            "button, a.button-link"
+        ) ?? [];
+
+        const roleClasses = [
+            "ui-neutral-button",
+            "ui-primary-button",
+            "ui-warning-button",
+            "ui-danger-button",
+            "ui-info-button"
+        ];
+
+        const explicitVisualClasses = new Set([
+            "secondary-button",
+            "secondary-link",
+            "danger-button",
+            "subtle-danger",
+            "primary-action",
+            "primary-button",
+            "nav-button",
+            "nav-link",
+            "nav-dropdown-toggle",
+            "nav-dropdown-item",
+            "roulette-number",
+            "outside-bet-button",
+            "quick-bet-button",
+            "remove-slip-button",
+            "card-game-guide-button",
+            "card-game-guide-close",
+            "card-game-guide-tab",
+            "card-game-guide-toggle",
+            "ui-command-trigger",
+            "ui-mobile-nav-toggle",
+            "ui-command-close",
+            "ui-command-item",
+            "ui-setting-toggle",
+            "ui-toast-close",
+            "ui-back-to-top",
+            "ui-page-tool",
+            "ui-password-toggle",
+            "ui-bot-collapse-button"
+        ]);
+
+        const meaningfulExistingClass = (element) => {
+            return Array.from(element.classList).some(
+                (className) => {
+                    if (
+                        className === "hidden"
+                        || className === "button-link"
+                        || roleClasses.includes(className)
+                    ) {
+                        return false;
+                    }
+
+                    if (explicitVisualClasses.has(className)) {
+                        return true;
+                    }
+
+                    /*
+                     * Preserve page-owned semantic colours and specialised
+                     * controls. The overhaul should support those styles,
+                     * not repaint them with a corporate bucket of green.
+                     */
+                    return /(?:^|-)(red|black|green|gold|yellow|blue|purple|danger|secondary|ghost|subtle|outline|tab|toggle|chip|number|tile|card|wheel|roulette|horse|penguin|plinko|slot)(?:-|$)/.test(className);
+                }
+            );
+        };
+
+        const normalise = (element) => {
+            return [
+                element.id,
+                element.getAttribute("name"),
+                element.dataset?.action,
+                element.textContent
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .replace(/[_-]+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim()
+                .toLocaleLowerCase();
+        };
+
+        for (const element of buttons) {
+            if (element.dataset.uiButtonRoleLocked === "true") {
+                continue;
+            }
+
+            const hasExplicitPrimary =
+                element.classList.contains("primary-action")
+                || element.classList.contains("primary-button");
+
+            if (
+                !hasExplicitPrimary
+                && meaningfulExistingClass(element)
+            ) {
+                element.dataset.uiButtonRoleLocked = "true";
+                continue;
+            }
+
+            roleClasses.forEach((className) => {
+                element.classList.remove(className);
+            });
+
+            const words = normalise(element);
+            let role = "neutral";
+
+            if (
+                element.matches('button[type="submit"]')
+                || hasExplicitPrimary
+                || /\b(submit|create|start|join|sign up|save|send|add|accept|confirm|purchase|buy|donate|pass 3|play selected|set bet|place bet)\b/.test(words)
+            ) {
+                role = "primary";
+            }
+
+            if (
+                /\b(bet|raise|all in|double|deal|spin|draw replacement|cash out)\b/.test(words)
+            ) {
+                role = "warning";
+            }
+
+            if (
+                /\b(fold|leave|delete|remove|cancel|abandon|give up|kick|log out|logout)\b/.test(words)
+            ) {
+                role = "danger";
+            }
+
+            if (
+                /\b(help|how to play|rules|view|details|copy|profile|leaderboard)\b/.test(words)
+            ) {
+                role = "info";
+            }
+
+            element.classList.add(
+                `ui-${role}-button`
+            );
+            element.dataset.uiButtonRoleLocked = "true";
+        }
+    }
+
     function scheduleFiniteEnhancements() {
         const enhance = () => {
             setupNavbar();
             setupPageTools();
             wrapTables();
+            classifyUnstyledButtons();
 
             setupBotPanel(
                 document.querySelector(
