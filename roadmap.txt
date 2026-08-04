@@ -40,6 +40,11 @@ Daily events, such as unlimited max bet for an hour
 Add more achievements
 
 
+STOCK MARKET:
+Changes to the stock market happen every 5 minutes
+
+
+
 MINOR:
 
 Change friday night table to random string

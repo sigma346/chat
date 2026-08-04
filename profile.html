@@ -11,6 +11,10 @@
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="profile.css">
+    <link
+        rel="stylesheet"
+        href="profile-chip-history.css?v=1"
+    >
 </head>
 <body>
     <main class="page profile-page">
@@ -132,6 +136,147 @@
                 role="status"
                 aria-live="polite"
             ></p>
+
+            <section
+                id="profile-chip-history-panel"
+                class="panel profile-chip-history-panel"
+            >
+                <div
+                    class="section-heading profile-section-heading chip-history-heading"
+                >
+                    <div>
+                        <p class="eyebrow">CHIP HISTORY</p>
+                        <h2>Wallet balance over time</h2>
+                    </div>
+
+                    <div class="chip-history-heading-right">
+                        <span
+                            id="chip-history-summary"
+                            class="profile-section-summary neutral"
+                        >
+                            Loading...
+                        </span>
+
+                        <div
+                            class="chip-history-range-controls"
+                            role="group"
+                            aria-label="Chip-history duration"
+                        >
+                            <button
+                                type="button"
+                                class="chip-history-range-button"
+                                data-duration="24h"
+                                aria-pressed="false"
+                            >
+                                24H
+                            </button>
+
+                            <button
+                                type="button"
+                                class="chip-history-range-button"
+                                data-duration="7d"
+                                aria-pressed="false"
+                            >
+                                7D
+                            </button>
+
+                            <button
+                                type="button"
+                                class="chip-history-range-button active"
+                                data-duration="30d"
+                                aria-pressed="true"
+                            >
+                                30D
+                            </button>
+
+                            <button
+                                type="button"
+                                class="chip-history-range-button"
+                                data-duration="90d"
+                                aria-pressed="false"
+                            >
+                                90D
+                            </button>
+
+                            <button
+                                type="button"
+                                class="chip-history-range-button"
+                                data-duration="1y"
+                                aria-pressed="false"
+                            >
+                                1Y
+                            </button>
+
+                            <button
+                                type="button"
+                                class="chip-history-range-button"
+                                data-duration="all"
+                                aria-pressed="false"
+                            >
+                                ALL
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chip-history-metrics">
+                    <article class="chip-history-metric">
+                        <span>Current</span>
+                        <strong id="chip-history-current">0 chips</strong>
+                    </article>
+
+                    <article class="chip-history-metric">
+                        <span>Range start</span>
+                        <strong id="chip-history-start">0 chips</strong>
+                    </article>
+
+                    <article class="chip-history-metric">
+                        <span>Change</span>
+                        <strong
+                            id="chip-history-change"
+                            class="neutral"
+                        >
+                            0 chips
+                        </strong>
+                    </article>
+
+                    <article class="chip-history-metric">
+                        <span>Range high</span>
+                        <strong id="chip-history-high">0 chips</strong>
+                    </article>
+
+                    <article class="chip-history-metric">
+                        <span>Range low</span>
+                        <strong id="chip-history-low">0 chips</strong>
+                    </article>
+                </div>
+
+                <div
+                    id="chip-history-chart-shell"
+                    class="chip-history-chart-shell"
+                >
+                    <svg
+                        id="chip-history-chart"
+                        class="chip-history-chart"
+                        role="img"
+                        aria-label="Player chip balance over time"
+                    ></svg>
+
+                    <div
+                        id="chip-history-tooltip"
+                        class="chip-history-tooltip hidden"
+                    ></div>
+                </div>
+
+                <p
+                    id="chip-history-status"
+                    class="chip-history-status"
+                    role="status"
+                    aria-live="polite"
+                >
+                    Loading chip history...
+                </p>
+            </section>
 
             <section class="panel profile-statistics-panel">
                 <div class="section-heading profile-section-heading">
@@ -326,5 +471,6 @@
     <script src="supabase-client.js"></script>
     <script src="navbar.js"></script>
     <script src="profile.js"></script>
+    <script src="profile-chip-history.js?v=1"></script>
 </body>
 </html>
