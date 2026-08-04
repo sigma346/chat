@@ -4,6 +4,9 @@ const walletBalanceLabel =
 const machinePicker =
     document.querySelector("#slot-machine-picker");
 
+const cabinetPanel =
+    document.querySelector(".slot-cabinet-panel");
+
 const selectedMachineSubtitle =
     document.querySelector("#selected-machine-subtitle");
 
@@ -66,77 +69,204 @@ const STORAGE_KEYS = {
 };
 
 
-const PAYLINES = [
-    [2, 2, 2, 2, 2],
-    [1, 1, 1, 1, 1],
-    [3, 3, 3, 3, 3],
-    [1, 2, 3, 2, 1],
-    [3, 2, 1, 2, 3],
-    [1, 1, 2, 3, 3],
-    [3, 3, 2, 1, 1],
-    [2, 1, 1, 1, 2],
-    [2, 3, 3, 3, 2],
-    [1, 2, 2, 2, 3]
-];
-
-
 const MACHINE_DETAILS = {
     classic: {
         icon: "7️⃣",
         name: "Lucky Sevens",
-        subtitle: "Classic Fair Mode",
-        eyebrow: "CLASSIC 50 / 50 MACHINE",
-        volatility: "50 / 50 odds",
-        rtp: "100% RTP",
+        subtitle: "Frequent returns",
+        eyebrow: "LOW-VOLATILITY FRUIT MACHINE",
+        volatility: "50% payout chance · Low risk",
+        hitRate: 50,
+        rtp: 100,
+        maxMultiplier: 10,
         description:
-            "Every spin has a 50% chance to return twice the total bet and a 50% chance to return nothing.",
+            "The gentlest cabinet. Half of spins return something, but many are break-even cherries rather than large wins.",
         symbols: {
-            CHERRY: { glyph: "🍒", label: "Cherry" },
-            LEMON: { glyph: "🍋", label: "Lemon" },
-            ORANGE: { glyph: "🍊", label: "Orange" },
-            BELL: { glyph: "🔔", label: "Bell" },
-            BAR: { glyph: "▰", label: "Bar" },
-            SEVEN: { glyph: "7️⃣", label: "Seven" },
-            WILD: { glyph: "⭐", label: "Star" }
-        }
+            CHERRY: {
+                glyph: "🍒",
+                label: "Cherry"
+            },
+            LEMON: {
+                glyph: "🍋",
+                label: "Lemon"
+            },
+            ORANGE: {
+                glyph: "🍊",
+                label: "Orange"
+            },
+            BELL: {
+                glyph: "🔔",
+                label: "Bell"
+            },
+            BAR: {
+                glyph: "▰",
+                label: "Bar"
+            },
+            SEVEN: {
+                glyph: "7️⃣",
+                label: "Seven"
+            },
+            WILD: {
+                glyph: "⭐",
+                label: "Star"
+            }
+        },
+        outcomes: [
+            {
+                symbol: "CHERRY",
+                chance: 30,
+                multiplier: 1,
+                note: "Returns the bet"
+            },
+            {
+                symbol: "BELL",
+                chance: 15,
+                multiplier: 2,
+                note: "Doubles the bet"
+            },
+            {
+                symbol: "SEVEN",
+                chance: 4,
+                multiplier: 7.5,
+                note: "Rare prize"
+            },
+            {
+                symbol: "WILD",
+                chance: 1,
+                multiplier: 10,
+                note: "Top prize"
+            }
+        ]
     },
 
     neon: {
         icon: "⚡",
         name: "Neon Rush",
-        subtitle: "Neon Fair Mode",
-        eyebrow: "NEON 50 / 50 MACHINE",
-        volatility: "50 / 50 odds",
-        rtp: "100% RTP",
+        subtitle: "Fewer, stronger wins",
+        eyebrow: "MEDIUM-VOLATILITY NEON MACHINE",
+        volatility: "35% payout chance · Medium risk",
+        hitRate: 35,
+        rtp: 100,
+        maxMultiplier: 10,
         description:
-            "The neon cabinet uses the same exact fair odds: half of spins pay 2× the total bet and half pay 0.",
+            "A middle-ground cabinet. It pays less often than Lucky Sevens, but even its common coin result makes a profit.",
         symbols: {
-            COIN: { glyph: "🪙", label: "Coin" },
-            PLUM: { glyph: "🟣", label: "Neon plum" },
-            DIAMOND: { glyph: "💎", label: "Diamond" },
-            LIGHTNING: { glyph: "⚡", label: "Lightning" },
-            CROWN: { glyph: "👑", label: "Crown" },
-            WILD: { glyph: "🌈", label: "Prism" }
-        }
+            COIN: {
+                glyph: "🪙",
+                label: "Coin"
+            },
+            PLUM: {
+                glyph: "🟣",
+                label: "Neon plum"
+            },
+            DIAMOND: {
+                glyph: "💎",
+                label: "Diamond"
+            },
+            LIGHTNING: {
+                glyph: "⚡",
+                label: "Lightning"
+            },
+            CROWN: {
+                glyph: "👑",
+                label: "Crown"
+            },
+            WILD: {
+                glyph: "🌈",
+                label: "Prism"
+            }
+        },
+        outcomes: [
+            {
+                symbol: "COIN",
+                chance: 20,
+                multiplier: 1.5,
+                note: "Small profit"
+            },
+            {
+                symbol: "LIGHTNING",
+                chance: 10,
+                multiplier: 3,
+                note: "Strong win"
+            },
+            {
+                symbol: "CROWN",
+                chance: 4,
+                multiplier: 7.5,
+                note: "Rare prize"
+            },
+            {
+                symbol: "WILD",
+                chance: 1,
+                multiplier: 10,
+                note: "Top prize"
+            }
+        ]
     },
 
     cosmic: {
         icon: "🪐",
         name: "Cosmic Vault",
-        subtitle: "Cosmic Fair Mode",
-        eyebrow: "COSMIC 50 / 50 MACHINE",
-        volatility: "50 / 50 odds",
-        rtp: "100% RTP",
+        subtitle: "Rare jackpot-style prizes",
+        eyebrow: "HIGH-VOLATILITY COSMIC MACHINE",
+        volatility: "19.5% payout chance · High risk",
+        hitRate: 19.5,
+        rtp: 100,
+        maxMultiplier: 30,
         description:
-            "Cosmic Vault now uses the same transparent 50 / 50 result, without bonus spins that would push RTP above 100%.",
+            "The dangerous cabinet. Most spins pay nothing, while its Alien and Galaxy outcomes can return enormous multiples.",
         symbols: {
-            STAR: { glyph: "✨", label: "Star" },
-            MOON: { glyph: "🌙", label: "Moon" },
-            PLANET: { glyph: "🪐", label: "Planet" },
-            ROCKET: { glyph: "🚀", label: "Rocket" },
-            ALIEN: { glyph: "👽", label: "Alien" },
-            WILD: { glyph: "🌌", label: "Galaxy" }
-        }
+            STAR: {
+                glyph: "✨",
+                label: "Star"
+            },
+            MOON: {
+                glyph: "🌙",
+                label: "Moon"
+            },
+            PLANET: {
+                glyph: "🪐",
+                label: "Planet"
+            },
+            ROCKET: {
+                glyph: "🚀",
+                label: "Rocket"
+            },
+            ALIEN: {
+                glyph: "👽",
+                label: "Alien"
+            },
+            WILD: {
+                glyph: "🌌",
+                label: "Galaxy"
+            }
+        },
+        outcomes: [
+            {
+                symbol: "MOON",
+                chance: 12,
+                multiplier: 2,
+                note: "Doubles the bet"
+            },
+            {
+                symbol: "ROCKET",
+                chance: 6,
+                multiplier: 6,
+                note: "Large prize"
+            },
+            {
+                symbol: "ALIEN",
+                chance: 1,
+                multiplier: 25,
+                note: "Huge prize"
+            },
+            {
+                symbol: "WILD",
+                chance: 0.5,
+                multiplier: 30,
+                note: "Top prize"
+            }
+        ]
     }
 };
 
@@ -158,7 +288,6 @@ let selectedBet =
     || 10;
 
 let spinInProgress = false;
-
 let currentGrid = null;
 
 
@@ -171,15 +300,32 @@ function formatChips(value) {
 }
 
 
+function formatPercent(value) {
+    return `${Number(value).toFixed(
+        Number(value) % 1 === 0
+            ? 0
+            : 1
+    )}%`;
+}
+
+
+function formatMultiplier(value) {
+    return `${Number(value)}×`;
+}
+
+
 function signedChips(value) {
-    const number = Number(value ?? 0);
+    const number =
+        Number(value ?? 0);
 
     if (number > 0) {
         return `+${formatChips(number)}`;
     }
 
     if (number < 0) {
-        return `−${formatChips(Math.abs(number))}`;
+        return `−${formatChips(
+            Math.abs(number)
+        )}`;
     }
 
     return "0";
@@ -190,7 +336,8 @@ function showMessage(
     message = "",
     type = "error"
 ) {
-    messageElement.textContent = message;
+    messageElement.textContent =
+        message;
 
     messageElement.className =
         `form-message ${type}`.trim();
@@ -199,21 +346,10 @@ function showMessage(
 
 function selectedMachine() {
     return (
-        MACHINE_DETAILS[selectedMachineCode]
-        ?? MACHINE_DETAILS.classic
-    );
-}
-
-
-function selectedMachineState() {
-    return (
-        slotState?.machine_states?.[
+        MACHINE_DETAILS[
             selectedMachineCode
         ]
-        ?? {
-            free_spins: 0,
-            free_spin_bet: 0
-        }
+        ?? MACHINE_DETAILS.classic
     );
 }
 
@@ -235,61 +371,45 @@ function availableBetOptions() {
 }
 
 
-function randomSymbolCode(machineCode) {
-    const symbolCodes =
+function symbolDetails(
+    machineCode,
+    symbolCode
+) {
+    return (
+        MACHINE_DETAILS[machineCode]
+            ?.symbols?.[symbolCode]
+        ?? {
+            glyph: "❔",
+            label:
+                symbolCode
+                || "No prize"
+        }
+    );
+}
+
+
+function randomSymbolCode(
+    machineCode
+) {
+    const symbols =
         Object.keys(
-            MACHINE_DETAILS[machineCode].symbols
+            MACHINE_DETAILS[
+                machineCode
+            ].symbols
         );
 
-    return symbolCodes[
+    return symbols[
         Math.floor(
-            Math.random() * symbolCodes.length
+            Math.random()
+            * symbols.length
         )
     ];
 }
 
 
-function createSymbolCell(
-    machineCode,
-    symbolCode,
-    row,
-    reel
+function defaultGrid(
+    machineCode
 ) {
-    const symbol =
-        MACHINE_DETAILS[machineCode]
-            .symbols[symbolCode]
-        ?? {
-            glyph: "?",
-            label: symbolCode
-        };
-
-    const cell =
-        document.createElement("div");
-
-    cell.className = "slot-symbol-cell";
-    cell.dataset.row = String(row);
-    cell.dataset.reel = String(reel);
-    cell.dataset.symbol = symbolCode;
-
-    const glyph =
-        document.createElement("span");
-
-    glyph.className = "slot-symbol-glyph";
-    glyph.textContent = symbol.glyph;
-
-    const label =
-        document.createElement("span");
-
-    label.className = "slot-symbol-label";
-    label.textContent = symbol.label;
-
-    cell.append(glyph, label);
-
-    return cell;
-}
-
-
-function defaultGrid(machineCode) {
     return Array.from(
         {
             length: 3
@@ -300,15 +420,70 @@ function defaultGrid(machineCode) {
                     length: 5
                 },
                 () =>
-                    randomSymbolCode(machineCode)
+                    randomSymbolCode(
+                        machineCode
+                    )
             )
     );
 }
 
 
+function createSymbolCell(
+    machineCode,
+    symbolCode,
+    row,
+    reel
+) {
+    const symbol =
+        symbolDetails(
+            machineCode,
+            symbolCode
+        );
+
+    const cell =
+        document.createElement("div");
+
+    cell.className =
+        "slot-symbol-cell";
+
+    cell.dataset.row =
+        String(row);
+
+    cell.dataset.reel =
+        String(reel);
+
+    cell.dataset.symbol =
+        symbolCode;
+
+    const glyph =
+        document.createElement("span");
+
+    glyph.className =
+        "slot-symbol-glyph";
+
+    glyph.textContent =
+        symbol.glyph;
+
+    const label =
+        document.createElement("span");
+
+    label.className =
+        "slot-symbol-label";
+
+    label.textContent =
+        symbol.label;
+
+    cell.append(glyph, label);
+
+    return cell;
+}
+
+
 function renderGrid(
     grid = currentGrid
-        ?? defaultGrid(selectedMachineCode)
+        ?? defaultGrid(
+            selectedMachineCode
+        )
 ) {
     currentGrid = grid;
 
@@ -322,7 +497,9 @@ function renderGrid(
         const reelElement =
             document.createElement("div");
 
-        reelElement.className = "slot-reel";
+        reelElement.className =
+            "slot-reel";
+
         reelElement.dataset.reel =
             String(reel + 1);
 
@@ -341,7 +518,9 @@ function renderGrid(
             );
         }
 
-        reelsElement.append(reelElement);
+        reelsElement.append(
+            reelElement
+        );
     }
 }
 
@@ -349,7 +528,8 @@ function renderGrid(
 function clearWinHighlights() {
     reelsElement
         .querySelectorAll(
-            ".winning, .scatter-winning"
+            ".winning, "
+            + ".scatter-winning"
         )
         .forEach((cell) => {
             cell.classList.remove(
@@ -365,9 +545,12 @@ function highlightSpinResult(spin) {
 
     for (
         const line
-        of spin.winning_lines ?? []
+        of spin.winning_lines
+        ?? []
     ) {
-        const rows = line.rows ?? [];
+        const rows =
+            line.rows
+            ?? [];
 
         rows.forEach(
             (row, reelIndex) => {
@@ -376,27 +559,20 @@ function highlightSpinResult(spin) {
                         `[data-row="${row}"]`
                         + `[data-reel="${reelIndex + 1}"]`
                     )
-                    ?.classList.add("winning");
+                    ?.classList.add(
+                        "winning"
+                    );
             }
         );
-    }
-
-    if (Number(spin.scatter_count) >= 3) {
-        reelsElement
-            .querySelectorAll(
-                '[data-symbol="SCATTER"]'
-            )
-            .forEach((cell) => {
-                cell.classList.add(
-                    "scatter-winning"
-                );
-            });
     }
 }
 
 
-function renderWinningLines(spin = null) {
-    winningLinesElement.replaceChildren();
+function renderWinningLines(
+    spin = null
+) {
+    winningLinesElement
+        .replaceChildren();
 
     if (!spin) {
         const empty =
@@ -406,50 +582,19 @@ function renderWinningLines(spin = null) {
             "slot-no-line-win";
 
         empty.textContent =
-            "Ten paylines are active.";
+            "The highlighted line shows the awarded emoji.";
 
-        winningLinesElement.append(empty);
+        winningLinesElement.append(
+            empty
+        );
+
         return;
     }
 
-    for (
-        const line
-        of spin.winning_lines ?? []
-    ) {
-        const badge =
-            document.createElement("span");
+    const winningLine =
+        spin.winning_lines?.[0];
 
-        badge.className =
-            "slot-winning-line";
-
-        badge.textContent =
-            `Line ${line.line}: `
-            + `${line.count} ${line.symbol}`
-            + ` · ${line.multiplier}×`;
-
-        winningLinesElement.append(badge);
-    }
-
-    if (
-        Number(spin.scatter_multiplier) > 0
-    ) {
-        const scatter =
-            document.createElement("span");
-
-        scatter.className =
-            "slot-winning-line slot-scatter-win";
-
-        scatter.textContent =
-            `${spin.scatter_count} scatters`
-            + ` · ${spin.scatter_multiplier}× total bet`;
-
-        winningLinesElement.append(scatter);
-    }
-
-    if (
-        winningLinesElement.children.length
-        === 0
-    ) {
+    if (!winningLine) {
         const empty =
             document.createElement("span");
 
@@ -457,15 +602,45 @@ function renderWinningLines(spin = null) {
             "slot-no-line-win";
 
         empty.textContent =
-            "No winning line on this spin.";
+            "No prize on this spin.";
 
-        winningLinesElement.append(empty);
+        winningLinesElement.append(
+            empty
+        );
+
+        return;
     }
+
+    const symbol =
+        symbolDetails(
+            spin.machine_code,
+            winningLine.symbol
+        );
+
+    const badge =
+        document.createElement("span");
+
+    badge.className =
+        "slot-winning-line";
+
+    badge.textContent =
+        `${symbol.glyph} ${symbol.label}`
+        + ` · ${formatMultiplier(
+            winningLine.multiplier
+        )}`
+        + ` · ${formatPercent(
+            winningLine.chance_percent
+        )} chance`;
+
+    winningLinesElement.append(
+        badge
+    );
 }
 
 
 function updateMachineHeading() {
-    const machine = selectedMachine();
+    const machine =
+        selectedMachine();
 
     selectedMachineSubtitle.textContent =
         machine.eyebrow;
@@ -477,22 +652,21 @@ function updateMachineHeading() {
         machine.volatility;
 
     selectedMachineRtp.textContent =
-        machine.rtp;
+        `${machine.rtp}% RTP`;
 
-    const machineState =
-        selectedMachineState();
-
-    const freeSpins =
-        Number(machineState.free_spins ?? 0);
-
-    freeSpinBadge.classList.toggle(
-        "hidden",
-        freeSpins <= 0
+    freeSpinBadge.classList.add(
+        "hidden"
     );
 
-    freeSpinBadge.textContent =
-        `${formatChips(freeSpins)} free `
-        + `${freeSpins === 1 ? "spin" : "spins"}`;
+    cabinetPanel.classList.remove(
+        "machine-classic",
+        "machine-neon",
+        "machine-cosmic"
+    );
+
+    cabinetPanel.classList.add(
+        `machine-${selectedMachineCode}`
+    );
 }
 
 
@@ -501,13 +675,12 @@ function renderMachinePicker() {
 
     for (
         const machineCode
-        of Object.keys(MACHINE_DETAILS)
+        of Object.keys(
+            MACHINE_DETAILS
+        )
     ) {
         const machine =
-            MACHINE_DETAILS[machineCode];
-
-        const machineState =
-            slotState?.machine_states?.[
+            MACHINE_DETAILS[
                 machineCode
             ];
 
@@ -515,8 +688,12 @@ function renderMachinePicker() {
             document.createElement("button");
 
         button.type = "button";
+
         button.className =
             "slot-machine-card";
+
+        button.dataset.machineCode =
+            machineCode;
 
         button.classList.toggle(
             "selected",
@@ -565,38 +742,33 @@ function renderMachinePicker() {
         meta.className =
             "slot-machine-meta";
 
-        const volatility =
+        const hitRate =
             document.createElement("small");
 
-        volatility.textContent =
-            machine.volatility;
+        hitRate.textContent =
+            `${formatPercent(
+                machine.hitRate
+            )} payout`;
+
+        const maximum =
+            document.createElement("small");
+
+        maximum.textContent =
+            `Up to ${formatMultiplier(
+                machine.maxMultiplier
+            )}`;
 
         const rtp =
             document.createElement("small");
 
         rtp.textContent =
-            machine.rtp;
+            "100% RTP";
 
-        meta.append(volatility, rtp);
-
-        const freeSpins =
-            Number(
-                machineState?.free_spins
-                ?? 0
-            );
-
-        if (freeSpins > 0) {
-            const free =
-                document.createElement("small");
-
-            free.className =
-                "slot-machine-free-spins";
-
-            free.textContent =
-                `${freeSpins} free`;
-
-            meta.append(free);
-        }
+        meta.append(
+            hitRate,
+            maximum,
+            rtp
+        );
 
         copy.append(
             name,
@@ -604,7 +776,10 @@ function renderMachinePicker() {
             meta
         );
 
-        button.append(icon, copy);
+        button.append(
+            icon,
+            copy
+        );
 
         button.addEventListener(
             "click",
@@ -622,25 +797,34 @@ function renderMachinePicker() {
                 );
 
                 currentGrid =
-                    defaultGrid(machineCode);
+                    defaultGrid(
+                        machineCode
+                    );
 
                 renderEverything();
             }
         );
 
-        machinePicker.append(button);
+        machinePicker.append(
+            button
+        );
     }
 }
 
 
 function renderBetButtons() {
-    betButtonsElement.replaceChildren();
+    betButtonsElement
+        .replaceChildren();
 
     const options =
         availableBetOptions();
 
-    if (!options.includes(selectedBet)) {
-        selectedBet = options[0] ?? 10;
+    if (!options.includes(
+        selectedBet
+    )) {
+        selectedBet =
+            options[0]
+            ?? 10;
     }
 
     for (const amount of options) {
@@ -648,6 +832,7 @@ function renderBetButtons() {
             document.createElement("button");
 
         button.type = "button";
+
         button.className =
             "slot-bet-button";
 
@@ -680,15 +865,22 @@ function renderBetButtons() {
             }
         );
 
-        betButtonsElement.append(button);
+        betButtonsElement.append(
+            button
+        );
     }
 
+    const machine =
+        selectedMachine();
+
     betBreakdown.textContent =
-        `10 paylines · `
-        + `${formatChips(selectedBet / 10)} `
-        + `${selectedBet / 10 === 1
-            ? "chip"
-            : "chips"} per line`;
+        `${formatPercent(
+            machine.hitRate
+        )} payout chance`
+        + ` · maximum `
+        + `${formatMultiplier(
+            machine.maxMultiplier
+        )}`;
 }
 
 
@@ -702,40 +894,16 @@ function updateControls() {
     walletBalanceLabel.textContent =
         formatChips(wallet);
 
-    const freeSpins =
-        Number(
-            selectedMachineState()
-                .free_spins
-            ?? 0
-        );
-
-    const canUseFreeSpin =
-        freeSpins > 0;
-
     spinButton.disabled =
         spinInProgress
-        || (
-            !canUseFreeSpin
-            && wallet < selectedBet
-        );
+        || wallet < selectedBet;
 
-    spinButton.classList.toggle(
-        "free-spin-ready",
-        canUseFreeSpin
-    );
-
-    if (spinInProgress) {
-        spinButton.textContent =
-            canUseFreeSpin
-                ? "Opening free spin..."
-                : "Spinning...";
-    } else if (canUseFreeSpin) {
-        spinButton.textContent =
-            `Use free spin · ${freeSpins} left`;
-    } else {
-        spinButton.textContent =
-            `Spin · ${formatChips(selectedBet)} chips`;
-    }
+    spinButton.textContent =
+        spinInProgress
+            ? "Spinning..."
+            : `Spin · ${formatChips(
+                selectedBet
+            )} chips`;
 
     betButtonsElement
         .querySelectorAll("button")
@@ -747,40 +915,45 @@ function updateControls() {
 
 
 function renderStatistics() {
-    statisticsElement.replaceChildren();
+    statisticsElement
+        .replaceChildren();
 
     const statistics =
         slotState?.statistics
         ?? {};
 
     const net =
-        Number(statistics.net ?? 0);
+        Number(
+            statistics.net
+            ?? 0
+        );
 
     const cards = [
         {
-            label: "Paid spins",
+            label: "Total spins",
             value: formatChips(
                 statistics.paid_spins
             )
         },
         {
-            label: "Free spins played",
+            label: "Winning spins",
             value: formatChips(
-                statistics.free_spins
+                statistics.winning_spins
             )
+        },
+        {
+            label: "Observed payout rate",
+            value:
+                `${Number(
+                    statistics.observed_hit_rate
+                    ?? 0
+                ).toFixed(1)}%`
         },
         {
             label: "Total wagered",
             value:
                 `${formatChips(
                     statistics.total_wagered
-                )} chips`
-        },
-        {
-            label: "Total paid",
-            value:
-                `${formatChips(
-                    statistics.total_paid
                 )} chips`
         },
         {
@@ -828,44 +1001,31 @@ function renderStatistics() {
         value.textContent =
             cardData.value;
 
-        card.append(label, value);
-        statisticsElement.append(card);
+        card.append(
+            label,
+            value
+        );
+
+        statisticsElement.append(
+            card
+        );
     }
 }
 
 
 function renderPaytable() {
-    const machine = selectedMachine();
+    const machine =
+        selectedMachine();
 
     paytableTitle.textContent =
-        `${machine.name} Fair Mode`;
+        `${machine.name} outcomes`;
 
     paytableDescription.textContent =
         machine.description
-        + " The cabinets differ visually, not financially.";
+        + " Every listed chance is decided by Supabase.";
 
-    paytableElement.replaceChildren();
-
-    const rows = [
-        {
-            label: "Winning spin",
-            chance: "50%",
-            payout: "2× total bet",
-            net: "+1× bet"
-        },
-        {
-            label: "Losing spin",
-            chance: "50%",
-            payout: "0× total bet",
-            net: "−1× bet"
-        },
-        {
-            label: "Long-run average",
-            chance: "Expected",
-            payout: "1× total bet",
-            net: "100% RTP"
-        }
-    ];
+    paytableElement
+        .replaceChildren();
 
     const heading =
         document.createElement("div");
@@ -877,17 +1037,17 @@ function renderPaytable() {
     for (
         const headingText
         of [
-            "Outcome",
+            "Emoji",
             "Chance",
             "Payout",
-            "Net"
+            "Net result"
         ]
     ) {
         const cell =
             document.createElement("span");
 
         cell.className =
-            headingText === "Outcome"
+            headingText === "Emoji"
                 ? "slot-paytable-symbol"
                 : "slot-paytable-value";
 
@@ -897,66 +1057,197 @@ function renderPaytable() {
         heading.append(cell);
     }
 
-    paytableElement.append(heading);
+    paytableElement.append(
+        heading
+    );
 
-    for (const rowData of rows) {
+    for (
+        const outcome
+        of machine.outcomes
+    ) {
+        const symbol =
+            symbolDetails(
+                selectedMachineCode,
+                outcome.symbol
+            );
+
         const row =
             document.createElement("div");
 
         row.className =
             "slot-paytable-row";
 
-        const outcome =
+        const symbolCell =
             document.createElement("span");
 
-        outcome.className =
+        symbolCell.className =
             "slot-paytable-symbol";
+
+        const glyph =
+            document.createElement("span");
+
+        glyph.textContent =
+            symbol.glyph;
 
         const label =
             document.createElement("strong");
 
         label.textContent =
-            rowData.label;
+            `${symbol.label} · ${outcome.note}`;
 
-        outcome.append(label);
+        symbolCell.append(
+            glyph,
+            label
+        );
 
-        for (
-            const valueText
-            of [
-                rowData.chance,
-                rowData.payout,
-                rowData.net
-            ]
-        ) {
-            const value =
-                document.createElement("span");
+        const chance =
+            document.createElement("span");
 
-            value.className =
-                "slot-paytable-value";
+        chance.className =
+            "slot-paytable-value";
 
-            value.textContent =
-                valueText;
-
-            row.append(
-                value
+        chance.textContent =
+            formatPercent(
+                outcome.chance
             );
-        }
 
-        row.prepend(outcome);
-        paytableElement.append(row);
+        const payout =
+            document.createElement("span");
+
+        payout.className =
+            "slot-paytable-value";
+
+        payout.textContent =
+            formatMultiplier(
+                outcome.multiplier
+            );
+
+        const net =
+            document.createElement("span");
+
+        net.className =
+            "slot-paytable-value";
+
+        net.textContent =
+            outcome.multiplier === 1
+                ? "Break even"
+                : `+${formatMultiplier(
+                    outcome.multiplier - 1
+                )} bet`;
+
+        row.append(
+            symbolCell,
+            chance,
+            payout,
+            net
+        );
+
+        paytableElement.append(
+            row
+        );
     }
+
+    const lossChance =
+        100 - machine.hitRate;
+
+    const lossRow =
+        document.createElement("div");
+
+    lossRow.className =
+        "slot-paytable-row "
+        + "slot-paytable-loss-row";
+
+    const lossLabel =
+        document.createElement("span");
+
+    lossLabel.className =
+        "slot-paytable-symbol";
+
+    lossLabel.innerHTML =
+        "<span>⬛</span>"
+        + "<strong>No matching prize</strong>";
+
+    const lossChanceCell =
+        document.createElement("span");
+
+    lossChanceCell.className =
+        "slot-paytable-value";
+
+    lossChanceCell.textContent =
+        formatPercent(
+            lossChance
+        );
+
+    const lossPayout =
+        document.createElement("span");
+
+    lossPayout.className =
+        "slot-paytable-value";
+
+    lossPayout.textContent =
+        "0×";
+
+    const lossNet =
+        document.createElement("span");
+
+    lossNet.className =
+        "slot-paytable-value";
+
+    lossNet.textContent =
+        "−1× bet";
+
+    lossRow.append(
+        lossLabel,
+        lossChanceCell,
+        lossPayout,
+        lossNet
+    );
+
+    paytableElement.append(
+        lossRow
+    );
 }
 
 
-function machineName(machineCode) {
+function machineName(
+    machineCode
+) {
     return (
-        MACHINE_DETAILS[machineCode]?.name
+        MACHINE_DETAILS[
+            machineCode
+        ]?.name
         ?? machineCode
     );
 }
 
 
-function createHistoryRow(spin) {
+function historyPrizeSymbol(
+    spin
+) {
+    return (
+        spin.prize_symbol
+        ?? spin.winning_lines?.[0]
+            ?.symbol
+        ?? null
+    );
+}
+
+
+function historyMultiplier(
+    spin
+) {
+    return Number(
+        spin.payout_multiplier
+        ?? spin.winning_lines?.[0]
+            ?.multiplier
+        ?? 0
+    );
+}
+
+
+function createHistoryRow(
+    spin
+) {
     const row =
         document.createElement("article");
 
@@ -964,10 +1255,13 @@ function createHistoryRow(spin) {
         "slot-history-row";
 
     const net =
-        Number(spin.net ?? 0);
+        Number(
+            spin.net
+            ?? 0
+        );
 
     row.classList.add(
-        net > 0
+        Number(spin.payout) > 0
             ? "win"
             : "loss"
     );
@@ -1002,16 +1296,25 @@ function createHistoryRow(spin) {
     const extraHeading =
         document.createElement("strong");
 
-    const freeAward =
-        Number(
-            spin.free_spins_awarded
-            ?? 0
-        );
+    const prizeSymbol =
+        historyPrizeSymbol(spin);
 
-    extraHeading.textContent =
-        Number(spin.payout) > 0
-            ? "50 / 50 win"
-            : "50 / 50 loss";
+    if (prizeSymbol) {
+        const symbol =
+            symbolDetails(
+                spin.machine_code,
+                prizeSymbol
+            );
+
+        extraHeading.textContent =
+            `${symbol.glyph} ${symbol.label}`
+            + ` · ${formatMultiplier(
+                historyMultiplier(spin)
+            )}`;
+    } else {
+        extraHeading.textContent =
+            "No prize";
+    }
 
     const time =
         document.createElement("time");
@@ -1055,7 +1358,7 @@ function createHistoryRow(spin) {
     payout.textContent =
         `${formatChips(
             spin.payout
-        )} paid`;
+        )} returned`;
 
     result.append(
         resultHeading,
@@ -1073,7 +1376,8 @@ function createHistoryRow(spin) {
 
 
 function renderHistory() {
-    historyElement.replaceChildren();
+    historyElement
+        .replaceChildren();
 
     const spins =
         slotState?.recent_spins
@@ -1089,13 +1393,18 @@ function renderHistory() {
         empty.textContent =
             "No spins yet.";
 
-        historyElement.append(empty);
+        historyElement.append(
+            empty
+        );
+
         return;
     }
 
     for (const spin of spins) {
         historyElement.append(
-            createHistoryRow(spin)
+            createHistoryRow(
+                spin
+            )
         );
     }
 }
@@ -1105,48 +1414,78 @@ function renderResult(spin) {
     resultElement.className =
         "slot-result";
 
-    const net =
-        Number(spin.net ?? 0);
+    const machine =
+        MACHINE_DETAILS[
+            spin.machine_code
+        ]
+        ?? selectedMachine();
 
-    const labelParts = [
-        `${formatChips(
-            spin.total_bet
-        )} chip bet`,
-        "50% win chance",
-        "100% theoretical RTP"
-    ];
+    const net =
+        Number(
+            spin.net
+            ?? 0
+        );
 
     const label =
         document.createElement("span");
 
     label.textContent =
-        labelParts.join(" · ");
+        `${machine.name}`
+        + ` · ${formatPercent(
+            machine.hitRate
+        )} payout chance`
+        + " · 100% theoretical RTP";
 
     const heading =
         document.createElement("strong");
 
-    if (net > 0) {
-        resultElement.classList.add("win");
+    const prizeSymbol =
+        spin.prize_symbol
+        ?? spin.winning_lines?.[0]
+            ?.symbol;
 
-        heading.textContent =
-            `Won ${formatChips(net)} chips`;
+    if (prizeSymbol) {
+        resultElement.classList.add(
+            "win"
+        );
+
+        const symbol =
+            symbolDetails(
+                spin.machine_code,
+                prizeSymbol
+            );
+
+        const multiplier =
+            Number(
+                spin.payout_multiplier
+                ?? spin.winning_lines?.[0]
+                    ?.multiplier
+                ?? 0
+            );
+
+        if (net > 0) {
+            heading.textContent =
+                `${symbol.glyph} ${symbol.label}`
+                + ` paid ${formatMultiplier(
+                    multiplier
+                )}`
+                + ` · +${formatChips(
+                    net
+                )} chips`;
+        } else {
+            heading.textContent =
+                `${symbol.glyph} ${symbol.label}`
+                + " returned your bet";
+        }
     } else {
-        resultElement.classList.add("loss");
+        resultElement.classList.add(
+            "loss"
+        );
 
         heading.textContent =
-            `Lost ${formatChips(
+            `No prize · lost ${formatChips(
                 Math.abs(net)
             )} chips`;
-    }
-
-    if (
-        Number(
-            spin.free_spins_awarded
-        ) > 0
-    ) {
-        heading.textContent +=
-            ` · ${spin.free_spins_awarded}`
-            + " free spins awarded";
     }
 
     resultElement.replaceChildren(
@@ -1169,13 +1508,16 @@ function renderEverything() {
 }
 
 
-function setSpinInProgress(value) {
+function setSpinInProgress(
+    value
+) {
     spinInProgress = value;
 
     machinePicker
         .querySelectorAll("button")
         .forEach((button) => {
-            button.disabled = value;
+            button.disabled =
+                value;
         });
 
     updateControls();
@@ -1200,8 +1542,10 @@ function updateCellSymbol(
     symbolCode
 ) {
     const symbol =
-        MACHINE_DETAILS[machineCode]
-            .symbols[symbolCode];
+        symbolDetails(
+            machineCode,
+            symbolCode
+        );
 
     cell.dataset.symbol =
         symbolCode;
@@ -1209,16 +1553,18 @@ function updateCellSymbol(
     cell.querySelector(
         ".slot-symbol-glyph"
     ).textContent =
-        symbol?.glyph ?? "?";
+        symbol.glyph;
 
     cell.querySelector(
         ".slot-symbol-label"
     ).textContent =
-        symbol?.label ?? symbolCode;
+        symbol.label;
 }
 
 
-async function animateSpin(finalGrid) {
+async function animateSpin(
+    finalGrid
+) {
     clearWinHighlights();
 
     const fastMode =
@@ -1299,17 +1645,21 @@ async function animateSpin(finalGrid) {
                 ".slot-symbol-cell"
             );
 
-        cells.forEach((cell, rowIndex) => {
-            updateCellSymbol(
-                cell,
-                selectedMachineCode,
-                finalGrid[rowIndex][reelIndex]
-            );
+        cells.forEach(
+            (cell, rowIndex) => {
+                updateCellSymbol(
+                    cell,
+                    selectedMachineCode,
+                    finalGrid[
+                        rowIndex
+                    ][reelIndex]
+                );
 
-            cell.classList.remove(
-                "spinning"
-            );
-        });
+                cell.classList.remove(
+                    "spinning"
+                );
+            }
+        );
 
         await sleep(reelDelay);
     }
@@ -1323,28 +1673,17 @@ async function playSpin() {
         return;
     }
 
-    const machineState =
-        selectedMachineState();
-
-    const freeSpins =
-        Number(
-            machineState.free_spins
-            ?? 0
-        );
-
     const wallet =
         Number(
             slotState?.wallet_chips
             ?? 0
         );
 
-    if (
-        freeSpins <= 0
-        && wallet < selectedBet
-    ) {
+    if (wallet < selectedBet) {
         showMessage(
             "You do not have enough wallet chips."
         );
+
         return;
     }
 
@@ -1352,33 +1691,32 @@ async function playSpin() {
     showMessage();
 
     try {
-        /*
-         * The complete result is generated and financially settled before
-         * the animation starts. The animation cannot alter the outcome.
-         */
         const {
             data,
             error
-        } = await window.supabaseClient.rpc(
-            "play_slot_machine",
-            {
-                p_machine_code:
-                    selectedMachineCode,
-                p_total_bet:
-                    selectedBet
-            }
-        );
+        } =
+            await window.supabaseClient.rpc(
+                "play_slot_machine",
+                {
+                    p_machine_code:
+                        selectedMachineCode,
+                    p_total_bet:
+                        selectedBet
+                }
+            );
 
         if (error) {
             throw error;
         }
 
-        const spin = data?.spin;
-        const nextState = data?.state;
+        const spin =
+            data?.spin;
 
         if (
             !spin
-            || !Array.isArray(spin.grid)
+            || !Array.isArray(
+                spin.grid
+            )
             || spin.grid.length !== 3
         ) {
             throw new Error(
@@ -1391,7 +1729,7 @@ async function playSpin() {
         );
 
         slotState =
-            nextState;
+            data.state;
 
         highlightSpinResult(spin);
         renderWinningLines(spin);
@@ -1403,7 +1741,6 @@ async function playSpin() {
         updateControls();
         renderStatistics();
         renderHistory();
-
     } catch (error) {
         console.error(error);
 
@@ -1423,9 +1760,10 @@ async function loadSlotState() {
     const {
         data,
         error
-    } = await window.supabaseClient.rpc(
-        "get_slot_machine_state"
-    );
+    } =
+        await window.supabaseClient.rpc(
+            "get_slot_machine_state"
+        );
 
     if (error) {
         throw error;
@@ -1433,13 +1771,9 @@ async function loadSlotState() {
 
     slotState = data;
 
-    const validMachines =
-        new Set(
-            Object.keys(MACHINE_DETAILS)
-        );
-
     if (
-        !validMachines.has(
+        !Object.hasOwn(
+            MACHINE_DETAILS,
             selectedMachineCode
         )
     ) {
@@ -1450,9 +1784,12 @@ async function loadSlotState() {
     const options =
         availableBetOptions();
 
-    if (!options.includes(selectedBet)) {
+    if (!options.includes(
+        selectedBet
+    )) {
         selectedBet =
-            options[0] ?? 10;
+            options[0]
+            ?? 10;
     }
 
     currentGrid =
@@ -1495,8 +1832,9 @@ document.addEventListener(
             event.code !== "Space"
             || event.repeat
             || event.target.matches(
-                "input, select, textarea, button, "
-                + "a, [contenteditable='true']"
+                "input, select, textarea, "
+                + "button, a, "
+                + "[contenteditable='true']"
             )
         ) {
             return;

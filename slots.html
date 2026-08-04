@@ -11,7 +11,7 @@
     <title>Slot Machines</title>
 
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="slots.css?v=1">
+    <link rel="stylesheet" href="slots.css?v=5">
 </head>
 
 <body class="slots-page">
@@ -28,9 +28,9 @@
                     <h1>Slot Machines</h1>
 
                     <p class="description">
-                        Choose a machine and a total play-chip bet.
-                        Every spin has an exact 50% chance to pay twice the
-                        bet and a 50% chance to pay nothing.
+                        Choose a risk level and a total play-chip bet.
+                        Every cabinet has different payout frequencies and
+                        emoji prizes while retaining 100% theoretical RTP.
                     </p>
                 </div>
 
@@ -110,7 +110,7 @@
                     class="slot-winning-lines"
                 >
                     <span class="slot-no-line-win">
-                        A winning spin highlights the centre payline.
+                        A winning spin highlights the awarded emoji.
                     </span>
                 </div>
 
@@ -138,7 +138,7 @@
                         ></div>
 
                         <small id="slot-bet-breakdown">
-                            10 paylines · 1 chip per line
+                            50% payout chance · maximum 10×
                         </small>
                     </div>
 
@@ -246,12 +246,22 @@
 
                 <div class="slot-rules-grid">
                     <article>
-                        <h3>Ten paylines</h3>
+                        <h3>Different risk profiles</h3>
 
                         <p>
-                            A winning result displays five matching symbols
-                            across the centre payline and pays twice the total
-                            bet. A losing result pays nothing.
+                            Lucky Sevens pays on 50% of spins, Neon Rush on
+                            35%, and Cosmic Vault on 19.5%. Lower-frequency
+                            cabinets compensate with larger possible prizes.
+                        </p>
+                    </article>
+
+                    <article>
+                        <h3>Emoji-specific prizes</h3>
+
+                        <p>
+                            Each winning emoji has its own probability and
+                            multiplier. A common Cherry may only return the
+                            bet, while the Cosmic Galaxy pays 30×.
                         </p>
                     </article>
 
@@ -259,30 +269,21 @@
                         <h3>Server-authoritative spins</h3>
 
                         <p>
-                            The database deducts the bet, generates the full
-                            grid, evaluates every line and credits the payout
-                            in one protected transaction. Changing the browser
-                            animation cannot change the result.
+                            Supabase locks the wallet, charges the bet,
+                            chooses the outcome, creates the displayed grid,
+                            credits the payout and stores the history in one
+                            transaction.
                         </p>
                     </article>
 
                     <article>
-                        <h3>Same odds on every cabinet</h3>
+                        <h3>100% theoretical RTP</h3>
 
                         <p>
-                            Lucky Sevens, Neon Rush and Cosmic Vault use
-                            identical financial odds. Their symbols and visual
-                            presentation are the only differences.
-                        </p>
-                    </article>
-
-                    <article>
-                        <h3>Expected return</h3>
-
-                        <p>
-                            Half of spins return 2× the total bet and half
-                            return 0. The expected payout is exactly 1× the
-                            bet, producing a theoretical RTP of 100%.
+                            Each machine's probabilities and multipliers are
+                            balanced so its expected long-run payout equals
+                            the amount wagered. Short sessions can still vary
+                            dramatically, because probability enjoys theatre.
                         </p>
                     </article>
                 </div>
@@ -294,6 +295,6 @@
     <script src="config.js"></script>
     <script src="supabase-client.js"></script>
     <script src="navbar.js"></script>
-    <script src="slots.js?v=3"></script>
+    <script src="slots.js?v=5"></script>
 </body>
 </html>

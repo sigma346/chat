@@ -597,8 +597,8 @@ button.slot-spin-button.free-spin-ready {
 .slot-paytable-row {
     display: grid;
     grid-template-columns:
-        minmax(130px, 1fr)
-        repeat(4, minmax(52px, auto));
+        minmax(150px, 1.35fr)
+        repeat(3, minmax(62px, auto));
     align-items: center;
     gap: 7px;
     padding: 8px 9px;
@@ -791,8 +791,8 @@ button.slot-spin-button.free-spin-ready {
 
     .slot-paytable-row {
         grid-template-columns:
-            minmax(105px, 1fr)
-            repeat(4, minmax(42px, auto));
+            minmax(120px, 1.25fr)
+            repeat(3, minmax(48px, auto));
         gap: 4px;
         padding: 7px;
     }
@@ -842,4 +842,94 @@ button.slot-spin-button.free-spin-ready {
         height: 50px;
         font-size: 1.55rem;
     }
+}
+
+
+/* V5 machine identities */
+
+.slot-cabinet-panel.machine-classic {
+    border-color: rgba(243, 197, 107, 0.30);
+    background:
+        radial-gradient(
+            circle at 50% -20%,
+            rgba(243, 197, 107, 0.18),
+            transparent 43%
+        ),
+        linear-gradient(
+            160deg,
+            rgba(46, 38, 24, 0.97),
+            rgba(13, 16, 22, 0.99)
+        );
+}
+
+.slot-cabinet-panel.machine-neon {
+    border-color: rgba(104, 214, 255, 0.34);
+    background:
+        radial-gradient(
+            circle at 18% 0%,
+            rgba(80, 220, 255, 0.19),
+            transparent 38%
+        ),
+        radial-gradient(
+            circle at 82% 0%,
+            rgba(214, 79, 255, 0.16),
+            transparent 36%
+        ),
+        linear-gradient(
+            160deg,
+            rgba(16, 35, 51, 0.98),
+            rgba(13, 12, 29, 0.99)
+        );
+}
+
+.slot-cabinet-panel.machine-cosmic {
+    border-color: rgba(165, 125, 255, 0.38);
+    background:
+        radial-gradient(
+            circle at 50% -8%,
+            rgba(145, 91, 255, 0.25),
+            transparent 39%
+        ),
+        radial-gradient(
+            circle at 8% 80%,
+            rgba(40, 124, 232, 0.13),
+            transparent 32%
+        ),
+        linear-gradient(
+            160deg,
+            rgba(29, 20, 58, 0.98),
+            rgba(6, 10, 23, 0.99)
+        );
+}
+
+.slot-machine-card[data-machine-code="classic"].selected {
+    border-color: rgba(243, 197, 107, 0.70);
+}
+
+.slot-machine-card[data-machine-code="neon"].selected {
+    border-color: rgba(104, 214, 255, 0.72);
+    box-shadow:
+        0 0 0 3px rgba(104, 214, 255, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.slot-machine-card[data-machine-code="cosmic"].selected {
+    border-color: rgba(165, 125, 255, 0.72);
+    box-shadow:
+        0 0 0 3px rgba(165, 125, 255, 0.09),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.slot-paytable-loss-row {
+    border-color: rgba(255, 143, 163, 0.16);
+    background: rgba(104, 38, 52, 0.08);
+}
+
+.slot-paytable-loss-row .slot-paytable-value {
+    color: #ffb8c5;
+}
+
+.slot-paytable-symbol strong {
+    white-space: normal;
+    line-height: 1.25;
 }

@@ -31,6 +31,8 @@ Penguin Risk Game - ADDED
 Mines
 Russian Roulette
 
+FIX russian roulette times and singleplayer
+
 Fix max bets issue
 
 Daily events, such as unlimited max bet for an hour
