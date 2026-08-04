@@ -4,17 +4,18 @@ const el={
  index:$("#market-index-value"),indexChange:$("#market-index-change"),regime:$("#market-regime"),
  countdown:$("#market-countdown"),lastTick:$("#market-last-tick"),message:$("#stocks-message"),
  search:$("#stock-search"),sector:$("#sector-filter"),sort:$("#stock-sort"),grid:$("#company-grid"),
- marketView:$("#market-view"),portfolioView:$("#portfolio-view"),newsView:$("#news-view"),
+ marketView:$("#market-view"),portfolioView:$("#portfolio-view"),communityView:$("#community-view"),newsView:$("#news-view"),
  pValue:$("#portfolio-value"),pUnreal:$("#portfolio-unrealised"),pReal:$("#portfolio-realised"),pTotal:$("#portfolio-total"),
  pChart:$("#portfolio-chart"),pTip:$("#portfolio-tooltip"),holdings:$("#holdings-list"),trades:$("#trade-list"),news:$("#news-list"),
  dialog:$("#stock-dialog"),close:$("#dialog-close"),dSector:$("#detail-sector"),dName:$("#detail-name"),dTicker:$("#detail-ticker"),
  dDescription:$("#detail-description"),dPrice:$("#detail-price"),dOwned:$("#detail-owned"),dAverage:$("#detail-average"),
  dChart:$("#detail-chart"),dTip:$("#detail-tooltip"),shares:$("#trade-shares"),estimate:$("#trade-estimate"),fee:$("#fee-note"),
- submit:$("#trade-submit"),tradeMessage:$("#trade-message"),max:$("#trade-max"),companyNews:$("#company-news")
+ submit:$("#trade-submit"),tradeMessage:$("#trade-message"),max:$("#trade-max"),companyNews:$("#company-news"),communityHoldings:$("#community-holdings")
 };
 const sectors={gaming:"Gaming and entertainment",technology:"Technology",industry:"Transport and industry",consumer:"Consumer businesses"};
 let overview=null,selectedTicker=null,detailDuration="1h",tradeSide="buy",portfolioDuration=localStorage.getItem("stock-portfolio-duration")||"30d";
-let nextTick=0,busy=false,tradeBusy=false,detailData=null,portfolioData=null;
+let detailChartType=localStorage.getItem("stock-detail-chart-type")==="candlestick"?"candlestick":"line";
+let nextTick=0,busy=false,tradeBusy=false,detailData=null,portfolioData=null,communityData=null,communityBusy=false;
 
 const number=(v,d=0)=>new Intl.NumberFormat("en-AU",{maximumFractionDigits:d}).format(Number(v??0));
 const price=v=>new Intl.NumberFormat("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(v??0));
@@ -78,14 +79,40 @@ function renderNews(target,a){
  target.replaceChildren();if(!a?.length){target.innerHTML='<p class="empty">No market news has been generated yet.</p>';return}
  a.forEach(n=>{const r=document.createElement("article");r.className="news-card";r.innerHTML=`<span class="news-icon ${cls(n.impact)}">${Number(n.impact)>=0?"↗":"↘"}</span><div><strong>${n.ticker?`${n.ticker} · `:""}${n.headline}</strong><p>${n.summary}</p></div><span>${ago(n.published_at)}</span>`;target.append(r)})
 }
+function renderCommunity(){
+ el.communityHoldings.replaceChildren();const players=communityData?.players||[];
+ if(!players.length){el.communityHoldings.innerHTML='<p class="empty">Nobody owns stock yet.</p>';return}
+ players.forEach(player=>{
+  const card=document.createElement("article");card.className=`community-player ${player.is_you?"you":""}`.trim();
+  const head=document.createElement("div");head.className="community-player-head";
+  const nameWrap=document.createElement("div");nameWrap.className="community-player-name";
+  const name=document.createElement("strong");name.textContent=player.username;name.dataset.profileUserId=player.user_id;name.dataset.profileUsername=player.username;
+  nameWrap.append(name);if(player.is_you){const you=document.createElement("span");you.className="you-chip";you.textContent="YOU";nameWrap.append(you)}
+  const total=document.createElement("div");total.className="community-total";total.innerHTML=`<span>${number(player.position_count)} position${Number(player.position_count)===1?"":"s"}</span><strong>${number(player.total_value)} chips</strong>`;
+  head.append(nameWrap,total);
+  const positions=document.createElement("div");positions.className="community-positions";
+  (player.positions||[]).forEach(position=>{
+   const row=document.createElement("article");row.className="community-position";row.tabIndex=0;
+   row.innerHTML=`<div><strong>${position.ticker} · ${position.name}</strong><span>${shares(position.shares)} shares at ${price(position.average_cost)} avg.</span></div><strong>${number(position.position_value)} chips</strong><strong class="position-profit ${cls(position.unrealised_profit)}">${signed(position.unrealised_profit)}</strong>`;
+   const open=()=>openDetail(position.ticker);row.onclick=open;row.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open()}};positions.append(row)
+  });
+  card.append(head,positions);el.communityHoldings.append(card)
+ })
+}
+async function loadCommunity(force=false){
+ if(communityBusy||communityData&&!force)return;communityBusy=true;
+ try{const {data,error}=await supabaseClient.rpc("get_public_stock_holdings");if(error)throw error;communityData=data;renderCommunity()}
+ catch(e){console.error(e);const failure=document.createElement("p");failure.className="empty";failure.textContent=e.message||"Community holdings could not be loaded.";el.communityHoldings.replaceChildren(failure)}
+ finally{communityBusy=false}
+}
 function renderAll(){renderHeader();renderGrid();renderMetrics();renderHoldings();renderTrades();renderNews(el.news,overview.news);setView(localStorage.getItem("stock-view")||"market");updateEstimate()}
-async function loadOverview(silent=false){if(busy)return;busy=true;try{const {data,error}=await supabaseClient.rpc("get_stock_market_overview");if(error)throw error;overview=data;renderAll();if(selectedTicker&&el.dialog.open)updateDetail(company(selectedTicker))}catch(e){console.error(e);if(!silent)message(e.message||"The stock market could not be loaded.","error")}finally{busy=false}}
+async function loadOverview(silent=false){if(busy)return;busy=true;try{const {data,error}=await supabaseClient.rpc("get_stock_market_overview");if(error)throw error;overview=data;communityData=null;renderAll();if(selectedTicker&&el.dialog.open)updateDetail(company(selectedTicker))}catch(e){console.error(e);if(!silent)message(e.message||"The stock market could not be loaded.","error")}finally{busy=false}}
 
 function setView(view){
- if(!["market","portfolio","news"].includes(view))view="market";localStorage.setItem("stock-view",view);
+ if(!["market","portfolio","community","news"].includes(view))view="market";localStorage.setItem("stock-view",view);
  $$(".view-tab").forEach(b=>{const a=b.dataset.view===view;b.classList.toggle("active",a);b.setAttribute("aria-pressed",a)});
- el.marketView.classList.toggle("hidden",view!=="market");el.portfolioView.classList.toggle("hidden",view!=="portfolio");el.newsView.classList.toggle("hidden",view!=="news");
- if(view==="portfolio")loadPortfolio(portfolioDuration)
+ el.marketView.classList.toggle("hidden",view!=="market");el.portfolioView.classList.toggle("hidden",view!=="portfolio");el.communityView.classList.toggle("hidden",view!=="community");el.newsView.classList.toggle("hidden",view!=="news");
+ if(view==="portfolio")loadPortfolio(portfolioDuration);if(view==="community")loadCommunity()
 }
 function axisDate(t,d){return new Intl.DateTimeFormat("en-AU",d==="1h"||d==="6h"||d==="24h"?{hour:"2-digit",minute:"2-digit"}:d==="7d"||d==="30d"||d==="90d"?{day:"numeric",month:"short"}:{month:"short",year:"2-digit"}).format(new Date(t))}
 function lineChart(node,tip,points,key,duration,formatter,label){
@@ -103,29 +130,54 @@ function lineChart(node,tip,points,key,duration,formatter,label){
  const show=e=>{const b=node.getBoundingClientRect(),sx=(e.clientX-b.left)*w/b.width;let q=pts.reduce((best,c)=>Math.abs(c.x-sx)<Math.abs(best.x-sx)?c:best,pts[0]);hl.setAttribute("x1",q.x);hl.setAttribute("x2",q.x);hp.setAttribute("cx",q.x);hp.setAttribute("cy",q.y);hl.classList.remove("hidden");hp.classList.remove("hidden");tip.innerHTML=`<strong>${formatter(q.v)} ${label}</strong><span>${dateTime(q.at)}</span>`;tip.classList.remove("hidden");const sb=shell.getBoundingClientRect(),left=Math.min(Math.max(b.left+q.x*b.width/w-sb.left-tip.offsetWidth/2,8),sb.width-tip.offsetWidth-8),top=Math.max(b.top+q.y*b.height/h-sb.top-tip.offsetHeight-12,8);tip.style.left=`${left}px`;tip.style.top=`${top}px`};
  rect.onpointermove=show;rect.onpointerdown=show;rect.onpointerleave=hide;node.append(hl,hp,rect)
 }
+function candlestickChart(node,tip,points,duration){
+ node.replaceChildren();tip.classList.add("hidden");
+ const raw=(points||[]).map(point=>({at:+new Date(point.at),open:+(point.open??point.price),high:+(point.high??point.price),low:+(point.low??point.price),close:+(point.close??point.price),volume:+(point.volume??0)})).filter(point=>[point.at,point.open,point.high,point.low,point.close].every(Number.isFinite)).sort((x,y)=>x.at-y.at);
+ const a=[];for(let i=0;i<raw.length;i+=3){const group=raw.slice(i,i+3);if(!group.length)continue;a.push({at:group[0].at,open:group[0].open,high:Math.max(...group.map(point=>point.high)),low:Math.min(...group.map(point=>point.low)),close:group.at(-1).close,volume:group.reduce((sum,point)=>sum+point.volume,0)})}
+ const shell=node.parentElement,w=Math.max(shell.clientWidth,320),h=w<560?270:320,p={t:18,r:16,b:42,l:w<560?58:72};node.setAttribute("viewBox",`0 0 ${w} ${h}`);
+ if(!a.length){const t=svg("text",{x:w/2,y:h/2,"text-anchor":"middle",class:"axis-label"});t.textContent="No candle history recorded yet.";node.append(t);return}
+ let minT=a[0].at,maxT=a.at(-1).at;if(maxT<=minT){minT-=60000;maxT+=60000}
+ let min=Math.min(...a.map(point=>point.low)),max=Math.max(...a.map(point=>point.high)),span=max-min,pad=span?Math.max(span*.1,.01):Math.max(Math.abs(max)*.08,1);min=Math.max(0,min-pad);max+=pad;if(max<=min)max=min+1;
+ const pw=w-p.l-p.r,ph=h-p.t-p.b,x=(time,index)=>a.length===1?p.l+pw/2:p.l+index/(a.length-1)*pw,y=value=>p.t+(1-(value-min)/(max-min))*ph;
+ for(let i=0;i<5;i++){const yy=p.t+i/4*ph;node.append(svg("line",{x1:p.l,y1:yy,x2:w-p.r,y2:yy,class:"grid-line"}));const tx=svg("text",{x:p.l-8,y:yy+4,"text-anchor":"end",class:"axis-label"});tx.textContent=price(max-i/4*(max-min));node.append(tx)}
+ for(let i=0;i<(w<560?4:6);i++){const n=w<560?4:6,xx=p.l+i/(n-1)*pw,t=minT+i/(n-1)*(maxT-minT),tx=svg("text",{x:xx,y:h-14,"text-anchor":i===0?"start":i===n-1?"end":"middle",class:"axis-label"});tx.textContent=axisDate(t,duration);node.append(tx)}
+ const candleWidth=Math.max(2,Math.min(14,pw/Math.max(a.length,1)*.62));
+ const candles=a.map((point,index)=>({...point,x:x(point.at,index)}));
+ candles.forEach(point=>{const direction=point.close>=point.open?"up":"down",openY=y(point.open),closeY=y(point.close),top=Math.min(openY,closeY),bodyHeight=Math.max(Math.abs(closeY-openY),1.5);node.append(svg("line",{x1:point.x,y1:y(point.high),x2:point.x,y2:y(point.low),class:`candle-wick ${direction}`}),svg("rect",{x:point.x-candleWidth/2,y:top,width:candleWidth,height:bodyHeight,rx:1,class:`candle-body ${direction}`}))});
+ const hl=svg("line",{class:"hover-line hidden",y1:p.t,y2:p.t+ph}),rect=svg("rect",{class:"interaction",x:p.l,y:p.t,width:pw,height:ph});
+ const hide=()=>{hl.classList.add("hidden");tip.classList.add("hidden")};
+ const show=e=>{const b=node.getBoundingClientRect(),sx=(e.clientX-b.left)*w/b.width,q=candles.reduce((best,current)=>Math.abs(current.x-sx)<Math.abs(best.x-sx)?current:best,candles[0]);hl.setAttribute("x1",q.x);hl.setAttribute("x2",q.x);hl.classList.remove("hidden");tip.innerHTML=`<strong>${dateTime(q.at)}</strong><span>Open ${price(q.open)} · High ${price(q.high)}</span><span>Low ${price(q.low)} · Close ${price(q.close)}</span><small>Volume ${number(q.volume)} chips</small>`;tip.classList.remove("hidden");const sb=shell.getBoundingClientRect(),left=Math.min(Math.max(b.left+q.x*b.width/w-sb.left-tip.offsetWidth/2,8),sb.width-tip.offsetWidth-8),top=Math.max(b.top+y(q.high)*b.height/h-sb.top-tip.offsetHeight-12,8);tip.style.left=`${left}px`;tip.style.top=`${top}px`};
+ rect.onpointermove=show;rect.onpointerdown=show;rect.onpointerleave=hide;node.append(hl,rect)
+}
+function drawDetailChart(){
+ if(!detailData)return;
+ if(detailChartType==="candlestick")candlestickChart(el.dChart,el.dTip,detailData.points,detailDuration);
+ else lineChart(el.dChart,el.dTip,detailData.points,"price",detailDuration,v=>price(v),"chips")
+}
 async function loadPortfolio(d){
  portfolioDuration=d;localStorage.setItem("stock-portfolio-duration",d);$$("#portfolio-ranges button").forEach(b=>b.classList.toggle("active",b.dataset.duration===d));
  try{const {data,error}=await supabaseClient.rpc("get_my_stock_portfolio_history",{p_duration:d});if(error)throw error;portfolioData=data;lineChart(el.pChart,el.pTip,data.points,"total",d,v=>number(v),"chips")}catch(e){console.warn(e)}
 }
 function updateDetail(c){if(!c)return;el.dSector.textContent=sectors[c.sector].toUpperCase();el.dName.textContent=c.name;el.dTicker.textContent=c.ticker;el.dDescription.textContent=c.description;el.dPrice.textContent=`${price(c.price)} chips`;el.dOwned.textContent=`${shares(c.owned_shares)} shares`;el.dAverage.textContent=`${price(c.average_cost)} chips`;updateEstimate()}
-async function loadDetail(){const {data,error}=await supabaseClient.rpc("get_stock_company_history",{p_ticker:selectedTicker,p_duration:detailDuration});if(error)throw error;detailData=data;lineChart(el.dChart,el.dTip,data.points,"price",detailDuration,v=>price(v),"chips");renderNews(el.companyNews,data.news)}
+async function loadDetail(){const {data,error}=await supabaseClient.rpc("get_stock_company_history",{p_ticker:selectedTicker,p_duration:detailDuration});if(error)throw error;detailData=data;drawDetailChart();renderNews(el.companyNews,data.news)}
 async function openDetail(t){selectedTicker=t;updateDetail(company(t));tradeMessage();if(!el.dialog.open)el.dialog.showModal();try{await loadDetail()}catch(e){tradeMessage(e.message,"error")}}
 function closeDetail(){selectedTicker=null;detailData=null;el.dialog.close()}
 function updateSide(){ $$("#side-buttons button").forEach(b=>b.classList.toggle("active",b.dataset.side===tradeSide));el.submit.textContent=tradeSide==="buy"?"Buy shares":"Sell shares";el.submit.classList.toggle("sell",tradeSide==="sell");updateEstimate()}
 function shareValue(){const v=Number(el.shares.value);return Number.isFinite(v)?Math.max(v,0):0}
-function updateEstimate(){const c=company(selectedTicker);if(!c){el.estimate.textContent="0 chips";return}const sh=shareValue(),ep=Number(c.price)*(tradeSide==="buy"?1.0025:.9975),gross=tradeSide==="buy"?Math.ceil(ep*sh):Math.floor(ep*sh),fee=gross?Math.max(1,Math.ceil(gross*.005)):0,total=tradeSide==="buy"?gross+fee:Math.max(gross-fee,0);el.estimate.textContent=tradeSide==="buy"?`${number(total)} chips spent`:`${number(total)} chips received`;el.fee.textContent=`Estimated at ${price(ep)} per share · ${number(fee)} fee`}
+function updateEstimate(){const c=company(selectedTicker);if(!c){el.estimate.textContent="0 chips";return}const sh=shareValue(),ep=Number(c.price)*(tradeSide==="buy"?1.0025:.9975),gross=tradeSide==="buy"?Math.ceil(ep*sh):Math.floor(ep*sh),feeRate=tradeSide==="buy"?.005:.0025,fee=gross?Math.max(1,Math.ceil(gross*feeRate)):0,total=tradeSide==="buy"?gross+fee:Math.max(gross-fee,0);el.estimate.textContent=tradeSide==="buy"?`${number(total)} chips spent`:`${number(total)} chips received`;el.fee.textContent=`Estimated at ${price(ep)} per share · ${number(fee)} fee (${(feeRate*100).toFixed(2)}%)`}
 function maxShares(){const c=company(selectedTicker);if(!c)return;if(tradeSide==="sell")el.shares.value=Number(c.owned_shares).toFixed(4);else{const wallet=Number(overview.portfolio.wallet_chips),v=Math.floor(wallet/(Number(c.price)*1.0025*1.005)*100)/100;el.shares.value=Math.max(v,0).toFixed(2)}updateEstimate()}
-async function submitTrade(){if(tradeBusy||!selectedTicker)return;const sh=shareValue();if(sh<.01){tradeMessage("Enter at least 0.01 shares.","error");return}tradeBusy=true;el.submit.disabled=true;try{const {data,error}=await supabaseClient.rpc("execute_stock_trade",{p_ticker:selectedTicker,p_side:tradeSide,p_shares:sh});if(error)throw error;tradeMessage(`${tradeSide==="buy"?"Bought":"Sold"} ${shares(data.shares)} ${data.ticker} shares.`,"success");await loadOverview(true);await loadDetail();updateDetail(company(selectedTicker))}catch(e){tradeMessage(e.message||"The trade could not be completed.","error")}finally{tradeBusy=false;el.submit.disabled=false}}
+async function submitTrade(){if(tradeBusy||!selectedTicker)return;const sh=shareValue();if(sh<.01){tradeMessage("Enter at least 0.01 shares.","error");return}tradeBusy=true;el.submit.disabled=true;try{const {data,error}=await supabaseClient.rpc("execute_stock_trade",{p_ticker:selectedTicker,p_side:tradeSide,p_shares:sh});if(error)throw error;tradeMessage(`${tradeSide==="buy"?"Bought":"Sold"} ${shares(data.shares)} ${data.ticker} shares.`,"success");communityData=null;await loadOverview(true);await loadDetail();updateDetail(company(selectedTicker))}catch(e){tradeMessage(e.message||"The trade could not be completed.","error")}finally{tradeBusy=false;el.submit.disabled=false}}
 function countdown(){if(!nextTick){el.countdown.textContent="--:--";return}const s=Math.max(0,Math.ceil((nextTick-Date.now())/1000));el.countdown.textContent=`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;if(s===0)loadOverview(true)}
 
 $$(".view-tab").forEach(b=>b.onclick=()=>setView(b.dataset.view));
 [el.search,el.sector,el.sort].forEach(n=>n.addEventListener(n===el.search?"input":"change",renderGrid));
 $$("#portfolio-ranges button").forEach(b=>b.onclick=()=>loadPortfolio(b.dataset.duration));
 $$("#detail-ranges button").forEach(b=>b.onclick=async()=>{detailDuration=b.dataset.duration;$$("#detail-ranges button").forEach(x=>x.classList.toggle("active",x===b));if(selectedTicker)try{await loadDetail()}catch(e){tradeMessage(e.message,"error")}});
+$$("#detail-chart-types button").forEach(b=>{b.classList.toggle("active",b.dataset.chartType===detailChartType);b.onclick=()=>{detailChartType=b.dataset.chartType;localStorage.setItem("stock-detail-chart-type",detailChartType);$$("#detail-chart-types button").forEach(x=>x.classList.toggle("active",x===b));drawDetailChart()}});
 $$("#side-buttons button").forEach(b=>b.onclick=()=>{tradeSide=b.dataset.side;updateSide()});
 $$(".quick-shares button[data-shares]").forEach(b=>b.onclick=()=>{el.shares.value=b.dataset.shares;updateEstimate()});
 el.shares.oninput=updateEstimate;el.max.onclick=maxShares;el.submit.onclick=submitTrade;el.close.onclick=closeDetail;el.dialog.onclick=e=>{if(e.target===el.dialog)closeDetail()};
-window.onresize=()=>{if(el.dialog.open&&detailData)lineChart(el.dChart,el.dTip,detailData.points,"price",detailDuration,v=>price(v),"chips");if(portfolioData&&!el.portfolioView.classList.contains("hidden"))lineChart(el.pChart,el.pTip,portfolioData.points,"total",portfolioDuration,v=>number(v),"chips")};
+window.onresize=()=>{if(el.dialog.open&&detailData)drawDetailChart();if(portfolioData&&!el.portfolioView.classList.contains("hidden"))lineChart(el.pChart,el.pTip,portfolioData.points,"total",portfolioDuration,v=>number(v),"chips")};
 
 (async function init(){
  const {data:{user},error}=await supabaseClient.auth.getUser();if(error||!user){location.href="login.html";return}

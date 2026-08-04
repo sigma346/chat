@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Stock Market</title>
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="stocks.css?v=1">
+<link rel="stylesheet" href="stocks.css?v=2">
 </head>
 <body>
 <main class="page"><div class="stock-market-layout">
@@ -30,13 +30,14 @@
     <article><span>Market mood</span><strong id="market-regime">Neutral</strong></article>
     <article><span>Next update</span><strong id="market-countdown">05:00</strong></article>
     <article><span>Last tick</span><strong id="market-last-tick">Loading...</strong></article>
-    <article><span>Trading cost</span><strong>0.25% spread + 0.5% fee</strong></article>
+    <article><span>Trading cost</span><strong>0.25% spread · 0.5% buy / 0.25% sell fee</strong></article>
   </div>
 </section>
 
 <nav class="panel view-tabs" aria-label="Stock market sections">
   <button type="button" class="view-tab active" data-view="market" aria-pressed="true">Market</button>
   <button type="button" class="view-tab" data-view="portfolio" aria-pressed="false">My portfolio</button>
+  <button type="button" class="view-tab" data-view="community" aria-pressed="false">Community</button>
   <button type="button" class="view-tab" data-view="news" aria-pressed="false">News</button>
 </nav>
 
@@ -78,6 +79,16 @@
   <section class="panel list-panel"><div class="section-heading"><div><p class="eyebrow">RECENT ACTIVITY</p><h2>Trade history</h2></div></div><div id="trade-list"></div></section>
 </section>
 
+<section id="community-view" class="stock-view hidden">
+  <section class="panel list-panel">
+    <div class="section-heading">
+      <div><p class="eyebrow">COMMUNITY HOLDINGS</p><h2>What players are invested in</h2></div>
+      <p class="community-note">Stock positions are public. Wallet balances are not shown.</p>
+    </div>
+    <div id="community-holdings" class="community-holdings"><p class="empty">Loading player investments...</p></div>
+  </section>
+</section>
+
 <section id="news-view" class="stock-view hidden">
   <section class="panel list-panel"><div class="section-heading"><div><p class="eyebrow">MARKET NEWS</p><h2>Recent company events</h2></div></div><div id="news-list"></div></section>
 </section>
@@ -92,10 +103,16 @@
   <article><span>Your shares</span><strong id="detail-owned">0</strong></article>
   <article><span>Average cost</span><strong id="detail-average">0.00</strong></article>
 </div>
-<div id="detail-ranges" class="range-buttons">
-  <button class="active" data-duration="1h">1H</button><button data-duration="6h">6H</button>
-  <button data-duration="24h">24H</button><button data-duration="7d">7D</button>
-  <button data-duration="30d">30D</button><button data-duration="all">ALL</button>
+<div class="detail-chart-controls">
+  <div id="detail-ranges" class="range-buttons">
+    <button class="active" data-duration="1h">1H</button><button data-duration="6h">6H</button>
+    <button data-duration="24h">24H</button><button data-duration="7d">7D</button>
+    <button data-duration="30d">30D</button><button data-duration="all">ALL</button>
+  </div>
+  <div id="detail-chart-types" class="range-buttons chart-type-buttons" aria-label="Chart type">
+    <button class="active" data-chart-type="line">Line</button>
+    <button data-chart-type="candlestick">Candlestick</button>
+  </div>
 </div>
 <div class="chart-shell"><svg id="detail-chart" class="chart" role="img"></svg><div id="detail-tooltip" class="chart-tooltip hidden"></div></div>
 <section class="trade-panel">
@@ -111,5 +128,5 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script><script src="supabase-client.js"></script><script src="navbar.js"></script><script src="stocks.js?v=1"></script>
+<script src="config.js"></script><script src="supabase-client.js"></script><script src="navbar.js"></script><script src="stocks.js?v=2"></script><script src="profile-links.js"></script>
 </body></html>
