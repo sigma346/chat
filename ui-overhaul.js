@@ -42,6 +42,12 @@
             keywords: "single player slots reels spin casino arcade chips"
         },
         {
+            group: "Economy",
+            label: "Stock Market",
+            href: "stocks.html",
+            keywords: "stocks market shares portfolio investing companies exchange"
+        },
+        {
             group: "Games",
             label: "Penguin Cross",
             href: "penguin-cross.html",
