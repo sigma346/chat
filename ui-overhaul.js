@@ -37,6 +37,12 @@
         },
         {
             group: "Games",
+            label: "Slot Machines",
+            href: "slots.html",
+            keywords: "single player slots reels spin casino arcade chips"
+        },
+        {
+            group: "Games",
             label: "Penguin Cross",
             href: "penguin-cross.html",
             keywords: "single player ice cash out"

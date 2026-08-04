@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Slot Machines</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="slots.css?v=1">
+</head>
+
+<body class="slots-page">
+    <main class="page slots-page-shell" id="main-content">
+        <div class="slots-layout">
+            <div id="site-navbar"></div>
+
+            <header class="panel slots-header">
+                <div>
+                    <p class="eyebrow">
+                        SINGLE-PLAYER ARCADE
+                    </p>
+
+                    <h1>Slot Machines</h1>
+
+                    <p class="description">
+                        Choose a machine and a total play-chip bet.
+                        Every spin has an exact 50% chance to pay twice the
+                        bet and a 50% chance to pay nothing.
+                    </p>
+                </div>
+
+                <div class="slots-wallet-card">
+                    <span>Wallet chips</span>
+
+                    <strong id="wallet-balance">
+                        0
+                    </strong>
+                </div>
+            </header>
+
+            <section class="panel slot-machine-picker-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">
+                            MACHINES
+                        </p>
+
+                        <h2>Choose your cabinet</h2>
+                    </div>
+
+                    <span class="slots-play-chip-note">
+                        Play chips only
+                    </span>
+                </div>
+
+                <div
+                    id="slot-machine-picker"
+                    class="slot-machine-picker"
+                    aria-label="Available slot machines"
+                ></div>
+            </section>
+
+            <section class="panel slot-cabinet-panel">
+                <div class="slot-cabinet-heading">
+                    <div>
+                        <p
+                            id="selected-machine-subtitle"
+                            class="eyebrow"
+                        >
+                            CLASSIC FRUIT MACHINE
+                        </p>
+
+                        <h2 id="selected-machine-name">
+                            Lucky Sevens
+                        </h2>
+                    </div>
+
+                    <div class="slot-cabinet-badges">
+                        <span id="selected-machine-volatility">
+                            Low volatility
+                        </span>
+
+                        <span id="selected-machine-rtp">
+                            97.59% RTP
+                        </span>
+
+                        <span
+                            id="free-spin-badge"
+                            class="slot-free-spin-badge hidden"
+                        >
+                            0 free spins
+                        </span>
+                    </div>
+                </div>
+
+                <div
+                    id="slot-reels"
+                    class="slot-reels"
+                    role="img"
+                    aria-label="Five reel slot-machine result"
+                ></div>
+
+                <div
+                    id="slot-winning-lines"
+                    class="slot-winning-lines"
+                >
+                    <span class="slot-no-line-win">
+                        A winning spin highlights the centre payline.
+                    </span>
+                </div>
+
+                <div
+                    id="slot-result"
+                    class="slot-result"
+                    aria-live="polite"
+                >
+                    <span>Last result</span>
+
+                    <strong>
+                        Select a bet and spin
+                    </strong>
+                </div>
+
+                <div class="slot-controls">
+                    <div class="slot-bet-section">
+                        <span class="slot-control-label">
+                            Total bet
+                        </span>
+
+                        <div
+                            id="slot-bet-buttons"
+                            class="slot-bet-buttons"
+                        ></div>
+
+                        <small id="slot-bet-breakdown">
+                            10 paylines · 1 chip per line
+                        </small>
+                    </div>
+
+                    <label class="slot-fast-mode-control">
+                        <input
+                            id="slot-fast-mode"
+                            type="checkbox"
+                        >
+
+                        <span>
+                            Fast animation
+                        </span>
+                    </label>
+
+                    <button
+                        id="slot-spin-button"
+                        class="slot-spin-button"
+                        type="button"
+                    >
+                        Spin · 10 chips
+                    </button>
+                </div>
+
+                <p
+                    id="slot-message"
+                    class="form-message"
+                    role="alert"
+                ></p>
+            </section>
+
+            <section class="slots-information-grid">
+                <section class="panel slots-statistics-panel">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">
+                                YOUR SESSION HISTORY
+                            </p>
+
+                            <h2>Slot statistics</h2>
+                        </div>
+                    </div>
+
+                    <div
+                        id="slot-statistics"
+                        class="slot-statistics"
+                    ></div>
+                </section>
+
+                <section class="panel slot-paytable-panel">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">
+                                PAYTABLE
+                            </p>
+
+                            <h2 id="slot-paytable-title">
+                                Lucky Sevens payouts
+                            </h2>
+                        </div>
+                    </div>
+
+                    <p
+                        id="slot-paytable-description"
+                        class="slot-paytable-description"
+                    ></p>
+
+                    <div
+                        id="slot-paytable"
+                        class="slot-paytable"
+                    ></div>
+                </section>
+            </section>
+
+            <section class="panel slot-history-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">
+                            RECENT SPINS
+                        </p>
+
+                        <h2>History</h2>
+                    </div>
+                </div>
+
+                <div
+                    id="slot-history"
+                    class="slot-history"
+                >
+                    <p class="empty-slot-history">
+                        No spins yet.
+                    </p>
+                </div>
+            </section>
+
+            <section class="panel slot-rules-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">
+                            HOW IT WORKS
+                        </p>
+
+                        <h2>Rules and fairness</h2>
+                    </div>
+                </div>
+
+                <div class="slot-rules-grid">
+                    <article>
+                        <h3>Ten paylines</h3>
+
+                        <p>
+                            A winning result displays five matching symbols
+                            across the centre payline and pays twice the total
+                            bet. A losing result pays nothing.
+                        </p>
+                    </article>
+
+                    <article>
+                        <h3>Server-authoritative spins</h3>
+
+                        <p>
+                            The database deducts the bet, generates the full
+                            grid, evaluates every line and credits the payout
+                            in one protected transaction. Changing the browser
+                            animation cannot change the result.
+                        </p>
+                    </article>
+
+                    <article>
+                        <h3>Same odds on every cabinet</h3>
+
+                        <p>
+                            Lucky Sevens, Neon Rush and Cosmic Vault use
+                            identical financial odds. Their symbols and visual
+                            presentation are the only differences.
+                        </p>
+                    </article>
+
+                    <article>
+                        <h3>Expected return</h3>
+
+                        <p>
+                            Half of spins return 2× the total bet and half
+                            return 0. The expected payout is exactly 1× the
+                            bet, producing a theoretical RTP of 100%.
+                        </p>
+                    </article>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="slots.js?v=3"></script>
+</body>
+</html>

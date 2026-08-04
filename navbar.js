@@ -36,6 +36,11 @@
                     files: ["plinko.html"]
                 },
                 {
+                    label: "Slot Machines",
+                    href: "slots.html",
+                    files: ["slots.html"]
+                },
+                {
                     label: "Penguin Cross",
                     href: "penguin-cross.html",
                     files: ["penguin-cross.html"]
@@ -130,7 +135,7 @@
 
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "ui-overhaul.css?v=34";
+        link.href = "ui-overhaul.css?v=35";
         link.dataset.uiOverhaul = "true";
         document.head.append(link);
     }
@@ -145,7 +150,7 @@
         }
 
         const script = document.createElement("script");
-        script.src = "ui-overhaul.js?v=34";
+        script.src = "ui-overhaul.js?v=35";
         script.dataset.uiOverhaul = "true";
         script.addEventListener("error", () => {
             console.warn(
@@ -652,7 +657,7 @@
 
     function pageLayout() {
         return document.querySelector(
-            ".poker-layout, .plinko-layout, .recovery-layout, "
+            ".poker-layout, .plinko-layout, .slots-layout, .recovery-layout, "
             + ".draw-layout, .hearts-layout, .blackjack-layout, "
             + ".disclaimer-layout, .horse-racing-layout, "
             + ".community-roulette-layout, .penguin-cross-layout, .leaderboards-layout, "
