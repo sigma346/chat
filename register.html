@@ -12,6 +12,7 @@
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="account-rules.css?v=1">
     <link
         rel="stylesheet"
         href="ui-overhaul.css?v=35"
@@ -92,6 +93,30 @@
                     placeholder="Repeat password"
                     required
                 >
+
+                <aside class="account-rule-notice" role="note">
+                    <strong>One player, one account</strong>
+
+                    <p>
+                        Creating or using alternate accounts is against the
+                        rules and will result in a ban. This includes accounts
+                        made to claim extra starting chips, farm rewards,
+                        transfer donations or avoid moderation.
+                    </p>
+                </aside>
+
+                <label class="account-rule-agreement">
+                    <input
+                        id="account-rule-agreement"
+                        type="checkbox"
+                        required
+                    >
+
+                    <span>
+                        I understand that alternate accounts are forbidden
+                        and will result in a ban.
+                    </span>
+                </label>
 
                 <button id="register-button" type="submit">
                     Create account

@@ -170,7 +170,7 @@ registerForm.addEventListener(
             registerForm.reset();
 
             if (data.session) {
-                window.location.href = "account.html";
+                window.location.href = "home.html";
                 return;
             }
 

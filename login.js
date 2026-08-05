@@ -105,7 +105,7 @@ async function redirectIfAlreadyLoggedIn() {
     } = await window.supabaseClient.auth.getSession();
 
     if (session && await checkSignedInAccountAccess()) {
-        window.location.href = "index.html";
+        window.location.href = "home.html";
     }
 }
 
@@ -136,7 +136,7 @@ loginForm.addEventListener(
             }
 
             if (await checkSignedInAccountAccess()) {
-                window.location.href = "index.html";
+                window.location.href = "home.html";
             }
         } catch (error) {
             console.error(error);

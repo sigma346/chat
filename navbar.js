@@ -15,6 +15,11 @@
 
     const navigationItems = [
         {
+            label: "Home",
+            href: "home.html",
+            files: ["home.html"]
+        },
+        {
             label: "Chat",
             href: "index.html",
             files: ["index.html", ""]
