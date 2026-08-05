@@ -73,14 +73,24 @@
             ]
         },
         {
+            label: "Markets",
+            children: [
+                {
+                    label: "Fictional Market",
+                    href: "stocks.html",
+                    files: ["stocks.html"]
+                },
+                {
+                    label: "Real Market",
+                    href: "real-stocks.html",
+                    files: ["real-stocks.html"]
+                }
+            ]
+        },
+        {
             label: "Challenges",
             href: "challenges.html",
             files: ["challenges.html"]
-        },
-        {
-            label: "Stock Market",
-            href: "stocks.html",
-            files: ["stocks.html"]
         },
         {
             label: "Social",
@@ -140,7 +150,7 @@
 
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "ui-overhaul.css?v=36";
+        link.href = "ui-overhaul.css?v=35";
         link.dataset.uiOverhaul = "true";
         document.head.append(link);
     }
@@ -155,7 +165,7 @@
         }
 
         const script = document.createElement("script");
-        script.src = "ui-overhaul.js?v=36";
+        script.src = "ui-overhaul.js?v=35";
         script.dataset.uiOverhaul = "true";
         script.addEventListener("error", () => {
             console.warn(
@@ -662,7 +672,7 @@
 
     function pageLayout() {
         return document.querySelector(
-            ".poker-layout, .plinko-layout, .slots-layout, .stock-market-layout, .recovery-layout, "
+            ".poker-layout, .plinko-layout, .slots-layout, .recovery-layout, "
             + ".draw-layout, .hearts-layout, .blackjack-layout, "
             + ".disclaimer-layout, .horse-racing-layout, "
             + ".community-roulette-layout, .penguin-cross-layout, .leaderboards-layout, "
