@@ -1,0 +1,279 @@
+.admin-users-page {
+    min-height: 100vh;
+}
+
+.admin-users-layout {
+    width: min(1180px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 1.25rem 0 4rem;
+}
+
+.admin-hero {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.admin-hero h1,
+.admin-dialog h2 {
+    margin: 0.15rem 0 0.5rem;
+}
+
+.admin-description {
+    max-width: 48rem;
+    margin: 0;
+    color: #aebbd0;
+}
+
+.admin-message {
+    margin: 1rem 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(98, 230, 189, 0.3);
+    border-radius: 0.85rem;
+    background: rgba(98, 230, 189, 0.09);
+    color: #d9fff3;
+}
+
+.admin-message[data-tone="error"] {
+    border-color: rgba(255, 104, 128, 0.42);
+    background: rgba(171, 35, 59, 0.18);
+    color: #ffd9df;
+}
+
+.admin-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin: 1rem 0;
+}
+
+.admin-stat {
+    display: grid;
+    gap: 0.3rem;
+    padding: 1rem 1.15rem;
+}
+
+.admin-stat span {
+    color: #9eabc0;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-stat strong {
+    font-size: clamp(1.5rem, 4vw, 2.15rem);
+}
+
+.admin-stat-danger strong {
+    color: #ff9caf;
+}
+
+.admin-stat-muted strong {
+    color: #aebbd0;
+}
+
+.admin-directory {
+    padding: 1rem;
+}
+
+.admin-directory-toolbar {
+    display: grid;
+    grid-template-columns: minmax(15rem, 1fr) minmax(10rem, 0.28fr);
+    gap: 0.9rem;
+    align-items: end;
+    margin-bottom: 1rem;
+}
+
+.admin-directory-toolbar label,
+.admin-dialog label {
+    display: grid;
+    gap: 0.4rem;
+    color: #cbd5e5;
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.admin-directory input,
+.admin-directory select,
+.admin-dialog input,
+.admin-dialog select,
+.admin-dialog textarea {
+    width: 100%;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 0.75rem;
+    background: rgba(7, 12, 20, 0.82);
+    color: #f3f6fb;
+    font: inherit;
+}
+
+.admin-dialog textarea {
+    resize: vertical;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+}
+
+#users-table {
+    width: 100%;
+    min-width: 850px;
+    border-collapse: collapse;
+}
+
+#users-table th,
+#users-table td {
+    padding: 0.9rem 0.75rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    text-align: left;
+    vertical-align: middle;
+}
+
+#users-table th {
+    color: #98a7bd;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.user-identity {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.user-identity small,
+.user-date,
+.user-ban-reason {
+    color: #93a1b6;
+}
+
+.user-ban-reason {
+    display: block;
+    max-width: 18rem;
+    margin-top: 0.25rem;
+    font-size: 0.76rem;
+}
+
+.status-pill {
+    display: inline-flex;
+    padding: 0.28rem 0.55rem;
+    border: 1px solid rgba(98, 230, 189, 0.25);
+    border-radius: 999px;
+    background: rgba(98, 230, 189, 0.09);
+    color: #baffea;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.status-pill-banned,
+.status-pill-deleted {
+    border-color: rgba(255, 104, 128, 0.36);
+    background: rgba(171, 35, 59, 0.18);
+    color: #ffb6c2;
+}
+
+.status-pill-admin {
+    border-color: rgba(255, 211, 105, 0.34);
+    background: rgba(190, 135, 25, 0.16);
+    color: #ffe5a0;
+}
+
+.user-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.user-actions button,
+.dialog-actions button,
+#refresh-users-button {
+    min-height: 38px;
+    padding: 0.55rem 0.75rem;
+}
+
+.danger-button,
+.user-actions .danger-button {
+    border-color: rgba(255, 104, 128, 0.4);
+    background: rgba(171, 35, 59, 0.28);
+    color: #ffd7de;
+}
+
+.danger-button:hover:not(:disabled) {
+    background: rgba(190, 42, 70, 0.46);
+}
+
+.protected-label {
+    color: #8997ac;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.users-loading,
+.users-empty {
+    padding: 2rem;
+    color: #9eabc0;
+    text-align: center;
+}
+
+.admin-dialog {
+    width: min(34rem, calc(100% - 2rem));
+    padding: 0;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 1rem;
+    background: #0d1420;
+    color: #edf2f9;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.admin-dialog::backdrop {
+    background: rgba(2, 6, 12, 0.78);
+    backdrop-filter: blur(5px);
+}
+
+.admin-dialog form {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    padding: 1.35rem;
+}
+
+.dialog-close {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 1.35rem;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 0.35rem;
+}
+
+@media (max-width: 760px) {
+    .admin-users-layout {
+        width: min(100% - 1rem, 1180px);
+    }
+
+    .admin-hero {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-directory-toolbar {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>User Administration</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin-users.css">
+    <link
+        rel="stylesheet"
+        href="ui-overhaul.css?v=35"
+        data-ui-overhaul="true"
+    >
+</head>
+<body>
+    <main class="page admin-users-page" id="main-content">
+        <div class="admin-users-layout">
+            <div id="site-navbar"></div>
+
+            <section class="panel admin-hero">
+                <div>
+                    <p class="eyebrow">ADMIN CONTROL</p>
+                    <h1>User moderation</h1>
+                    <p class="admin-description">
+                        Ban problem accounts, restore access, or permanently
+                        anonymize and delete a player's login.
+                    </p>
+                </div>
+
+                <button id="refresh-users-button" type="button">
+                    Refresh users
+                </button>
+            </section>
+
+            <section
+                id="admin-message"
+                class="admin-message"
+                role="status"
+                aria-live="polite"
+                hidden
+            ></section>
+
+            <section class="admin-summary" aria-label="User summary">
+                <article class="panel admin-stat">
+                    <span>Players</span>
+                    <strong id="player-count">—</strong>
+                </article>
+                <article class="panel admin-stat admin-stat-danger">
+                    <span>Banned</span>
+                    <strong id="banned-count">—</strong>
+                </article>
+                <article class="panel admin-stat">
+                    <span>Admins</span>
+                    <strong id="admin-count">—</strong>
+                </article>
+                <article class="panel admin-stat admin-stat-muted">
+                    <span>Deleted</span>
+                    <strong id="deleted-count">—</strong>
+                </article>
+            </section>
+
+            <section class="panel admin-directory">
+                <div class="admin-directory-toolbar">
+                    <label class="admin-search-field" for="user-search-input">
+                        <span>Search players</span>
+                        <input
+                            id="user-search-input"
+                            type="search"
+                            placeholder="Username or email"
+                            autocomplete="off"
+                        >
+                    </label>
+
+                    <label for="status-filter">
+                        <span>Status</span>
+                        <select id="status-filter">
+                            <option value="all">All accounts</option>
+                            <option value="active">Active</option>
+                            <option value="banned">Banned</option>
+                            <option value="admin">Admins</option>
+                            <option value="deleted">Deleted</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div id="users-loading" class="users-loading">
+                    Loading users…
+                </div>
+
+                <div class="admin-table-wrap">
+                    <table id="users-table" hidden>
+                        <thead>
+                            <tr>
+                                <th scope="col">Player</th>
+                                <th scope="col">Balance</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Last sign-in</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
+
+                <p id="users-empty" class="users-empty" hidden>
+                    No accounts match those filters.
+                </p>
+            </section>
+        </div>
+    </main>
+
+    <dialog id="ban-dialog" class="admin-dialog">
+        <form id="ban-form" method="dialog">
+            <button
+                class="dialog-close"
+                type="button"
+                data-close-dialog="ban-dialog"
+                aria-label="Close"
+            >×</button>
+            <p class="eyebrow">RESTRICT ACCESS</p>
+            <h2>Ban <span id="ban-dialog-username"></span></h2>
+
+            <input id="ban-target-id" type="hidden">
+
+            <label for="ban-duration">
+                Ban length
+                <select id="ban-duration" required>
+                    <option value="1h">1 hour</option>
+                    <option value="24h" selected>24 hours</option>
+                    <option value="7d">7 days</option>
+                    <option value="30d">30 days</option>
+                    <option value="permanent">Permanent</option>
+                </select>
+            </label>
+
+            <label for="ban-reason">
+                Reason
+                <textarea
+                    id="ban-reason"
+                    maxlength="500"
+                    rows="4"
+                    placeholder="Why is this account being banned?"
+                    required
+                ></textarea>
+            </label>
+
+            <div class="dialog-actions">
+                <button type="button" data-close-dialog="ban-dialog">
+                    Cancel
+                </button>
+                <button id="confirm-ban-button" class="danger-button" type="submit">
+                    Ban player
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="delete-dialog" class="admin-dialog admin-dialog-danger">
+        <form id="delete-form" method="dialog">
+            <button
+                class="dialog-close"
+                type="button"
+                data-close-dialog="delete-dialog"
+                aria-label="Close"
+            >×</button>
+            <p class="eyebrow">PERMANENT ACTION</p>
+            <h2>Delete <span id="delete-dialog-username"></span></h2>
+
+            <input id="delete-target-id" type="hidden">
+            <input id="delete-target-username" type="hidden">
+
+            <p>
+                This removes the player's login and anonymizes their casino
+                profile. Their past game records remain attached to an anonymous
+                placeholder so existing tables do not break.
+            </p>
+
+            <label for="delete-reason">
+                Reason
+                <textarea
+                    id="delete-reason"
+                    maxlength="500"
+                    rows="3"
+                    placeholder="Why is this account being deleted?"
+                    required
+                ></textarea>
+            </label>
+
+            <label for="delete-confirmation">
+                Type <strong id="delete-confirmation-name"></strong> to confirm
+                <input
+                    id="delete-confirmation"
+                    type="text"
+                    autocomplete="off"
+                    required
+                >
+            </label>
+
+            <div class="dialog-actions">
+                <button type="button" data-close-dialog="delete-dialog">
+                    Cancel
+                </button>
+                <button
+                    id="confirm-delete-button"
+                    class="danger-button"
+                    type="submit"
+                    disabled
+                >
+                    Permanently delete
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="admin-users.js"></script>
+    <script src="ui-overhaul.js?v=35"></script>
+</body>
+</html>
