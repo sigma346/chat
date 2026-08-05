@@ -365,7 +365,8 @@ function availableBetOptions() {
             500,
             1000,
             2500,
-            5000
+            5000,
+            10000
         ]
     ).map(Number);
 }

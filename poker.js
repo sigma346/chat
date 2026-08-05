@@ -891,10 +891,10 @@ createGameForm.addEventListener("submit", async (event) => {
 
         if (
             solitaireGame
-            && (solitaireEntry < 10 || solitaireEntry > 5000)
+            && (solitaireEntry < 10 || solitaireEntry > 10000)
         ) {
             throw new Error(
-                "Solitaire entry fees must be between 10 and 5,000 chips."
+                "Solitaire entry fees must be between 10 and 10,000 chips."
             );
         }
 

@@ -86,7 +86,13 @@ const badgeSymbols = {
     badge_green_zero: "0",
     badge_daily_challenger: "✓",
     badge_easy_going: "★",
-    badge_busy_day: "⚡"
+    badge_busy_day: "⚡",
+    badge_handshake: "🤝",
+    badge_club_founder: "⚑",
+    badge_slot_spinner: "🎰",
+    badge_rr_survivor: "☠",
+    badge_first_trade: "↗",
+    badge_bull_market: "▲"
 };
 
 const categoryNames = {

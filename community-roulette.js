@@ -319,9 +319,9 @@ function readSelectionAmount() {
         return null;
     }
 
-    if (amount > 5000) {
+    if (amount > 10000) {
         showMessage(
-            "The maximum bet per selection is 5,000 chips."
+            "The maximum bet per selection is 10,000 chips."
         );
 
         return null;
@@ -453,15 +453,15 @@ function renderBetSlip() {
         || alreadySubmitted
         || bets.length === 0
         || total > wallet
-        || total > 20000;
+        || total > 40000;
 
     if (total > wallet) {
         showMessage(
             "Your selected bets exceed your wallet balance."
         );
-    } else if (total > 20000) {
+    } else if (total > 40000) {
         showMessage(
-            "The maximum total bet per round is 20,000 chips."
+            "The maximum total bet per round is 40,000 chips."
         );
     }
 }
@@ -1217,7 +1217,7 @@ function applyState(state) {
         formatChips(state.wallet_chips);
 
     betAmountInput.max = Math.min(
-        Number(state.maximum_bet_per_selection ?? 5000),
+        Number(state.maximum_bet_per_selection ?? 10000),
         Number(state.wallet_chips ?? 0)
     );
 

@@ -374,8 +374,8 @@ async function runAction(functionName, parameters = {}) {
 async function startGame() {
     const bet = Number(betInput.value);
 
-    if (!Number.isSafeInteger(bet) || bet < 10 || bet > 5000) {
-        showMessage("Enter a whole-chip bet from 10 to 5,000.");
+    if (!Number.isSafeInteger(bet) || bet < 10 || bet > 10000) {
+        showMessage("Enter a whole-chip bet from 10 to 10,000.");
         return;
     }
 

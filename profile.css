@@ -1745,3 +1745,225 @@
         animation: none;
     }
 }
+
+
+/* ============================================================
+   New-content achievement cosmetics
+   ============================================================ */
+
+.profile-hero[data-theme="theme_clubhouse"]::before {
+    background:
+        linear-gradient(
+            118deg,
+            transparent 0 38%,
+            rgba(105, 169, 255, 0.12) 39% 41%,
+            transparent 42% 64%,
+            rgba(255, 116, 135, 0.1) 65% 67%,
+            transparent 68%
+        ),
+        radial-gradient(
+            circle at 18% 18%,
+            rgba(255, 116, 135, 0.34),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 82% 75%,
+            rgba(91, 166, 255, 0.3),
+            transparent 40%
+        ),
+        linear-gradient(135deg, #34205c, #11152f 72%);
+}
+
+.profile-hero[data-theme="theme_cosmic_jackpot"]::before {
+    background:
+        radial-gradient(circle at 77% 22%, #f6ebff 0 2%, transparent 3%),
+        radial-gradient(circle at 62% 38%, #83edff 0 1.2%, transparent 2%),
+        radial-gradient(
+            circle at 20% 22%,
+            rgba(218, 92, 255, 0.34),
+            transparent 34%
+        ),
+        linear-gradient(135deg, #24134c, #071124 72%);
+}
+
+.profile-hero[data-theme="theme_chamber_champion"]::before {
+    background:
+        repeating-conic-gradient(
+            from 8deg at 84% 24%,
+            rgba(255, 255, 255, 0.06) 0 9deg,
+            transparent 9deg 60deg
+        ),
+        radial-gradient(
+            circle at 18% 24%,
+            rgba(237, 54, 75, 0.31),
+            transparent 35%
+        ),
+        linear-gradient(135deg, #2e1519, #090b0f 74%);
+}
+
+.profile-hero[data-theme="theme_exchange_floor"]::before {
+    background:
+        linear-gradient(
+            120deg,
+            transparent 0 22%,
+            rgba(73, 226, 179, 0.11) 23% 24%,
+            transparent 25% 44%,
+            rgba(247, 204, 93, 0.12) 45% 46%,
+            transparent 47%
+        ),
+        radial-gradient(
+            circle at 18% 18%,
+            rgba(61, 222, 173, 0.26),
+            transparent 34%
+        ),
+        linear-gradient(135deg, #0c3433, #071716 73%);
+}
+
+.profile-avatar-frame[data-frame="frame_inner_circle"] {
+    border-color: #ffc972;
+    background:
+        conic-gradient(
+            from 20deg,
+            #f6d889,
+            #d36c8c,
+            #7253ba,
+            #55bca7,
+            #f6d889
+        );
+    box-shadow:
+        0 0 0 3px rgba(255, 201, 114, 0.14),
+        0 0 22px rgba(211, 108, 140, 0.25);
+}
+
+.profile-avatar-frame[data-frame="frame_reel_runner"] {
+    border-color: #ffdd61;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #ef405d 0 7px,
+            #ffd85a 7px 14px,
+            #34d9cf 14px 21px,
+            #342663 21px 28px
+        );
+    box-shadow:
+        0 0 0 3px rgba(255, 221, 97, 0.13),
+        0 0 23px rgba(52, 217, 207, 0.25);
+}
+
+.profile-avatar-frame[data-frame="frame_steel_nerve"] {
+    border-color: #e4e8ed;
+    background:
+        conic-gradient(
+            from 0deg,
+            #22272e,
+            #c7d0d8,
+            #671f2a,
+            #eef2f5,
+            #22272e
+        );
+    box-shadow:
+        inset 0 0 0 2px rgba(255, 255, 255, 0.13),
+        0 0 22px rgba(198, 33, 56, 0.25);
+}
+
+.profile-avatar-frame[data-frame="frame_market_maker"] {
+    border-color: #7af2c7;
+    background:
+        linear-gradient(
+            130deg,
+            #153b37 0 22%,
+            #63e0b8 23% 40%,
+            #f2c85e 41% 54%,
+            #1e5f58 55% 78%,
+            #0c2826 79%
+        );
+    box-shadow:
+        0 0 0 3px rgba(122, 242, 199, 0.13),
+        0 0 23px rgba(57, 210, 160, 0.25);
+}
+
+.profile-avatar-frame[data-frame="frame_new_frontier"] {
+    border-color: #d8e6ff;
+    background:
+        conic-gradient(
+            from 35deg,
+            #59e1bd,
+            #5fa7ff,
+            #b676f3,
+            #f2c85e,
+            #f26d77,
+            #59e1bd
+        );
+    box-shadow:
+        0 0 0 3px rgba(216, 230, 255, 0.15),
+        0 0 28px rgba(114, 130, 245, 0.32);
+}
+
+.cosmetic-preview[data-cosmetic="theme_clubhouse"],
+.achievement-reward-preview[data-cosmetic="theme_clubhouse"] {
+    background:
+        radial-gradient(
+            circle at 22% 22%,
+            rgba(255, 147, 161, 0.78),
+            transparent 31%
+        ),
+        linear-gradient(145deg, #874dba, #34377f 48%, #111730);
+}
+
+.cosmetic-preview[data-cosmetic="theme_cosmic_jackpot"],
+.achievement-reward-preview[data-cosmetic="theme_cosmic_jackpot"] {
+    background:
+        radial-gradient(circle at 72% 22%, #eefaff 0 8%, transparent 9%),
+        linear-gradient(145deg, #be4ee8, #283580 47%, #081225);
+}
+
+.cosmetic-preview[data-cosmetic="theme_chamber_champion"],
+.achievement-reward-preview[data-cosmetic="theme_chamber_champion"] {
+    background:
+        radial-gradient(circle at 72% 26%, #bfc5cc 0 11%, #3b4149 12% 20%, transparent 21%),
+        linear-gradient(145deg, #be263d, #2c1117 48%, #090b0f);
+}
+
+.cosmetic-preview[data-cosmetic="theme_exchange_floor"],
+.achievement-reward-preview[data-cosmetic="theme_exchange_floor"] {
+    background:
+        linear-gradient(118deg, transparent 42%, #e6c45e 43% 47%, transparent 48%),
+        linear-gradient(145deg, #51d5ad, #145049 47%, #071917);
+}
+
+.cosmetic-mini-avatar[data-frame="frame_inner_circle"],
+.achievement-reward-preview[data-frame="frame_inner_circle"] {
+    border-color: #ffc972;
+    background: conic-gradient(#f6d889, #d36c8c, #7253ba, #55bca7, #f6d889);
+}
+
+.cosmetic-mini-avatar[data-frame="frame_reel_runner"],
+.achievement-reward-preview[data-frame="frame_reel_runner"] {
+    border-color: #ffdd61;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #ef405d 0 4px,
+            #ffd85a 4px 8px,
+            #34d9cf 8px 12px,
+            #342663 12px 16px
+        );
+}
+
+.cosmetic-mini-avatar[data-frame="frame_steel_nerve"],
+.achievement-reward-preview[data-frame="frame_steel_nerve"] {
+    border-color: #e4e8ed;
+    background: conic-gradient(#22272e, #c7d0d8, #671f2a, #eef2f5, #22272e);
+}
+
+.cosmetic-mini-avatar[data-frame="frame_market_maker"],
+.achievement-reward-preview[data-frame="frame_market_maker"] {
+    border-color: #7af2c7;
+    background: linear-gradient(130deg, #153b37, #63e0b8 45%, #f2c85e 53%, #0c2826);
+}
+
+.cosmetic-mini-avatar[data-frame="frame_new_frontier"],
+.achievement-reward-preview[data-frame="frame_new_frontier"] {
+    border-color: #d8e6ff;
+    background: conic-gradient(#59e1bd, #5fa7ff, #b676f3, #f2c85e, #f26d77, #59e1bd);
+}

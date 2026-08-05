@@ -32,7 +32,7 @@ const logoutButton =
 const ROW_COUNT = 10;
 
 const MINIMUM_BET = 10;
-const MAXIMUM_BET = 500;
+const MAXIMUM_BET = 1000;
 
 
 /*
@@ -936,7 +936,7 @@ async function playDrop() {
 
     if (bet > MAXIMUM_BET) {
         showMessage(
-            "The maximum bet is 500 chips."
+            "The maximum bet is 1,000 chips."
         );
 
         return;

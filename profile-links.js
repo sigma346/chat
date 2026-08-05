@@ -13,7 +13,13 @@
         badge_admin_shield: "🛡",
         badge_daily_challenger: "✓",
         badge_easy_going: "★",
-        badge_busy_day: "⚡"
+        badge_busy_day: "⚡",
+        badge_handshake: "🤝",
+        badge_club_founder: "⚑",
+        badge_slot_spinner: "🎰",
+        badge_rr_survivor: "☠",
+        badge_first_trade: "↗",
+        badge_bull_market: "▲"
     };
 
     const richPlayerCards = [
@@ -321,6 +327,30 @@
                 --player-theme-accent: rgba(255, 216, 101, 0.9);
                 --player-theme-soft: rgba(75, 211, 185, 0.18);
                 --player-theme-surface: rgba(31, 20, 51, 0.92);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_clubhouse"] {
+                --player-theme-accent: rgba(255, 132, 149, 0.92);
+                --player-theme-soft: rgba(95, 164, 255, 0.2);
+                --player-theme-surface: rgba(31, 24, 68, 0.94);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_cosmic_jackpot"] {
+                --player-theme-accent: rgba(127, 232, 255, 0.9);
+                --player-theme-soft: rgba(206, 82, 255, 0.19);
+                --player-theme-surface: rgba(22, 14, 57, 0.93);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_chamber_champion"] {
+                --player-theme-accent: rgba(238, 75, 94, 0.9);
+                --player-theme-soft: rgba(190, 38, 61, 0.18);
+                --player-theme-surface: rgba(35, 13, 18, 0.94);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_exchange_floor"] {
+                --player-theme-accent: rgba(102, 233, 192, 0.9);
+                --player-theme-soft: rgba(241, 197, 82, 0.17);
+                --player-theme-surface: rgba(7, 45, 41, 0.93);
             }
 
             .cosmetic-rich-player-card.admin-player-card {
@@ -737,6 +767,91 @@
                 animation:
                     cosmetic-challenge-marathon-pulse
                     2.3s ease-in-out infinite;
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_inner_circle"] {
+                border-color: #ffc972;
+                background:
+                    conic-gradient(
+                        from 20deg,
+                        #f6d889,
+                        #d36c8c,
+                        #7253ba,
+                        #55bca7,
+                        #f6d889
+                    );
+                box-shadow:
+                    0 0 0 2px rgba(255, 201, 114, 0.14),
+                    0 0 16px rgba(211, 108, 140, 0.27),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_reel_runner"] {
+                border-color: #ffdd61;
+                background:
+                    repeating-linear-gradient(
+                        90deg,
+                        #ef405d 0 5px,
+                        #ffd85a 5px 10px,
+                        #34d9cf 10px 15px,
+                        #342663 15px 20px
+                    );
+                box-shadow:
+                    0 0 0 2px rgba(255, 221, 97, 0.13),
+                    0 0 16px rgba(52, 217, 207, 0.27),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_steel_nerve"] {
+                border-color: #e4e8ed;
+                background:
+                    conic-gradient(
+                        from 0deg,
+                        #22272e,
+                        #c7d0d8,
+                        #671f2a,
+                        #eef2f5,
+                        #22272e
+                    );
+                box-shadow:
+                    0 0 0 2px rgba(228, 232, 237, 0.13),
+                    0 0 16px rgba(198, 33, 56, 0.26),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_market_maker"] {
+                border-color: #7af2c7;
+                background:
+                    linear-gradient(
+                        130deg,
+                        #153b37 0 22%,
+                        #63e0b8 23% 40%,
+                        #f2c85e 41% 54%,
+                        #1e5f58 55% 78%,
+                        #0c2826 79%
+                    );
+                box-shadow:
+                    0 0 0 2px rgba(122, 242, 199, 0.13),
+                    0 0 16px rgba(57, 210, 160, 0.27),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_new_frontier"] {
+                border-color: #d8e6ff;
+                background:
+                    conic-gradient(
+                        from 35deg,
+                        #59e1bd,
+                        #5fa7ff,
+                        #b676f3,
+                        #f2c85e,
+                        #f26d77,
+                        #59e1bd
+                    );
+                box-shadow:
+                    0 0 0 2px rgba(216, 230, 255, 0.15),
+                    0 0 19px rgba(114, 130, 245, 0.34),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
             }
 
             .profile-enhanced-text-chip {

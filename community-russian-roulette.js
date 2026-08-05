@@ -1017,8 +1017,8 @@ joinButton.addEventListener("click", () => {
         return;
     }
 
-    if (stake < 100 || stake > 10000) {
-        showMessage("Choose a stake from 100 to 10,000 chips.");
+    if (stake < 100 || stake > 20000) {
+        showMessage("Choose a stake from 100 to 20,000 chips.");
         return;
     }
 

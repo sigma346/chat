@@ -826,7 +826,7 @@ function setRequestInProgress(value) {
             || hasBet
             || quickAmount > wallet
             || quickAmount > Number(
-                raceState?.maximum_bet ?? 5000
+                raceState?.maximum_bet ?? 10000
             );
     }
 }
