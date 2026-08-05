@@ -131,6 +131,11 @@
             label: "More",
             children: [
                 {
+                    label: "World News",
+                    href: "news.html",
+                    files: ["news.html"]
+                },
+                {
                     label: "Donate",
                     href: "donate.html",
                     files: ["donate.html"]

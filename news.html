@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World News</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="chat-notifications.css">
+    <link rel="stylesheet" href="news.css?v=1">
+</head>
+
+<body>
+    <main class="page news-page" id="main-content">
+        <div class="news-layout">
+            <div id="site-navbar"></div>
+
+            <header class="panel news-hero">
+                <div>
+                    <p class="eyebrow">WORLD NEWS API</p>
+                    <h1>Latest headlines</h1>
+                    <p class="description">
+                        Fresh English-language stories cached for the whole
+                        casino. Reading and filtering this page uses no API
+                        points.
+                    </p>
+                </div>
+
+                <div class="news-cache-card" aria-label="News cache status">
+                    <span>Last updated</span>
+                    <strong id="news-last-updated">Checking...</strong>
+                    <small id="news-cache-count">Shared Supabase cache</small>
+                </div>
+            </header>
+
+            <section class="panel news-toolbar" aria-label="News controls">
+                <label class="news-search">
+                    <span>Search cached news</span>
+                    <input
+                        id="news-search-input"
+                        type="search"
+                        placeholder="Search headlines or summaries"
+                        autocomplete="off"
+                    >
+                </label>
+
+                <button id="news-reload" type="button">
+                    Reload cache
+                </button>
+            </section>
+
+            <nav
+                id="news-categories"
+                class="news-categories"
+                aria-label="News categories"
+            >
+                <button class="active" type="button" data-category="all">
+                    All
+                </button>
+                <button type="button" data-category="business">Business</button>
+                <button type="button" data-category="technology">Technology</button>
+                <button type="button" data-category="sports">Sports</button>
+                <button type="button" data-category="entertainment">Entertainment</button>
+                <button type="button" data-category="politics">Politics</button>
+                <button type="button" data-category="science">Science</button>
+                <button type="button" data-category="health">Health</button>
+                <button type="button" data-category="other">Other</button>
+            </nav>
+
+            <section id="news-featured" class="news-featured" hidden></section>
+
+            <section aria-labelledby="news-results-title">
+                <div class="news-section-heading">
+                    <div>
+                        <p class="eyebrow">THE FEED</p>
+                        <h2 id="news-results-title">All headlines</h2>
+                    </div>
+
+                    <span id="news-result-count">Loading...</span>
+                </div>
+
+                <div id="news-grid" class="news-grid" aria-live="polite">
+                    <article class="panel news-empty">
+                        Loading cached headlines...
+                    </article>
+                </div>
+            </section>
+
+            <footer class="news-footer">
+                News data supplied by
+                <a
+                    href="https://worldnewsapi.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >World News API</a>.
+                Articles open on their original publishers' websites.
+            </footer>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="chat-notifications.js"></script>
+    <script src="navbar.js"></script>
+    <script src="news.js?v=1"></script>
+</body>
+</html>

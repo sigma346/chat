@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="chat-notifications.css">
     <link rel="stylesheet" href="home.css?v=1">
+    <link rel="stylesheet" href="home-news.css?v=1">
 </head>
 
 <body>
@@ -143,6 +144,32 @@
                 ></p>
             </section>
 
+            <section
+                class="home-section home-news-section"
+                aria-labelledby="home-news-title"
+            >
+                <div class="home-section-heading">
+                    <div>
+                        <p class="eyebrow">WORLD NEWS</p>
+                        <h2 id="home-news-title">Latest headlines</h2>
+                    </div>
+
+                    <a href="news.html">View all news</a>
+                </div>
+
+                <div
+                    id="home-news-grid"
+                    class="home-news-grid"
+                    aria-live="polite"
+                >
+                    <article class="panel home-news-placeholder">
+                        Loading the latest cached headlines...
+                    </article>
+                </div>
+
+                <p id="home-news-status" class="home-news-status"></p>
+            </section>
+
             <section class="home-section" aria-labelledby="quick-play-title">
                 <div class="home-section-heading">
                     <div>
@@ -256,5 +283,6 @@
     <script src="chat-notifications.js"></script>
     <script src="navbar.js"></script>
     <script src="home.js?v=1"></script>
+    <script src="home-news.js?v=1"></script>
 </body>
 </html>
