@@ -76,6 +76,73 @@
                 <a href="disclaimer.html">Read the full rules</a>
             </section>
 
+            <section
+                class="panel home-joke-panel"
+                aria-labelledby="home-joke-title"
+            >
+                <div class="home-joke-heading">
+                    <div>
+                        <p class="eyebrow">CASINO COMEDIAN</p>
+                        <h2 id="home-joke-title">Joke generator</h2>
+                    </div>
+
+                    <span id="home-joke-category" class="home-joke-category">
+                        ANY CATEGORY
+                    </span>
+                </div>
+
+                <div class="home-joke-stage">
+                    <blockquote id="home-joke-setup">
+                        Loading a joke...
+                    </blockquote>
+
+                    <p
+                        id="home-joke-delivery"
+                        class="home-joke-delivery"
+                        hidden
+                    ></p>
+                </div>
+
+                <div class="home-joke-footer">
+                    <div>
+                        <p id="home-joke-flags" class="home-joke-flags">
+                            All joke categories and formats are enabled.
+                        </p>
+
+                        <p class="home-joke-warning">
+                            JokeAPI may return mature, dark or offensive
+                            content.
+                        </p>
+                    </div>
+
+                    <div class="home-joke-actions">
+                        <button
+                            id="home-joke-reveal"
+                            class="home-joke-reveal"
+                            type="button"
+                            hidden
+                        >
+                            Reveal punchline
+                        </button>
+
+                        <button
+                            id="home-joke-new"
+                            class="home-joke-new"
+                            type="button"
+                        >
+                            New joke
+                        </button>
+                    </div>
+                </div>
+
+                <p
+                    id="home-joke-status"
+                    class="home-joke-status"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+            </section>
+
             <section class="home-section" aria-labelledby="quick-play-title">
                 <div class="home-section-heading">
                     <div>
