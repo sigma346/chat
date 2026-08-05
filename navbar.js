@@ -84,6 +84,11 @@
                     label: "Real Market",
                     href: "real-stocks.html",
                     files: ["real-stocks.html"]
+                },
+                {
+                    label: "Crypto",
+                    href: "crypto.html",
+                    files: ["crypto.html"]
                 }
             ]
         },

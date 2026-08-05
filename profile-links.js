@@ -19,7 +19,9 @@
         badge_slot_spinner: "🎰",
         badge_rr_survivor: "☠",
         badge_first_trade: "↗",
-        badge_bull_market: "▲"
+        badge_bull_market: "▲",
+        badge_crypto_pioneer: "₿",
+        badge_crypto_bull: "◆"
     };
 
     const richPlayerCards = [
@@ -351,6 +353,12 @@
                 --player-theme-accent: rgba(102, 233, 192, 0.9);
                 --player-theme-soft: rgba(241, 197, 82, 0.17);
                 --player-theme-surface: rgba(7, 45, 41, 0.93);
+            }
+
+            .cosmetic-rich-player-card[data-player-theme="theme_blockchain_grid"] {
+                --player-theme-accent: rgba(57, 232, 255, 0.92);
+                --player-theme-soft: rgba(181, 74, 255, 0.2);
+                --player-theme-surface: rgba(7, 12, 39, 0.94);
             }
 
             .cosmetic-rich-player-card.admin-player-card {
@@ -851,6 +859,37 @@
                 box-shadow:
                     0 0 0 2px rgba(216, 230, 255, 0.15),
                     0 0 19px rgba(114, 130, 245, 0.34),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_hash_chain"] {
+                border-color: #43e4ff;
+                background:
+                    repeating-conic-gradient(
+                        #43e4ff 0 10deg,
+                        #5423a6 10deg 20deg,
+                        #0a1736 20deg 30deg
+                    );
+                box-shadow:
+                    0 0 0 2px rgba(67, 228, 255, 0.14),
+                    0 0 18px rgba(145, 67, 255, 0.34),
+                    0 7px 18px rgba(0, 0, 0, 0.22);
+            }
+
+            .game-profile-avatar-frame[data-player-frame="frame_diamond_hands"] {
+                border-color: #d8fbff;
+                background:
+                    conic-gradient(
+                        from 22deg,
+                        #ffffff,
+                        #65e7ff,
+                        #7d78ff,
+                        #d67cff,
+                        #ffffff
+                    );
+                box-shadow:
+                    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+                    0 0 20px rgba(103, 224, 255, 0.42),
                     0 7px 18px rgba(0, 0, 0, 0.22);
             }
 

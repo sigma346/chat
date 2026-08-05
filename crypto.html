@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Market</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="crypto.css?v=1">
+</head>
+<body>
+<main class="page">
+    <div class="stock-market-layout crypto-market-layout">
+        <div id="site-navbar"></div>
+
+        <header class="panel stocks-header crypto-header">
+            <div>
+                <p class="eyebrow">KRAKEN CRYPTO EXCHANGE</p>
+                <h1>Crypto Market</h1>
+                <p class="description">
+                    Trade nine real cryptocurrencies using play chips. One Kraken request
+                    updates the shared Supabase cache every five minutes.
+                </p>
+            </div>
+            <div class="header-values">
+                <article><span>Wallet</span><strong id="crypto-wallet">0</strong><small>chips</small></article>
+                <article><span>Invested</span><strong id="crypto-invested">0</strong><small>chips</small></article>
+                <article><span>Total wealth</span><strong id="crypto-total-wealth">0</strong><small>chips</small></article>
+            </div>
+        </header>
+
+        <section class="panel market-status">
+            <div class="index-card crypto-index-card">
+                <div>
+                    <p class="eyebrow">CRYPTO INDEX</p>
+                    <strong>CMI</strong>
+                    <span>Average market movement</span>
+                </div>
+                <div class="index-value">
+                    <strong id="crypto-index-value">1,000.00</strong>
+                    <span id="crypto-index-change">0.00%</span>
+                </div>
+            </div>
+            <div class="status-grid">
+                <article><span>Market</span><strong id="crypto-market-status">Open 24/7</strong></article>
+                <article><span>Next cache check</span><strong id="crypto-countdown">05:00</strong></article>
+                <article><span>Last successful quote</span><strong id="crypto-last-tick">Waiting...</strong></article>
+                <article><span>Trading cost</span><strong>0.15% buy · 0.15% sell</strong></article>
+            </div>
+            <p id="crypto-feed-note" class="feed-note">
+                Prices are supplied by Kraken and mapped directly to play-chip values.
+                This is simulated trading, not real investing.
+            </p>
+        </section>
+
+        <nav class="panel view-tabs" aria-label="Crypto market sections">
+            <button type="button" class="view-tab active" data-view="market" aria-pressed="true">Market</button>
+            <button type="button" class="view-tab" data-view="portfolio" aria-pressed="false">My portfolio</button>
+            <button type="button" class="view-tab" data-view="community" aria-pressed="false">Community</button>
+        </nav>
+
+        <section id="crypto-market-view" class="stock-view">
+            <section class="panel controls">
+                <label>
+                    <span>Search</span>
+                    <input id="crypto-search" type="search" placeholder="Coin or symbol">
+                </label>
+                <label>
+                    <span>Category</span>
+                    <select id="crypto-category-filter">
+                        <option value="all">All categories</option>
+                        <option value="store_of_value">Store of value</option>
+                        <option value="smart_contracts">Smart contracts</option>
+                        <option value="payments">Payments</option>
+                        <option value="meme">Meme</option>
+                        <option value="infrastructure">Infrastructure</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Sort</span>
+                    <select id="crypto-sort">
+                        <option value="watch">Watchlist first</option>
+                        <option value="gain">Biggest gainers</option>
+                        <option value="loss">Biggest losers</option>
+                        <option value="high">Highest price</option>
+                        <option value="low">Lowest price</option>
+                        <option value="name">Asset name</option>
+                    </select>
+                </label>
+            </section>
+            <section id="crypto-grid" class="company-grid">
+                <p class="empty">Loading Kraken prices...</p>
+            </section>
+        </section>
+
+        <section id="crypto-portfolio-view" class="stock-view hidden">
+            <section class="panel portfolio-panel">
+                <div class="section-heading">
+                    <div><p class="eyebrow">CRYPTO PORTFOLIO</p><h2>Investment overview</h2></div>
+                    <div class="range-buttons" id="crypto-portfolio-ranges">
+                        <button data-duration="24h">24H</button>
+                        <button data-duration="7d">7D</button>
+                        <button class="active" data-duration="30d">30D</button>
+                        <button data-duration="90d">90D</button>
+                        <button data-duration="all">ALL</button>
+                    </div>
+                </div>
+                <div class="metrics">
+                    <article><span>Holdings value</span><strong id="crypto-portfolio-value">0</strong></article>
+                    <article><span>Unrealised profit</span><strong id="crypto-portfolio-unrealised">0</strong></article>
+                    <article><span>Realised profit</span><strong id="crypto-portfolio-realised">0</strong></article>
+                    <article><span>Total wealth</span><strong id="crypto-portfolio-total">0</strong></article>
+                </div>
+                <div class="chart-shell">
+                    <svg id="crypto-portfolio-chart" class="chart" role="img"></svg>
+                    <div id="crypto-portfolio-tooltip" class="chart-tooltip hidden"></div>
+                </div>
+            </section>
+
+            <section class="panel list-panel">
+                <div class="section-heading"><div><p class="eyebrow">HOLDINGS</p><h2>Owned cryptocurrency</h2></div></div>
+                <div id="crypto-holdings-list"></div>
+            </section>
+
+            <section class="panel list-panel">
+                <div class="section-heading"><div><p class="eyebrow">RECENT ACTIVITY</p><h2>Trade history</h2></div></div>
+                <div id="crypto-trade-list"></div>
+            </section>
+        </section>
+
+        <section id="crypto-community-view" class="stock-view hidden">
+            <section class="panel list-panel">
+                <div class="section-heading">
+                    <div><p class="eyebrow">COMMUNITY HOLDINGS</p><h2>What players have invested in</h2></div>
+                    <p class="community-note">Crypto positions are public. Wallet balances and individual trades are not shown.</p>
+                </div>
+                <div id="crypto-community-holdings" class="community-holdings">
+                    <p class="empty">Loading player investments...</p>
+                </div>
+            </section>
+        </section>
+
+        <p id="crypto-message" class="form-message" role="alert"></p>
+    </div>
+</main>
+
+<dialog id="crypto-dialog">
+    <div class="dialog-shell">
+        <header class="dialog-header">
+            <div>
+                <p id="crypto-detail-category" class="eyebrow">CATEGORY</p>
+                <h2><span id="crypto-detail-name">Cryptocurrency</span> <small id="crypto-detail-symbol">COIN</small></h2>
+                <p id="crypto-detail-description" class="description"></p>
+            </div>
+            <button id="crypto-dialog-close" type="button" aria-label="Close">×</button>
+        </header>
+
+        <div class="detail-metrics">
+            <article><span>Cached price</span><strong id="crypto-detail-price">0.00</strong></article>
+            <article><span>Your quantity</span><strong id="crypto-detail-owned">0</strong></article>
+            <article><span>Average cost</span><strong id="crypto-detail-average">0.00</strong></article>
+            <article><span>24-hour range</span><strong id="crypto-detail-range">—</strong></article>
+        </div>
+
+        <div class="detail-chart-controls">
+            <div id="crypto-detail-ranges" class="range-buttons">
+                <button class="active" data-duration="1h">1H</button>
+                <button data-duration="6h">6H</button>
+                <button data-duration="24h">24H</button>
+                <button data-duration="7d">7D</button>
+                <button data-duration="30d">30D</button>
+                <button data-duration="90d">90D</button>
+                <button data-duration="all">ALL</button>
+            </div>
+            <div id="crypto-chart-types" class="range-buttons chart-type-buttons" aria-label="Chart type">
+                <button class="active" data-chart-type="line">Line</button>
+                <button data-chart-type="candlestick">Candlestick</button>
+            </div>
+        </div>
+
+        <div class="chart-shell">
+            <svg id="crypto-detail-chart" class="chart" role="img"></svg>
+            <div id="crypto-detail-tooltip" class="chart-tooltip hidden"></div>
+        </div>
+        <p class="sampled-candle-note">
+            Candles are built from the five-minute prices cached by this site and may omit movement between samples.
+        </p>
+
+        <section class="trade-panel crypto-trade-panel">
+            <div id="crypto-side-buttons" class="side-buttons">
+                <button class="active" data-side="buy">Buy</button>
+                <button data-side="sell">Sell</button>
+            </div>
+            <label>
+                <span id="crypto-amount-label">Chips to invest</span>
+                <input id="crypto-trade-amount" type="number" min="10" step="1" value="100">
+            </label>
+            <div id="crypto-quick-amounts" class="quick-shares">
+                <button data-buy-chips="100">100</button>
+                <button data-buy-chips="1000">1K</button>
+                <button data-buy-chips="5000">5K</button>
+                <button id="crypto-trade-max">Max</button>
+            </div>
+            <div class="estimate">
+                <span>Estimated settlement</span>
+                <strong id="crypto-trade-estimate">0</strong>
+                <small id="crypto-fee-note">Includes 0.15% fee</small>
+            </div>
+            <button id="crypto-trade-submit" class="trade-submit">Buy crypto</button>
+            <p id="crypto-trade-message" class="form-message"></p>
+        </section>
+    </div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="supabase-client.js"></script>
+<script src="navbar.js"></script>
+<script src="crypto.js?v=1"></script>
+<script src="profile-links.js"></script>
+</body>
+</html>

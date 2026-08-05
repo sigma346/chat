@@ -92,7 +92,9 @@ const badgeSymbols = {
     badge_slot_spinner: "🎰",
     badge_rr_survivor: "☠",
     badge_first_trade: "↗",
-    badge_bull_market: "▲"
+    badge_bull_market: "▲",
+    badge_crypto_pioneer: "₿",
+    badge_crypto_bull: "◆"
 };
 
 const categoryNames = {

@@ -1819,6 +1819,16 @@
         linear-gradient(135deg, #0c3433, #071716 73%);
 }
 
+.profile-hero[data-theme="theme_blockchain_grid"]::before {
+    background:
+        linear-gradient(rgba(61, 229, 255, 0.11) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(61, 229, 255, 0.11) 1px, transparent 1px),
+        radial-gradient(circle at 76% 22%, rgba(190, 66, 255, 0.34), transparent 30%),
+        radial-gradient(circle at 18% 32%, rgba(47, 226, 255, 0.27), transparent 35%),
+        linear-gradient(145deg, #090d2e, #060918 72%);
+    background-size: 28px 28px, 28px 28px, auto, auto, auto;
+}
+
 .profile-avatar-frame[data-frame="frame_inner_circle"] {
     border-color: #ffc972;
     background:
@@ -1899,6 +1909,18 @@
         0 0 28px rgba(114, 130, 245, 0.32);
 }
 
+.profile-avatar-frame[data-frame="frame_hash_chain"] {
+    border-color: #43e4ff;
+    background: repeating-conic-gradient(#43e4ff 0 10deg, #5423a6 10deg 20deg, #0a1736 20deg 30deg);
+    box-shadow: 0 0 0 3px rgba(67, 228, 255, 0.14), 0 0 26px rgba(145, 67, 255, 0.34);
+}
+
+.profile-avatar-frame[data-frame="frame_diamond_hands"] {
+    border-color: #bff8ff;
+    background: conic-gradient(from 22deg, #ffffff, #65e7ff, #7d78ff, #d67cff, #ffffff);
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35), 0 0 30px rgba(103, 224, 255, 0.42);
+}
+
 .cosmetic-preview[data-cosmetic="theme_clubhouse"],
 .achievement-reward-preview[data-cosmetic="theme_clubhouse"] {
     background:
@@ -1929,6 +1951,16 @@
     background:
         linear-gradient(118deg, transparent 42%, #e6c45e 43% 47%, transparent 48%),
         linear-gradient(145deg, #51d5ad, #145049 47%, #071917);
+}
+
+.cosmetic-preview[data-cosmetic="theme_blockchain_grid"],
+.achievement-reward-preview[data-cosmetic="theme_blockchain_grid"] {
+    background:
+        linear-gradient(rgba(78, 230, 255, 0.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(78, 230, 255, 0.22) 1px, transparent 1px),
+        radial-gradient(circle at 72% 25%, #b13eff, transparent 35%),
+        linear-gradient(145deg, #0a1740, #080918);
+    background-size: 12px 12px, 12px 12px, auto, auto;
 }
 
 .cosmetic-mini-avatar[data-frame="frame_inner_circle"],
@@ -1966,4 +1998,17 @@
 .achievement-reward-preview[data-frame="frame_new_frontier"] {
     border-color: #d8e6ff;
     background: conic-gradient(#59e1bd, #5fa7ff, #b676f3, #f2c85e, #f26d77, #59e1bd);
+}
+
+
+.cosmetic-mini-avatar[data-frame="frame_hash_chain"],
+.achievement-reward-preview[data-frame="frame_hash_chain"] {
+    border-color: #43e4ff;
+    background: repeating-conic-gradient(#43e4ff 0 12deg, #5423a6 12deg 24deg, #0a1736 24deg 36deg);
+}
+
+.cosmetic-mini-avatar[data-frame="frame_diamond_hands"],
+.achievement-reward-preview[data-frame="frame_diamond_hands"] {
+    border-color: #d8fbff;
+    background: conic-gradient(#ffffff, #65e7ff, #7d78ff, #d67cff, #ffffff);
 }
