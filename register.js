@@ -25,6 +25,72 @@ function showRegisterMessage(message, type = "error") {
         `form-message ${type}`.trim();
 }
 
+function emailLooksValid(email) {
+    if (
+        email.length < 6
+        || email.length > 254
+        || /\s/.test(email)
+    ) {
+        return false;
+    }
+
+    const parts = email.split("@");
+    if (parts.length !== 2) {
+        return false;
+    }
+
+    const [localPart, domain] = parts;
+    if (
+        !localPart
+        || localPart.length > 64
+        || localPart.startsWith(".")
+        || localPart.endsWith(".")
+        || localPart.includes("..")
+        || !domain.includes(".")
+    ) {
+        return false;
+    }
+
+    return domain.split(".").every((label) =>
+        label.length > 0
+        && label.length <= 63
+        && !label.startsWith("-")
+        && !label.endsWith("-")
+        && /^[A-Za-z0-9-]+$/.test(label)
+    );
+}
+
+async function parseFunctionError(error) {
+    try {
+        if (error?.context instanceof Response) {
+            const payload = await error.context.clone().json();
+            return payload?.error || error.message;
+        }
+    } catch {
+        // Fall through to the client error.
+    }
+
+    return error?.message || "The email address could not be checked.";
+}
+
+async function validateEmailAddress(email) {
+    const { data, error } = await window.supabaseClient.functions.invoke(
+        "validate-email-domain",
+        { body: { email } }
+    );
+
+    if (error) {
+        throw new Error(await parseFunctionError(error));
+    }
+    if (!data?.valid) {
+        throw new Error(
+            data?.error || "Enter an email address with a working mail domain."
+        );
+    }
+
+    return data.email || email.toLowerCase();
+}
+
 registerForm.addEventListener(
     "submit",
     async (event) => {
@@ -33,7 +99,7 @@ registerForm.addEventListener(
         showRegisterMessage("");
 
         const username = usernameInput.value.trim();
-        const email = emailInput.value.trim();
+        const email = emailInput.value.trim().toLowerCase();
         const password = passwordInput.value;
         const confirmedPassword =
             confirmPasswordInput.value;
@@ -44,6 +110,14 @@ registerForm.addEventListener(
         if (!validUsername) {
             showRegisterMessage(
                 "Username must be 3–20 characters using letters, numbers or underscores."
+            );
+
+            return;
+        }
+
+        if (!emailLooksValid(email)) {
+            showRegisterMessage(
+                "Enter a complete email address in the format name@example.com."
             );
 
             return;
@@ -68,25 +142,24 @@ registerForm.addEventListener(
         registerButton.disabled = true;
 
         try {
-            const loginPageUrl =
-                new URL(
-                    "login.html",
-                    window.location.href
-                ).href;
+            showRegisterMessage(
+                "Checking the email domain…",
+                "success"
+            );
+
+            const validatedEmail = await validateEmailAddress(email);
 
             const {
                 data,
                 error
             } = await window.supabaseClient.auth.signUp({
-                email,
+                email: validatedEmail,
                 password,
 
                 options: {
                     data: {
                         username
-                    },
-
-                    emailRedirectTo: loginPageUrl
+                    }
                 }
             });
 
@@ -102,7 +175,7 @@ registerForm.addEventListener(
             }
 
             showRegisterMessage(
-                "Account created. Check your email and confirm the account before logging in.",
+                "Account created. You can log in now; no email confirmation is required.",
                 "success"
             );
         } catch (error) {

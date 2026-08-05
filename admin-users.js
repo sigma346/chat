@@ -1,6 +1,7 @@
 const userState = {
     users: [],
-    loading: false
+    loading: false,
+    selectedIds: new Set()
 };
 
 const usersTable = document.querySelector("#users-table");
@@ -15,6 +16,10 @@ const banDialog = document.querySelector("#ban-dialog");
 const banForm = document.querySelector("#ban-form");
 const deleteDialog = document.querySelector("#delete-dialog");
 const deleteForm = document.querySelector("#delete-form");
+const bulkActions = document.querySelector("#bulk-actions");
+const selectVisibleUsers = document.querySelector("#select-visible-users");
+const bulkDeleteDialog = document.querySelector("#bulk-delete-dialog");
+const bulkDeleteForm = document.querySelector("#bulk-delete-form");
 
 function showAdminMessage(message, tone = "success") {
     adminMessage.textContent = message;
@@ -54,6 +59,41 @@ function accountStatus(user) {
         return { key: "banned", label: "Banned" };
     }
     return { key: "active", label: "Active" };
+}
+
+function canBulkDelete(user) {
+    return !user.is_admin
+        && !user.is_you
+        && (!user.account_deleted || user.auth_user_exists);
+}
+
+function selectedUsers() {
+    return userState.users.filter((user) =>
+        userState.selectedIds.has(user.id)
+        && canBulkDelete(user)
+    );
+}
+
+function updateSelectionInterface() {
+    const selected = selectedUsers();
+    const visibleEligible = filteredUsers().filter(canBulkDelete);
+    const selectedVisibleCount = visibleEligible.filter((user) =>
+        userState.selectedIds.has(user.id)
+    ).length;
+
+    bulkActions.hidden = selected.length === 0;
+    document.querySelector("#selected-user-count").textContent =
+        `${selected.length} ${selected.length === 1 ? "user" : "users"} selected`;
+
+    selectVisibleUsers.disabled = visibleEligible.length === 0;
+    selectVisibleUsers.checked = visibleEligible.length > 0
+        && selectedVisibleCount === visibleEligible.length;
+    selectVisibleUsers.indeterminate = selectedVisibleCount > 0
+        && selectedVisibleCount < visibleEligible.length;
+
+    document.querySelectorAll(".user-select-checkbox").forEach((checkbox) => {
+        checkbox.checked = userState.selectedIds.has(checkbox.value);
+    });
 }
 
 async function parseFunctionError(error) {
@@ -122,6 +162,23 @@ function openDeleteDialog(user) {
     document.querySelector("#delete-reason").focus();
 }
 
+function openBulkDeleteDialog() {
+    const users = selectedUsers();
+    if (users.length === 0) {
+        return;
+    }
+
+    const confirmationPhrase = `DELETE ${users.length} USERS`;
+    document.querySelector("#bulk-delete-count").textContent = users.length;
+    document.querySelector("#bulk-delete-confirmation-phrase").textContent =
+        confirmationPhrase;
+    document.querySelector("#bulk-delete-reason").value = "";
+    document.querySelector("#bulk-delete-confirmation").value = "";
+    document.querySelector("#confirm-bulk-delete-button").disabled = true;
+    bulkDeleteDialog.showModal();
+    document.querySelector("#bulk-delete-reason").focus();
+}
+
 async function unbanUser(user) {
     if (!window.confirm(`Restore website access for ${user.username}?`)) {
         return;
@@ -144,6 +201,26 @@ async function unbanUser(user) {
 function buildUserRow(user) {
     const row = document.createElement("tr");
     const status = accountStatus(user);
+
+    const selectionCell = makeCell();
+    selectionCell.className = "select-user-column";
+    if (canBulkDelete(user)) {
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "user-select-checkbox";
+        checkbox.value = user.id;
+        checkbox.checked = userState.selectedIds.has(user.id);
+        checkbox.setAttribute("aria-label", `Select ${user.username}`);
+        checkbox.addEventListener("change", () => {
+            if (checkbox.checked) {
+                userState.selectedIds.add(user.id);
+            } else {
+                userState.selectedIds.delete(user.id);
+            }
+            updateSelectionInterface();
+        });
+        selectionCell.append(checkbox);
+    }
 
     const identityCell = makeCell();
     const identity = document.createElement("div");
@@ -224,7 +301,14 @@ function buildUserRow(user) {
     }
 
     actionsCell.append(actions);
-    row.append(identityCell, balanceCell, statusCell, signInCell, actionsCell);
+    row.append(
+        selectionCell,
+        identityCell,
+        balanceCell,
+        statusCell,
+        signInCell,
+        actionsCell
+    );
     return row;
 }
 
@@ -261,6 +345,8 @@ function renderUsers() {
         userState.users.filter((user) => user.is_admin).length;
     document.querySelector("#deleted-count").textContent =
         userState.users.filter((user) => user.account_deleted).length;
+
+    updateSelectionInterface();
 }
 
 async function loadUsers({ keepMessage = false } = {}) {
@@ -281,6 +367,14 @@ async function loadUsers({ keepMessage = false } = {}) {
     try {
         const payload = await invokeAdmin({ action: "list" });
         userState.users = Array.isArray(payload?.users) ? payload.users : [];
+        const selectableIds = new Set(
+            userState.users.filter(canBulkDelete).map((user) => user.id)
+        );
+        userState.selectedIds.forEach((id) => {
+            if (!selectableIds.has(id)) {
+                userState.selectedIds.delete(id);
+            }
+        });
         renderUsers();
     } catch (error) {
         usersLoading.hidden = true;
@@ -361,9 +455,83 @@ deleteForm.addEventListener("submit", async (event) => {
     }
 });
 
+bulkDeleteForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const users = selectedUsers();
+    const reason = document.querySelector("#bulk-delete-reason").value.trim();
+    const confirmation = document.querySelector("#bulk-delete-confirmation").value;
+    const expected = `DELETE ${users.length} USERS`;
+    const submitButton = document.querySelector("#confirm-bulk-delete-button");
+
+    if (users.length === 0 || !reason || confirmation !== expected) {
+        return;
+    }
+
+    submitButton.disabled = true;
+    let deletedCount = 0;
+    const failures = [];
+
+    try {
+        const ids = users.map((user) => user.id);
+
+        for (let index = 0; index < ids.length; index += 25) {
+            const batch = ids.slice(index, index + 25);
+            const payload = await invokeAdmin({
+                action: "bulk_delete",
+                target_user_ids: batch,
+                reason
+            });
+
+            const deleted = Array.isArray(payload?.deleted)
+                ? payload.deleted
+                : [];
+            const failed = Array.isArray(payload?.failed)
+                ? payload.failed
+                : [];
+
+            deletedCount += deleted.length;
+            deleted.forEach((result) => {
+                userState.selectedIds.delete(result.id);
+            });
+            failures.push(...failed);
+        }
+
+        bulkDeleteDialog.close();
+
+        if (failures.length === 0) {
+            showAdminMessage(
+                `${deletedCount} ${deletedCount === 1 ? "account was" : "accounts were"} deleted and anonymized.`
+            );
+        } else {
+            showAdminMessage(
+                `${deletedCount} accounts were deleted. ${failures.length} failed and remain blocked; check Storage ownership and retry them.`,
+                "error"
+            );
+        }
+
+        await loadUsers({ keepMessage: true });
+    } catch (error) {
+        showAdminMessage(
+            `${deletedCount} accounts were deleted before the request stopped. ${error.message}`,
+            "error"
+        );
+        await loadUsers({ keepMessage: true });
+    } finally {
+        submitButton.disabled = false;
+    }
+});
+
 document.querySelector("#delete-confirmation").addEventListener("input", (event) => {
     const expected = document.querySelector("#delete-target-username").value;
     document.querySelector("#confirm-delete-button").disabled =
+        event.target.value !== expected;
+});
+
+document.querySelector("#bulk-delete-confirmation").addEventListener("input", (event) => {
+    const selectedCount = selectedUsers().length;
+    const expected = `DELETE ${selectedCount} USERS`;
+    document.querySelector("#confirm-bulk-delete-button").disabled =
         event.target.value !== expected;
 });
 
@@ -376,5 +544,26 @@ document.querySelectorAll("[data-close-dialog]").forEach((button) => {
 userSearchInput.addEventListener("input", renderUsers);
 statusFilter.addEventListener("change", renderUsers);
 refreshUsersButton.addEventListener("click", () => loadUsers());
+document.querySelector("#bulk-delete-button").addEventListener(
+    "click",
+    openBulkDeleteDialog
+);
+document.querySelector("#clear-selection-button").addEventListener("click", () => {
+    userState.selectedIds.clear();
+    updateSelectionInterface();
+});
+selectVisibleUsers.addEventListener("change", () => {
+    const visibleEligible = filteredUsers().filter(canBulkDelete);
+
+    for (const user of visibleEligible) {
+        if (selectVisibleUsers.checked) {
+            userState.selectedIds.add(user.id);
+        } else {
+            userState.selectedIds.delete(user.id);
+        }
+    }
+
+    updateSelectionInterface();
+});
 
 loadUsers();

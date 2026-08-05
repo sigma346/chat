@@ -80,6 +80,28 @@
     padding: 1rem;
 }
 
+.bulk-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid rgba(255, 104, 128, 0.3);
+    border-radius: 0.8rem;
+    background: rgba(171, 35, 59, 0.12);
+}
+
+.bulk-actions[hidden] {
+    display: none !important;
+}
+
+.bulk-actions > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
 .admin-directory-toolbar {
     display: grid;
     grid-template-columns: minmax(15rem, 1fr) minmax(10rem, 0.28fr);
@@ -121,7 +143,7 @@
 
 #users-table {
     width: 100%;
-    min-width: 850px;
+    min-width: 900px;
     border-collapse: collapse;
 }
 
@@ -138,6 +160,25 @@
     font-size: 0.72rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+}
+
+.select-user-column {
+    width: 2.8rem;
+    text-align: center !important;
+}
+
+.select-user-column input,
+.user-select-checkbox {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0;
+    accent-color: #ff6880;
+    cursor: pointer;
+}
+
+.select-user-column input:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
 }
 
 .user-identity {
@@ -259,6 +300,12 @@
     margin-top: 0.35rem;
 }
 
+.bulk-delete-note {
+    margin: -0.25rem 0 0;
+    color: #93a1b6;
+    font-size: 0.8rem;
+}
+
 @media (max-width: 760px) {
     .admin-users-layout {
         width: min(100% - 1rem, 1180px);
@@ -275,5 +322,10 @@
 
     .admin-directory-toolbar {
         grid-template-columns: 1fr;
+    }
+
+    .bulk-actions {
+        align-items: stretch;
+        flex-direction: column;
     }
 }

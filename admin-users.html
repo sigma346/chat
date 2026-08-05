@@ -88,6 +88,22 @@
                     </label>
                 </div>
 
+                <div id="bulk-actions" class="bulk-actions" hidden>
+                    <strong id="selected-user-count">0 users selected</strong>
+                    <div>
+                        <button id="clear-selection-button" type="button">
+                            Clear selection
+                        </button>
+                        <button
+                            id="bulk-delete-button"
+                            class="danger-button"
+                            type="button"
+                        >
+                            Delete selected
+                        </button>
+                    </div>
+                </div>
+
                 <div id="users-loading" class="users-loading">
                     Loading users…
                 </div>
@@ -96,6 +112,13 @@
                     <table id="users-table" hidden>
                         <thead>
                             <tr>
+                                <th scope="col" class="select-user-column">
+                                    <input
+                                        id="select-visible-users"
+                                        type="checkbox"
+                                        aria-label="Select all visible deletable users"
+                                    >
+                                </th>
                                 <th scope="col">Player</th>
                                 <th scope="col">Balance</th>
                                 <th scope="col">Status</th>
@@ -155,6 +178,64 @@
                 </button>
                 <button id="confirm-ban-button" class="danger-button" type="submit">
                     Ban player
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="bulk-delete-dialog" class="admin-dialog admin-dialog-danger">
+        <form id="bulk-delete-form" method="dialog">
+            <button
+                class="dialog-close"
+                type="button"
+                data-close-dialog="bulk-delete-dialog"
+                aria-label="Close"
+            >×</button>
+            <p class="eyebrow">BULK PERMANENT ACTION</p>
+            <h2>Delete <span id="bulk-delete-count">0</span> users</h2>
+
+            <p>
+                Every selected login will be removed and each casino profile
+                will be anonymized. Admin accounts and your own account cannot
+                be included.
+            </p>
+
+            <label for="bulk-delete-reason">
+                Reason applied to every selected account
+                <textarea
+                    id="bulk-delete-reason"
+                    maxlength="500"
+                    rows="3"
+                    placeholder="Why are these accounts being deleted?"
+                    required
+                ></textarea>
+            </label>
+
+            <label for="bulk-delete-confirmation">
+                Type <strong id="bulk-delete-confirmation-phrase"></strong> to confirm
+                <input
+                    id="bulk-delete-confirmation"
+                    type="text"
+                    autocomplete="off"
+                    required
+                >
+            </label>
+
+            <p class="bulk-delete-note">
+                Large selections are safely processed in groups of 25.
+            </p>
+
+            <div class="dialog-actions">
+                <button type="button" data-close-dialog="bulk-delete-dialog">
+                    Cancel
+                </button>
+                <button
+                    id="confirm-bulk-delete-button"
+                    class="danger-button"
+                    type="submit"
+                    disabled
+                >
+                    Permanently delete selected
                 </button>
             </div>
         </form>
