@@ -117,13 +117,24 @@
     }
 
     async function loadHomeNews() {
-        const { data, error } = await window.supabaseClient
-            .from("news_articles")
-            .select(
-                "provider_id, title, summary, url, image_url, category, published_at"
-            )
-            .order("published_at", { ascending: false })
-            .limit(3);
+        const [articleResult, stateResult] = await Promise.all([
+            window.supabaseClient
+                .from("news_articles")
+                .select(
+                    "provider_id, title, summary, url, image_url, category, published_at"
+                )
+                .order("published_at", { ascending: false })
+                .limit(3),
+
+            window.supabaseClient
+                .from("news_feed_state")
+                .select("last_success_at, last_error")
+                .eq("singleton", true)
+                .maybeSingle()
+        ]);
+
+        const { data, error } = articleResult;
+        const state = stateResult.data;
 
         grid.replaceChildren();
 
@@ -133,7 +144,7 @@
             message.className = "panel home-news-placeholder";
             message.textContent = "The news feed is unavailable right now.";
             grid.append(message);
-            status.textContent = "Cached headlines could not be loaded.";
+            status.textContent = `Cached headlines could not be loaded: ${error.message}`;
             status.classList.add("error");
             return;
         }
@@ -141,9 +152,14 @@
         if (!data?.length) {
             const message = document.createElement("article");
             message.className = "panel home-news-placeholder";
-            message.textContent = "No headlines are cached yet. Run the first news refresh after installation.";
+            message.textContent = state?.last_error
+                ? `The news refresh failed: ${state.last_error}`
+                : "No headlines are cached yet. Run the first news refresh after installation.";
             grid.append(message);
-            status.textContent = "Waiting for the first World News API update.";
+            status.textContent = state?.last_error
+                ? "Open World News for the full setup diagnostics."
+                : "Waiting for the first World News API update.";
+            status.classList.toggle("error", Boolean(state?.last_error));
             return;
         }
 
@@ -151,7 +167,10 @@
             grid.append(createHeadline(article));
         }
 
-        status.textContent = "Headlines are read from the shared Supabase cache.";
+        status.textContent = state?.last_error
+            ? "Showing older cached headlines because the latest refresh failed."
+            : "Headlines are read from the shared Supabase cache.";
+        status.classList.toggle("error", Boolean(state?.last_error));
     }
 
     loadHomeNews();

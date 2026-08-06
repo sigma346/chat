@@ -272,7 +272,7 @@
                 window.supabaseClient
                     .from("news_feed_state")
                     .select(
-                        "last_success_at, article_count, last_error"
+                        "last_success_at, article_count, last_error, last_http_status, quota_request, quota_used, quota_left"
                     )
                     .eq("singleton", true)
                     .maybeSingle()
@@ -294,12 +294,31 @@
             lastUpdated.textContent = state?.last_success_at
                 ? fullDate(state.last_success_at)
                 : "Not refreshed yet";
-            cacheCount.textContent = `${state?.article_count ?? articles.length} cached articles`;
+            const quotaLabel = Number.isFinite(Number(state?.quota_left))
+                ? ` · ${Number(state.quota_left).toLocaleString("en-AU")} API points left`
+                : "";
+            cacheCount.textContent = `${state?.article_count ?? articles.length} cached articles${quotaLabel}`;
+
+            if (!articles.length) {
+                showLoadError(
+                    state?.last_error
+                        ? `The news refresh failed: ${state.last_error}`
+                        : "No headlines are cached yet. Run the first forced update-world-news refresh."
+                );
+                return;
+            }
+
+            if (state?.last_error) {
+                cacheCount.textContent += " · latest refresh failed; showing older cache";
+                cacheCount.title = state.last_error;
+            }
 
             renderArticles();
         } catch (error) {
             console.error("Could not load cached news:", error);
-            showLoadError("The cached news feed could not be loaded. Try again shortly.");
+            showLoadError(
+                `The cached news feed could not be loaded: ${error?.message || "Unknown Supabase error"}`
+            );
         } finally {
             reloadButton.disabled = false;
         }

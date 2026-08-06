@@ -111,6 +111,9 @@ let currentUser = null;
 let selectedLeaderboard = "chips";
 let refreshInterval = null;
 
+const LEADERBOARD_DISPLAY_LIMIT = 50;
+const LEADERBOARD_FETCH_LIMIT = 100;
+
 
 function formatChips(value, signed = false) {
     const amount = Number(value ?? 0);
@@ -154,24 +157,66 @@ function rankLabel(rank) {
 
 
 function setLoading() {
-    leaderboardBody.innerHTML = `
-        <tr>
-            <td colspan="5" class="leaderboard-empty">
-                Loading leaderboard...
-            </td>
-        </tr>
-    `;
+    leaderboardBody.replaceChildren();
+
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 5;
+    cell.className = "leaderboard-empty";
+    cell.textContent = "Loading leaderboard...";
+    row.append(cell);
+    leaderboardBody.append(row);
 }
 
 
 function setError(message) {
-    leaderboardBody.innerHTML = `
-        <tr>
-            <td colspan="5" class="leaderboard-empty leaderboard-error">
-                ${message}
-            </td>
-        </tr>
-    `;
+    leaderboardBody.replaceChildren();
+
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 5;
+    cell.className = "leaderboard-empty leaderboard-error";
+    cell.textContent = message;
+    row.append(cell);
+    leaderboardBody.append(row);
+}
+
+
+async function removeIneligibleLeaderboardPlayers(rows) {
+    if (!Array.isArray(rows) || !rows.length) {
+        return [];
+    }
+
+    const userIds = [
+        ...new Set(
+            rows
+                .map((row) => row?.user_id)
+                .filter(Boolean)
+        )
+    ];
+
+    const { data, error } = await window.supabaseClient
+        .from("visible_leaderboard_profiles")
+        .select("id")
+        .in("id", userIds);
+
+    if (error) {
+        throw new Error(
+            `Leaderboard eligibility could not be checked: ${error.message}. Run the news and leaderboard hotfix SQL.`
+        );
+    }
+
+    const eligibleIds = new Set(
+        (data ?? []).map((profile) => profile.id)
+    );
+
+    return rows
+        .filter((row) => eligibleIds.has(row.user_id))
+        .slice(0, LEADERBOARD_DISPLAY_LIMIT)
+        .map((row, index) => ({
+            ...row,
+            rank: index + 1
+        }));
 }
 
 
@@ -298,7 +343,7 @@ async function loadLeaderboard() {
             result = await window.supabaseClient.rpc(
                 "get_chip_leaderboard",
                 {
-                    p_limit: 50
+                    p_limit: LEADERBOARD_FETCH_LIMIT
                 }
             );
         } else if (
@@ -311,14 +356,14 @@ async function loadLeaderboard() {
                     p_game: selectedLeaderboard === "solitaire_klondike"
                         ? "klondike"
                         : "spider",
-                    p_limit: 50
+                    p_limit: LEADERBOARD_FETCH_LIMIT
                 }
             );
         } else if (selectedLeaderboard === "penguin_cross") {
             result = await window.supabaseClient.rpc(
                 "get_penguin_cross_profit_leaderboard",
                 {
-                    p_limit: 50
+                    p_limit: LEADERBOARD_FETCH_LIMIT
                 }
             );
         } else {
@@ -326,7 +371,7 @@ async function loadLeaderboard() {
                 "get_game_profit_leaderboard",
                 {
                     p_game: selectedLeaderboard,
-                    p_limit: 50
+                    p_limit: LEADERBOARD_FETCH_LIMIT
                 }
             );
         }
@@ -335,7 +380,11 @@ async function loadLeaderboard() {
             throw result.error;
         }
 
-        renderRows(result.data ?? []);
+        const visibleRows = await removeIneligibleLeaderboardPlayers(
+            result.data ?? []
+        );
+
+        renderRows(visibleRows);
 
         leaderboardUpdatedAt.textContent =
             `Updated ${new Intl.DateTimeFormat(
