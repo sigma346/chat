@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Markets</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="prediction-markets.css?v=1">
+</head>
+<body class="prediction-page">
+    <main class="page">
+        <div class="prediction-layout">
+            <div id="site-navbar"></div>
+
+            <header class="panel prediction-hero">
+                <div class="prediction-hero-copy">
+                    <p class="eyebrow">COMMUNITY PREDICTIONS</p>
+                    <h1>Prediction Markets</h1>
+                    <p>
+                        Back YES or NO with chips. After betting closes,
+                        participants verify the result and an administrator
+                        settles the full pool—or refunds everyone if the
+                        outcome is unclear.
+                    </p>
+                </div>
+
+                <div class="prediction-wallet-card">
+                    <span>Your wallet</span>
+                    <strong><span id="prediction-wallet">—</span> chips</strong>
+                    <small>There are no market fees.</small>
+                </div>
+            </header>
+
+            <p
+                id="prediction-message"
+                class="prediction-message"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+            <section id="prediction-admin-banner" class="panel admin-banner hidden">
+                <div>
+                    <p class="eyebrow">ADMIN REVIEW</p>
+                    <strong id="prediction-review-count">0 markets waiting</strong>
+                    <span>Participant votes are guidance; you make the final decision.</span>
+                </div>
+                <button id="prediction-review-button" type="button" class="secondary-button">
+                    Open review queue
+                </button>
+            </section>
+
+            <section class="panel prediction-toolbar">
+                <div class="prediction-filters" role="group" aria-label="Market filters">
+                    <button class="filter-button active" type="button" data-filter="all">All</button>
+                    <button class="filter-button" type="button" data-filter="open">Open</button>
+                    <button class="filter-button" type="button" data-filter="awaiting_review">Review</button>
+                    <button class="filter-button" type="button" data-filter="settled">Settled</button>
+                    <button class="filter-button" type="button" data-filter="mine">My markets</button>
+                </div>
+
+                <div class="prediction-toolbar-actions">
+                    <button id="prediction-refresh-button" type="button" class="secondary-button">
+                        Refresh
+                    </button>
+                    <button id="prediction-create-toggle" type="button">
+                        Create market
+                    </button>
+                </div>
+            </section>
+
+            <section id="prediction-create-panel" class="panel prediction-create-panel hidden">
+                <div class="prediction-section-heading">
+                    <div>
+                        <p class="eyebrow">NEW MARKET</p>
+                        <h2>Create a clear YES / NO question</h2>
+                    </div>
+                    <button id="prediction-create-close" type="button" class="icon-button" aria-label="Close">×</button>
+                </div>
+
+                <form id="prediction-create-form" class="prediction-form">
+                    <label class="wide-field">
+                        Question
+                        <input
+                            id="prediction-title"
+                            type="text"
+                            minlength="10"
+                            maxlength="160"
+                            placeholder="Will ... happen by ...?"
+                            required
+                        >
+                    </label>
+
+                    <label class="wide-field">
+                        Resolution rules
+                        <textarea
+                            id="prediction-description"
+                            minlength="20"
+                            maxlength="2000"
+                            rows="4"
+                            placeholder="Define the deadline, source and exactly what counts as YES or NO."
+                            required
+                        ></textarea>
+                    </label>
+
+                    <label>
+                        Betting closes
+                        <input id="prediction-closes-at" type="datetime-local" required>
+                    </label>
+
+                    <div class="prediction-form-actions">
+                        <button id="prediction-create-submit" type="submit">Publish market</button>
+                        <span>Markets can stay open from 10 minutes to 90 days.</span>
+                    </div>
+                </form>
+            </section>
+
+            <section>
+                <div class="prediction-list-heading">
+                    <div>
+                        <p class="eyebrow">MARKETS</p>
+                        <h2 id="prediction-list-title">All prediction markets</h2>
+                    </div>
+                    <span id="prediction-last-updated">Loading…</span>
+                </div>
+
+                <div id="prediction-market-grid" class="prediction-market-grid" aria-live="polite">
+                    <article class="panel prediction-empty">Loading prediction markets…</article>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <dialog id="prediction-detail-dialog" class="prediction-dialog">
+        <div class="prediction-dialog-shell">
+            <button id="prediction-dialog-close" type="button" class="dialog-close" aria-label="Close">×</button>
+            <div id="prediction-dialog-content"></div>
+        </div>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="prediction-markets.js?v=1"></script>
+</body>
+</html>

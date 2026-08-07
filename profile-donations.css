@@ -1,0 +1,105 @@
+.profile-donations-panel {
+    padding: 1.35rem;
+}
+
+.profile-donations-description {
+    margin: 0.35rem 0 1rem;
+}
+
+.profile-donations-list {
+    display: grid;
+    gap: 0.7rem;
+}
+
+.profile-donation-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.85rem;
+    min-height: 72px;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 14px;
+    background: rgba(9, 14, 23, 0.52);
+}
+
+.profile-donation-avatar {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(98, 230, 189, 0.34);
+    border-radius: 13px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(98, 230, 189, 0.2),
+            rgba(98, 230, 189, 0.05)
+        ),
+        #151d2a;
+    color: #e8fff8;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.profile-donation-details {
+    min-width: 0;
+    display: grid;
+    gap: 0.22rem;
+}
+
+.profile-donation-donor {
+    width: fit-content;
+    max-width: 100%;
+    overflow: hidden;
+    color: #8ff0cf;
+    font-weight: 750;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-donation-donor[href]:hover,
+.profile-donation-donor[href]:focus-visible {
+    color: #c3ffec;
+    text-decoration: underline;
+}
+
+.profile-donation-date {
+    color: #94a3b8;
+    font-size: 0.82rem;
+}
+
+.profile-donation-amount {
+    color: #62e6bd;
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.profile-donations-state {
+    margin: 0;
+    padding: 1.1rem;
+    border: 1px dashed rgba(148, 163, 184, 0.2);
+    border-radius: 14px;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.profile-donations-state.error {
+    border-color: rgba(248, 113, 113, 0.28);
+    color: #fca5a5;
+}
+
+@media (max-width: 620px) {
+    .profile-donation-item {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .profile-donation-amount {
+        grid-column: 2;
+        text-align: left;
+    }
+}

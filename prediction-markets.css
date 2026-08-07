@@ -1,0 +1,441 @@
+.prediction-page {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 12% 8%, rgba(66, 191, 255, 0.14), transparent 30rem),
+        radial-gradient(circle at 90% 4%, rgba(172, 93, 255, 0.14), transparent 32rem),
+        #080b14;
+}
+
+.prediction-layout {
+    display: grid;
+    gap: 1.25rem;
+    width: min(1180px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 1.2rem 0 4rem;
+}
+
+.prediction-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: clamp(1.4rem, 4vw, 2.6rem);
+    overflow: hidden;
+    position: relative;
+}
+
+.prediction-hero::after {
+    content: "?";
+    position: absolute;
+    right: 16rem;
+    top: -4.5rem;
+    font-size: 16rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.025);
+    line-height: 1;
+    pointer-events: none;
+}
+
+.prediction-hero h1 {
+    margin: 0.15rem 0 0.7rem;
+    font-size: clamp(2rem, 5vw, 3.8rem);
+}
+
+.prediction-hero-copy {
+    max-width: 700px;
+}
+
+.prediction-hero-copy > p:last-child {
+    color: #aeb7cc;
+    line-height: 1.65;
+    margin: 0;
+}
+
+.prediction-wallet-card {
+    min-width: 210px;
+    border: 1px solid rgba(105, 218, 255, 0.28);
+    border-radius: 18px;
+    padding: 1.15rem 1.3rem;
+    background: linear-gradient(145deg, rgba(30, 57, 91, 0.68), rgba(16, 19, 36, 0.82));
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+}
+
+.prediction-wallet-card span,
+.prediction-wallet-card small {
+    color: #95a2ba;
+}
+
+.prediction-wallet-card strong {
+    display: block;
+    color: #7ee1ff;
+    font-size: 1.45rem;
+    margin: 0.25rem 0;
+}
+
+.prediction-message {
+    min-height: 1.3rem;
+    margin: -0.4rem 0;
+    color: #9eb0ca;
+}
+
+.prediction-message.success { color: #74e8a5; }
+.prediction-message.error { color: #ff8d9d; }
+
+.admin-banner,
+.prediction-toolbar,
+.prediction-section-heading,
+.prediction-list-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.admin-banner {
+    padding: 1rem 1.2rem;
+    border-color: rgba(246, 182, 83, 0.32);
+    background: linear-gradient(100deg, rgba(80, 50, 20, 0.42), rgba(20, 19, 30, 0.84));
+}
+
+.admin-banner strong,
+.admin-banner span {
+    display: block;
+}
+
+.admin-banner strong { color: #ffd285; }
+.admin-banner span { color: #aeb7cc; margin-top: 0.2rem; }
+
+.prediction-toolbar {
+    padding: 0.8rem;
+}
+
+.prediction-filters,
+.prediction-toolbar-actions,
+.prediction-form-actions,
+.market-card-footer,
+.market-meta-row,
+.detail-actions,
+.vote-tally {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.prediction-filters .filter-button {
+    background: transparent;
+    color: #aeb7cc;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+.prediction-filters .filter-button:hover,
+.prediction-filters .filter-button.active {
+    background: rgba(93, 177, 255, 0.13);
+    color: #dff7ff;
+    border-color: rgba(105, 218, 255, 0.3);
+}
+
+.prediction-create-panel {
+    padding: clamp(1.2rem, 3vw, 2rem);
+}
+
+.prediction-create-panel h2,
+.prediction-list-heading h2 {
+    margin: 0.1rem 0 0;
+}
+
+.icon-button,
+.dialog-close {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border-radius: 999px;
+    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.prediction-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.4fr);
+    gap: 1rem;
+    margin-top: 1.2rem;
+}
+
+.prediction-form label,
+.detail-form label {
+    display: grid;
+    gap: 0.42rem;
+    color: #c7d1e4;
+    font-weight: 650;
+}
+
+.wide-field,
+.prediction-form-actions {
+    grid-column: 1 / -1;
+}
+
+.prediction-form input,
+.prediction-form textarea,
+.detail-form input,
+.detail-form textarea,
+.detail-form select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.prediction-form-actions {
+    justify-content: space-between;
+}
+
+.prediction-form-actions span,
+#prediction-last-updated {
+    color: #8996ad;
+    font-size: 0.9rem;
+}
+
+.prediction-list-heading {
+    margin: 0.5rem 0 0.8rem;
+}
+
+.prediction-market-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.prediction-market-card {
+    display: grid;
+    gap: 1rem;
+    padding: 1.2rem;
+    transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.prediction-market-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(113, 205, 255, 0.34);
+}
+
+.market-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.market-card-header h3 {
+    margin: 0;
+    line-height: 1.32;
+    font-size: 1.15rem;
+}
+
+.market-status {
+    flex: 0 0 auto;
+    padding: 0.32rem 0.62rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #bec8da;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.market-status.open { color: #75eaa6; border-color: rgba(76, 225, 139, 0.35); }
+.market-status.awaiting_review { color: #ffd37e; border-color: rgba(255, 190, 78, 0.35); }
+.market-status.resolved { color: #86dfff; border-color: rgba(81, 196, 255, 0.35); }
+.market-status.refunded { color: #c8b6ff; border-color: rgba(170, 133, 255, 0.35); }
+
+.market-card-description {
+    color: #99a6bc;
+    line-height: 1.5;
+    margin: -0.25rem 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pool-bar {
+    height: 0.72rem;
+    display: flex;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+}
+
+.pool-bar-yes { background: linear-gradient(90deg, #27d47a, #72e7a9); }
+.pool-bar-no { background: linear-gradient(90deg, #f05b77, #ff8d9d); }
+
+.pool-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.42rem;
+    font-weight: 800;
+    font-size: 0.88rem;
+}
+
+.pool-labels .yes-label { color: #72e7a9; }
+.pool-labels .no-label { color: #ff8d9d; }
+
+.market-meta-row {
+    color: #8794ab;
+    font-size: 0.85rem;
+}
+
+.market-meta-row span + span::before {
+    content: "•";
+    margin-right: 0.65rem;
+    color: #4f5a6d;
+}
+
+.market-card-footer {
+    justify-content: space-between;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding-top: 0.9rem;
+}
+
+.my-position-chip {
+    color: #d4dded;
+    font-size: 0.88rem;
+}
+
+.my-position-chip strong.yes { color: #72e7a9; }
+.my-position-chip strong.no { color: #ff8d9d; }
+
+.prediction-empty {
+    grid-column: 1 / -1;
+    padding: 2.5rem;
+    text-align: center;
+    color: #92a0b7;
+}
+
+.prediction-dialog {
+    width: min(900px, calc(100% - 1.5rem));
+    max-height: min(88vh, 900px);
+    padding: 0;
+    border: 1px solid rgba(110, 180, 255, 0.24);
+    border-radius: 22px;
+    color: #edf3ff;
+    background: #101522;
+    box-shadow: 0 35px 100px rgba(0,0,0,0.6);
+}
+
+.prediction-dialog::backdrop {
+    background: rgba(2, 4, 9, 0.76);
+    backdrop-filter: blur(6px);
+}
+
+.prediction-dialog-shell {
+    position: relative;
+    padding: clamp(1.2rem, 4vw, 2.2rem);
+}
+
+.dialog-close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    z-index: 2;
+}
+
+.detail-header { padding-right: 3rem; }
+.detail-header h2 { margin: 0.25rem 0 0.5rem; font-size: clamp(1.5rem, 4vw, 2.25rem); }
+.detail-description { color: #abb6ca; line-height: 1.65; white-space: pre-wrap; }
+
+.detail-pools,
+.detail-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin: 1.2rem 0;
+}
+
+.detail-pool-card,
+.detail-section,
+.detail-form,
+.admin-resolution-panel {
+    padding: 1rem;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.035);
+}
+
+.detail-pool-card span,
+.detail-pool-card small { display: block; color: #91a0b8; }
+.detail-pool-card strong { display: block; font-size: 1.6rem; margin: 0.2rem 0; }
+.detail-pool-card.yes strong { color: #72e7a9; }
+.detail-pool-card.no strong { color: #ff8d9d; }
+
+.detail-section h3,
+.detail-form h3,
+.admin-resolution-panel h3 { margin: 0 0 0.75rem; }
+
+.position-list,
+.verification-list {
+    display: grid;
+    gap: 0.55rem;
+    max-height: 270px;
+    overflow: auto;
+}
+
+.position-row,
+.verification-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.035);
+}
+
+.verification-row { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+.verification-copy { display: grid; gap: 0.25rem; color: #aeb9cd; font-size: 0.88rem; }
+.verification-copy a { color: #75dfff; }
+
+.side-label { font-weight: 850; }
+.side-label.yes { color: #72e7a9; }
+.side-label.no { color: #ff8d9d; }
+.side-label.unclear { color: #ffd37e; }
+
+.detail-form,
+.admin-resolution-panel { margin-top: 1rem; display: grid; gap: 0.8rem; }
+.detail-form-grid { display: grid; grid-template-columns: 0.45fr 1fr; gap: 0.8rem; }
+.vote-tally span { padding: 0.4rem 0.7rem; border-radius: 999px; background: rgba(255,255,255,0.05); }
+.admin-resolution-panel { border-color: rgba(255, 190, 78, 0.3); }
+.detail-actions .yes-action { background: #158a53; border-color: #36c57b; }
+.detail-actions .no-action { background: #9b3349; border-color: #e3637b; }
+.detail-actions .refund-action { background: #65509f; border-color: #9980e2; }
+
+.settlement-result {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 14px;
+    background: rgba(91, 190, 255, 0.09);
+    color: #cfefff;
+}
+
+.hidden { display: none !important; }
+
+@media (max-width: 760px) {
+    .prediction-hero,
+    .prediction-toolbar,
+    .admin-banner,
+    .prediction-list-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .prediction-wallet-card { min-width: 0; }
+    .prediction-market-grid,
+    .detail-columns,
+    .detail-pools,
+    .prediction-form,
+    .detail-form-grid { grid-template-columns: 1fr; }
+    .wide-field,
+    .prediction-form-actions { grid-column: auto; }
+    .prediction-toolbar-actions > *,
+    .admin-banner button { flex: 1; }
+    .position-row { grid-template-columns: minmax(0, 1fr) auto; }
+    .position-row .position-payout { grid-column: 1 / -1; }
+}

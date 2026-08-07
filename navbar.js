@@ -15,11 +15,6 @@
 
     const navigationItems = [
         {
-            label: "Home",
-            href: "home.html",
-            files: ["home.html"]
-        },
-        {
             label: "Chat",
             href: "index.html",
             files: ["index.html", ""]
@@ -74,26 +69,11 @@
                     label: "Russian Roulette",
                     href: "community-russian-roulette.html",
                     files: ["community-russian-roulette.html"]
-                }
-            ]
-        },
-        {
-            label: "Markets",
-            children: [
-                {
-                    label: "Fictional Market",
-                    href: "stocks.html",
-                    files: ["stocks.html"]
                 },
                 {
-                    label: "Real Market",
-                    href: "real-stocks.html",
-                    files: ["real-stocks.html"]
-                },
-                {
-                    label: "Crypto",
-                    href: "crypto.html",
-                    files: ["crypto.html"]
+                    label: "Prediction Markets",
+                    href: "prediction-markets.html",
+                    files: ["prediction-markets.html"]
                 }
             ]
         },
@@ -131,11 +111,6 @@
             label: "More",
             children: [
                 {
-                    label: "World News",
-                    href: "news.html",
-                    files: ["news.html"]
-                },
-                {
                     label: "Donate",
                     href: "donate.html",
                     files: ["donate.html"]
@@ -144,12 +119,6 @@
                     label: "Account",
                     href: "account.html",
                     files: ["account.html"]
-                },
-                {
-                    label: "Admin",
-                    href: "admin-users.html",
-                    files: ["admin-users.html"],
-                    adminOnly: true
                 },
                 {
                     label: "Disclaimer",
@@ -328,11 +297,6 @@
             link.className = "nav-dropdown-item";
             link.textContent = child.label;
             link.setAttribute("role", "menuitem");
-
-            if (child.adminOnly) {
-                link.hidden = true;
-                link.dataset.adminOnly = "true";
-            }
 
             if (itemIsActive(child)) {
                 link.classList.add("active");
@@ -552,10 +516,6 @@
                 font-weight: 700;
             }
 
-            .nav-dropdown-item[hidden] {
-                display: none !important;
-            }
-
             @media (max-width: 860px) {
                 .shared-site-nav .site-nav-links {
                     align-items: stretch;
@@ -694,106 +654,6 @@
         navbar.append(links, accountControls);
 
         return navbar;
-    }
-
-    function formatAccessDate(value) {
-        if (!value) {
-            return "until an administrator removes the ban";
-        }
-
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) {
-            return "until the ban expires";
-        }
-
-        return `until ${date.toLocaleString()}`;
-    }
-
-    function buildAccessMessage(status) {
-        if (status?.account_deleted) {
-            return "This account has been deleted and can no longer be used.";
-        }
-
-        const reason = status?.reason
-            ? ` Reason: ${status.reason}`
-            : "";
-
-        return `This account is banned ${formatAccessDate(status?.banned_until)}.${reason}`;
-    }
-
-    async function enforceAccountAccess() {
-        if (!window.supabaseClient?.auth) {
-            return;
-        }
-
-        try {
-            const {
-                data: { session }
-            } = await window.supabaseClient.auth.getSession();
-
-            if (!session) {
-                return;
-            }
-
-            const {
-                data: { user },
-                error: userError
-            } = await window.supabaseClient.auth.getUser();
-
-            if (userError || !user) {
-                window.sessionStorage.setItem(
-                    "casino-account-access-message",
-                    "This account session is no longer active. If the account was banned, contact an administrator for help."
-                );
-                await window.supabaseClient.auth.signOut({
-                    scope: "local"
-                });
-                window.location.replace("login.html?access=blocked");
-                return;
-            }
-
-            const { data: status, error } =
-                await window.supabaseClient.rpc(
-                    "get_my_account_access_status"
-                );
-
-            // Keep older installations usable until migration 56 is run.
-            if (error || !status) {
-                if (error) {
-                    console.warn(
-                        "Account access status could not be checked.",
-                        error
-                    );
-                }
-                return;
-            }
-
-            document
-                .querySelectorAll('[data-admin-only="true"]')
-                .forEach((element) => {
-                    element.hidden = status.is_admin !== true;
-                });
-
-            if (status.allowed === true) {
-                return;
-            }
-
-            window.sessionStorage.setItem(
-                "casino-account-access-message",
-                buildAccessMessage(status)
-            );
-
-            await window.supabaseClient.auth.signOut({
-                scope: "local"
-            });
-
-            window.location.replace("login.html?access=blocked");
-        } catch (error) {
-            console.warn(
-                "Account access enforcement could not run.",
-                error
-            );
-        }
     }
 
     function navbarMountTarget() {
@@ -1209,7 +1069,6 @@
         loadUiOverhaulStyles();
         installDropdownDismissHandlers();
         mountNavbar();
-        enforceAccountAccess();
 
         const heartsSafeMode =
             currentFile === "hearts-table.html";

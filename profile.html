@@ -15,6 +15,10 @@
         rel="stylesheet"
         href="profile-chip-history.css?v=1"
     >
+    <link
+        rel="stylesheet"
+        href="profile-donations.css?v=1"
+    >
 </head>
 <body>
     <main class="page profile-page">
@@ -314,6 +318,40 @@
             </section>
 
             <section
+                id="profile-donations-panel"
+                class="panel profile-donations-panel"
+            >
+                <div class="section-heading profile-section-heading">
+                    <div>
+                        <p class="eyebrow">SUPPORT RECEIVED</p>
+                        <h2>Donations received</h2>
+                    </div>
+
+                    <span
+                        id="profile-donations-summary"
+                        class="profile-section-summary"
+                    >
+                        Loading...
+                    </span>
+                </div>
+
+                <p class="description profile-donations-description">
+                    Recent chip donations are public. Private donation notes
+                    are never shown here.
+                </p>
+
+                <div
+                    id="profile-donations-list"
+                    class="profile-donations-list"
+                    aria-live="polite"
+                >
+                    <p class="profile-donations-state">
+                        Loading donations...
+                    </p>
+                </div>
+            </section>
+
+            <section
                 id="profile-owner-panel"
                 class="profile-owner-grid hidden"
             >
@@ -472,5 +510,6 @@
     <script src="navbar.js"></script>
     <script src="profile.js"></script>
     <script src="profile-chip-history.js?v=1"></script>
+    <script src="profile-donations.js?v=1"></script>
 </body>
 </html>

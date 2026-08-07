@@ -15,7 +15,7 @@
         href="ui-overhaul.css?v=33"
         data-ui-overhaul="true"
     >
-    <link rel="stylesheet" href="community-russian-roulette.css?v=2">
+    <link rel="stylesheet" href="community-russian-roulette.css?v=3">
 </head>
 
 <body>
@@ -138,13 +138,13 @@
                         <h2>Enter the next game</h2>
                         <p>
                             Choose your starting stake. It is removed from your
-                            wallet immediately and fully refunded if fewer than
-                            two players join.
+                            wallet immediately. Solo games are allowed, so the
+                            round starts even if nobody else joins.
                         </p>
                     </div>
 
                     <span class="community-rr-limit-chip">
-                        2–10 players
+                        1–10 players
                     </span>
                 </div>
 
@@ -187,7 +187,7 @@
                             id="community-rr-signup-help"
                             class="community-rr-help-copy"
                         >
-                            Sign-ups open ten minutes before each game.
+                            Sign-ups open twenty minutes before each game.
                         </p>
                     </div>
 
@@ -396,13 +396,12 @@
                             <h3>Schedule and sign-up</h3>
                             <p>
                                 Games begin at :00, :20 and :40 each hour.
-                                Sign-up opens ten minutes before the start time.
-                                Choose a stake from 100 to 10,000 play chips.
+                                Sign-up opens twenty minutes before the start time.
+                                Choose a stake from 100 to 20,000 play chips.
                             </p>
                             <p>
-                                At least two players are required. If the game
-                                does not fill, every entry is automatically
-                                refunded. A maximum of ten players may join.
+                                One player is enough to begin. A maximum of ten
+                                players may join.
                             </p>
                         </section>
 
@@ -468,6 +467,6 @@
     <script src="config.js"></script>
     <script src="supabase-client.js"></script>
     <script src="navbar.js"></script>
-    <script src="community-russian-roulette.js?v=2"></script>
+    <script src="community-russian-roulette.js?v=3"></script>
 </body>
 </html>
