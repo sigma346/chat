@@ -1,7 +1,7 @@
 (() => {
-    if (window.groupCallEngineV7 || !window.supabaseClient) return;
+    if (window.groupCallEngineV8 || !window.supabaseClient) return;
 
-    const BUILD = "PUSH V7.1";
+    const BUILD = "PUSH V8.0";
     const HEARTBEAT_MS = 45000;
     const STATE_POLL_MS = 2500;
     const SIGNAL_POLL_MS = 1800;
@@ -908,30 +908,146 @@
         }
     }
 
-    async function syncPeerTracks(record) {
-        let directionChanged = false;
+    function captureAnswererTransceivers(record) {
+        const transceivers = record.pc.getTransceivers();
 
-        const desiredAudioDirection =
-            localAudioTrack ? "sendrecv" : "recvonly";
+        record.audioTx =
+            transceivers.find((tx) =>
+                tx.receiver?.track?.kind === "audio"
+                || tx.sender?.track?.kind === "audio"
+            )
+            ?? record.audioTx
+            ?? null;
 
-        if (record.audioTx.direction !== desiredAudioDirection) {
-            record.audioTx.direction = desiredAudioDirection;
-            directionChanged = true;
+        record.videoTx =
+            transceivers.find((tx) =>
+                tx.receiver?.track?.kind === "video"
+                || tx.sender?.track?.kind === "video"
+            )
+            ?? record.videoTx
+            ?? null;
+    }
+
+    async function ensureOffererTransceivers(record) {
+        if (!record.offerer) return;
+
+        if (!record.audioTx) {
+            record.audioTx =
+                localAudioTrack
+                    ? record.pc.addTransceiver(
+                        localAudioTrack,
+                        {
+                            direction: "sendrecv",
+                            streams: localStream
+                                ? [localStream]
+                                : []
+                        }
+                    )
+                    : record.pc.addTransceiver(
+                        "audio",
+                        { direction: "recvonly" }
+                    );
         }
 
-        await record.audioTx.sender.replaceTrack(localAudioTrack ?? null);
+        if (
+            callMode() === "video"
+            && !record.videoTx
+        ) {
+            const videoTrack = outgoingVideoTrack();
+
+            record.videoTx =
+                videoTrack
+                    ? record.pc.addTransceiver(
+                        videoTrack,
+                        {
+                            direction: "sendrecv",
+                            streams: localStream
+                                ? [localStream]
+                                : []
+                        }
+                    )
+                    : record.pc.addTransceiver(
+                        "video",
+                        { direction: "recvonly" }
+                    );
+        }
+    }
+
+    async function bindTrackToTransceiver(
+        transceiver,
+        track,
+        desiredDirection
+    ) {
+        if (!transceiver) return false;
+
+        let changed = false;
+
+        if (
+            transceiver.direction
+            !== desiredDirection
+        ) {
+            transceiver.direction =
+                desiredDirection;
+
+            changed = true;
+        }
+
+        await transceiver.sender.replaceTrack(
+            track ?? null
+        );
+
+        if (
+            track
+            && localStream
+            && typeof transceiver.sender.setStreams
+                === "function"
+        ) {
+            transceiver.sender.setStreams(
+                localStream
+            );
+        }
+
+        return changed;
+    }
+
+    async function syncPeerTracks(record) {
+        if (record.offerer) {
+            await ensureOffererTransceivers(
+                record
+            );
+        } else {
+            captureAnswererTransceivers(
+                record
+            );
+        }
+
+        let directionChanged = false;
+
+        if (record.audioTx) {
+            directionChanged =
+                await bindTrackToTransceiver(
+                    record.audioTx,
+                    localAudioTrack,
+                    localAudioTrack
+                        ? "sendrecv"
+                        : "recvonly"
+                )
+                || directionChanged;
+        }
 
         if (record.videoTx) {
-            const videoTrack = outgoingVideoTrack();
-            const desiredVideoDirection =
-                videoTrack ? "sendrecv" : "recvonly";
+            const videoTrack =
+                outgoingVideoTrack();
 
-            if (record.videoTx.direction !== desiredVideoDirection) {
-                record.videoTx.direction = desiredVideoDirection;
-                directionChanged = true;
-            }
-
-            await record.videoTx.sender.replaceTrack(videoTrack ?? null);
+            directionChanged =
+                await bindTrackToTransceiver(
+                    record.videoTx,
+                    videoTrack,
+                    videoTrack
+                        ? "sendrecv"
+                        : "recvonly"
+                )
+                || directionChanged;
         }
 
         return directionChanged;
@@ -941,37 +1057,33 @@
         const existing = peers.get(remoteUserId);
         if (existing) return existing;
 
+        const offerer =
+            isOfferer(remoteUserId);
+
         const pc = new RTCPeerConnection({
             iceServers: await loadIceServers()
         });
 
-        const audioTx = pc.addTransceiver("audio", {
-            direction: localAudioTrack ? "sendrecv" : "recvonly"
-        });
+        const remoteStream =
+            new MediaStream();
 
-        const videoTx =
-            callMode() === "video"
-                ? pc.addTransceiver("video", {
-                    direction: outgoingVideoTrack()
-                        ? "sendrecv"
-                        : "recvonly"
-                })
-                : null;
-
-        const remoteStream = new MediaStream();
-        const remoteAudio = document.createElement("audio");
+        const remoteAudio =
+            document.createElement("audio");
 
         remoteAudio.autoplay = true;
         remoteAudio.playsInline = true;
         remoteAudio.hidden = true;
-        remoteAudio.srcObject = remoteStream;
+        remoteAudio.srcObject =
+            remoteStream;
+
         ui.root.append(remoteAudio);
 
         const record = {
             remoteUserId,
+            offerer,
             pc,
-            audioTx,
-            videoTx,
+            audioTx: null,
+            videoTx: null,
             remoteStream,
             remoteAudio,
             remoteSessionId: "",
@@ -988,51 +1100,132 @@
             reconnectTimer: null
         };
 
-        peers.set(remoteUserId, record);
+        peers.set(
+            remoteUserId,
+            record
+        );
 
-        pc.addEventListener("icecandidate", (event) => {
-            if (!event.candidate) return;
+        /*
+         * Only the deterministic offerer creates local transceivers before
+         * negotiation. The answerer intentionally starts with none. When an
+         * offer arrives, setRemoteDescription() creates the matching
+         * transceivers from the remote SDP, then handleOffer() attaches our
+         * camera/mic to those exact transceivers before createAnswer().
+         */
+        if (offerer) {
+            await ensureOffererTransceivers(
+                record
+            );
 
-            record.localIce.push(event.candidate.toJSON());
-            scheduleIceFlush(record);
-        });
+            await syncPeerTracks(
+                record
+            );
+        }
 
-        pc.addEventListener("track", (event) => {
-            const track = event.track;
+        pc.addEventListener(
+            "icecandidate",
+            (event) => {
+                if (!event.candidate) return;
 
-            if (
-                !remoteStream
-                    .getTracks()
-                    .some((existingTrack) => existingTrack.id === track.id)
-            ) {
-                remoteStream.addTrack(track);
+                record.localIce.push(
+                    event.candidate.toJSON()
+                );
+
+                scheduleIceFlush(
+                    record
+                );
             }
+        );
 
-            const participant = participantById(remoteUserId);
-            if (participant) updateTile(participant);
+        pc.addEventListener(
+            "track",
+            (event) => {
+                const track =
+                    event.track;
 
-            remoteAudio.play().catch(() => {});
-            tiles.get(remoteUserId)?.video.play().catch(() => {});
-        });
+                if (
+                    !remoteStream
+                        .getTracks()
+                        .some(
+                            (existingTrack) =>
+                                existingTrack.id
+                                    === track.id
+                        )
+                ) {
+                    remoteStream.addTrack(
+                        track
+                    );
+                }
 
-        pc.addEventListener("connectionstatechange", () => {
-            const participant = participantById(remoteUserId);
+                console.info(
+                    `[GroupCall] ${BUILD} received ${track.kind} track`,
+                    {
+                        remoteUserId,
+                        trackId: track.id,
+                        readyState:
+                            track.readyState
+                    }
+                );
 
-            if (participant) updateTile(participant);
+                const participant =
+                    participantById(
+                        remoteUserId
+                    );
 
-            if (pc.connectionState === "connected") {
-                updateTransport(record);
+                if (participant) {
+                    updateTile(
+                        participant
+                    );
+                }
+
+                remoteAudio
+                    .play()
+                    .catch(() => {});
+
+                tiles
+                    .get(remoteUserId)
+                    ?.video
+                    ?.play()
+                    .catch(() => {});
             }
+        );
 
-            if (
-                pc.connectionState === "failed"
-                || pc.connectionState === "disconnected"
-            ) {
-                scheduleReconnect(record);
+        pc.addEventListener(
+            "connectionstatechange",
+            () => {
+                const participant =
+                    participantById(
+                        remoteUserId
+                    );
+
+                if (participant) {
+                    updateTile(
+                        participant
+                    );
+                }
+
+                if (
+                    pc.connectionState
+                        === "connected"
+                ) {
+                    updateTransport(
+                        record
+                    );
+                }
+
+                if (
+                    pc.connectionState
+                        === "failed"
+                    || pc.connectionState
+                        === "disconnected"
+                ) {
+                    scheduleReconnect(
+                        record
+                    );
+                }
             }
-        });
+        );
 
-        await syncPeerTracks(record);
         return record;
     }
 
@@ -1291,7 +1484,7 @@
     }
 
     async function handleOffer(record, payload) {
-        if (isOfferer(record.remoteUserId)) {
+        if (record.offerer) {
             console.warn(
                 `[GroupCall] ${BUILD} ignored unexpected offer from deterministic answerer`
             );
@@ -1299,45 +1492,119 @@
         }
 
         const negotiationId =
-            String(payload.negotiation_id ?? "");
+            String(
+                payload.negotiation_id
+                ?? ""
+            );
 
-        const description = payload.description;
-
-        if (!negotiationId || description?.type !== "offer") return;
+        const description =
+            payload.description;
 
         if (
-            record.remoteNegotiationId === negotiationId
-            && record.pc.signalingState === "stable"
+            !negotiationId
+            || description?.type
+                !== "offer"
         ) {
             return;
         }
 
-        if (record.pc.signalingState !== "stable") {
-            record = await resetPeer(
-                record.remoteUserId,
-                record.remoteSessionId
-            );
+        if (
+            record.remoteNegotiationId
+                === negotiationId
+            && record.pc.signalingState
+                === "stable"
+        ) {
+            return;
         }
 
-        await syncPeerTracks(record);
+        if (
+            record.pc.signalingState
+                !== "stable"
+        ) {
+            record =
+                await resetPeer(
+                    record.remoteUserId,
+                    record.remoteSessionId
+                );
+        }
 
-        record.remoteNegotiationId = negotiationId;
+        record.remoteNegotiationId =
+            negotiationId;
 
-        await record.pc.setRemoteDescription(description);
-        await flushCandidates(record);
+        /*
+         * Critical V8 change:
+         *
+         * Apply the offer FIRST. This lets the browser create the precise
+         * audio/video transceivers represented by the remote m-lines.
+         *
+         * Only after that do we attach our local camera/microphone to those
+         * transceivers and set their desired direction. For a webcam-less PC
+         * offering video recvonly, a camera-equipped phone/laptop will then
+         * correctly answer video sendonly instead of inactive.
+         */
+        await record.pc
+            .setRemoteDescription(
+                description
+            );
 
-        const answer = await record.pc.createAnswer();
+        captureAnswererTransceivers(
+            record
+        );
 
-        record.localNegotiationId = negotiationId;
+        await syncPeerTracks(
+            record
+        );
 
-        await record.pc.setLocalDescription(answer);
+        console.info(
+            `[GroupCall] ${BUILD} creating answer`,
+            {
+                remoteUserId:
+                    record.remoteUserId,
+                audioTrack:
+                    localAudioTrack
+                        ?.readyState
+                    ?? "none",
+                videoTrack:
+                    outgoingVideoTrack()
+                        ?.readyState
+                    ?? "none",
+                audioDirection:
+                    record.audioTx
+                        ?.direction
+                    ?? "none",
+                videoDirection:
+                    record.videoTx
+                        ?.direction
+                    ?? "none"
+            }
+        );
+
+        await flushCandidates(
+            record
+        );
+
+        const answer =
+            await record.pc
+                .createAnswer();
+
+        record.localNegotiationId =
+            negotiationId;
+
+        await record.pc
+            .setLocalDescription(
+                answer
+            );
 
         await sendSignal(
             record.remoteUserId,
             "answer",
             {
-                negotiation_id: negotiationId,
-                description: record.pc.localDescription.toJSON()
+                negotiation_id:
+                    negotiationId,
+                description:
+                    record.pc
+                        .localDescription
+                        .toJSON()
             }
         );
     }
@@ -2642,6 +2909,7 @@
         }
     };
 
+    window.groupCallEngineV8 = api;
     window.groupCallEngineV7 = api;
 
     /*

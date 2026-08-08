@@ -1,8 +1,8 @@
 (() => {
-    if (window.__playerCallVideoFitV7) return;
-    window.__playerCallVideoFitV7 = true;
+    if (window.__playerCallVideoFitV8) return;
+    window.__playerCallVideoFitV8 = true;
 
-    const BUILD = "PUSH V7.1";
+    const BUILD = "PUSH V8.0";
     window.__CALL_PUSH_LOADER__ = BUILD;
 
     function installCameraConstraintFix() {
@@ -73,10 +73,10 @@
     }
 
     function injectStyles() {
-        if (document.querySelector("#player-call-video-fit-v7-styles")) return;
+        if (document.querySelector("#player-call-video-fit-v8-styles")) return;
 
         const style = document.createElement("style");
-        style.id = "player-call-video-fit-v7-styles";
+        style.id = "player-call-video-fit-v8-styles";
 
         style.textContent = `
             .player-call-remote-video,
@@ -106,14 +106,14 @@
     }
 
     function loadBootstrap() {
-        if (document.querySelector('script[data-group-call-bootstrap-v7]')) {
+        if (document.querySelector('script[data-group-call-bootstrap-v8]')) {
             return;
         }
 
         const script = document.createElement("script");
-        script.src = "group-call-bootstrap.js?v=7.1";
+        script.src = "group-call-bootstrap.js?v=8.0";
         script.async = true;
-        script.dataset.groupCallBootstrapV7 = "true";
+        script.dataset.groupCallBootstrapV8 = "true";
 
         script.addEventListener("error", () => {
             console.warn(

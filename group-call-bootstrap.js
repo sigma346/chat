@@ -1,11 +1,11 @@
 (() => {
-    if (window.__groupCallBootstrapV7 || !window.supabaseClient) return;
+    if (window.__groupCallBootstrapV8 || !window.supabaseClient) return;
 
-    window.__groupCallBootstrapV7 = true;
+    window.__groupCallBootstrapV8 = true;
 
-    const BUILD = "PUSH V7.1";
-    const ENGINE_SCRIPT = "group-call-engine.js?v=7.1";
-    const ENGINE_STYLE = "group-call-engine.css?v=7.1";
+    const BUILD = "PUSH V8.0";
+    const ENGINE_SCRIPT = "group-call-engine.js?v=8.0";
+    const ENGINE_STYLE = "group-call-engine.css?v=8.0";
 
     let currentUser = null;
     let participantChannel = null;
@@ -31,12 +31,12 @@
     }
 
     function ensureLaunchStyle() {
-        if (document.querySelector("#group-call-v7-launch-style")) return;
+        if (document.querySelector("#group-call-v8-launch-style")) return;
 
         const style = document.createElement("style");
-        style.id = "group-call-v7-launch-style";
+        style.id = "group-call-v8-launch-style";
         style.textContent = `
-            .group-call-launch-v7 {
+            .group-call-launch-v8 {
                 display:inline-flex;
                 align-items:center;
                 justify-content:center;
@@ -52,7 +52,7 @@
                 font-weight:850;
                 cursor:pointer;
             }
-            .group-call-launch-v7:hover {
+            .group-call-launch-v8:hover {
                 border-color:rgba(98,230,189,.58);
                 background:rgba(31,118,93,.3);
             }
@@ -63,7 +63,7 @@
     function ensureLaunchButton() {
         if (
             currentFile() !== "friends.html"
-            || document.querySelector("[data-group-call-launch-v7]")
+            || document.querySelector("[data-group-call-launch-v8]")
         ) {
             return;
         }
@@ -76,8 +76,8 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className =
-            "secondary-button group-call-launch-v7";
-        button.dataset.groupCallLaunchV7 = "true";
+            "secondary-button group-call-launch-v8";
+        button.dataset.groupCallLaunchV8 = "true";
         button.textContent = `Start group call · ${BUILD}`;
 
         button.addEventListener("click", async () => {
@@ -102,18 +102,18 @@
     }
 
     function ensureEngineStyle() {
-        if (document.querySelector('link[data-group-call-engine-v7]')) return;
+        if (document.querySelector('link[data-group-call-engine-v8]')) return;
 
         const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = ENGINE_STYLE;
-        link.dataset.groupCallEngineV7 = "true";
+        link.dataset.groupCallEngineV8 = "true";
         document.head.append(link);
     }
 
     function loadEngine() {
-        if (window.groupCallEngineV7) {
-            return Promise.resolve(window.groupCallEngineV7);
+        if (window.groupCallEngineV8) {
+            return Promise.resolve(window.groupCallEngineV8);
         }
 
         if (enginePromise) return enginePromise;
@@ -124,11 +124,11 @@
             const script = document.createElement("script");
             script.src = ENGINE_SCRIPT;
             script.async = true;
-            script.dataset.groupCallEngineV7 = "true";
+            script.dataset.groupCallEngineV8 = "true";
 
             script.addEventListener("load", () => {
-                if (window.groupCallEngineV7) {
-                    resolve(window.groupCallEngineV7);
+                if (window.groupCallEngineV8) {
+                    resolve(window.groupCallEngineV8);
                 } else {
                     reject(
                         new Error(
@@ -160,7 +160,7 @@
             disposed
             || refreshing
             || !currentUser
-            || window.groupCallEngineV7?.isHandlingCall?.()
+            || window.groupCallEngineV8?.isHandlingCall?.()
         ) {
             return;
         }
@@ -210,7 +210,7 @@
         participantChannel =
             window.supabaseClient
                 .channel(
-                    `group-call-bootstrap-v7-${currentUser.id}`
+                    `group-call-bootstrap-v8-${currentUser.id}`
                 )
                 .on(
                     "postgres_changes",
@@ -223,7 +223,7 @@
                     },
                     () => {
                         if (
-                            !window.groupCallEngineV7
+                            !window.groupCallEngineV8
                                 ?.isHandlingCall?.()
                         ) {
                             scheduleRefresh();
@@ -251,7 +251,7 @@
 
     window.addEventListener("focus", () => {
         if (
-            !window.groupCallEngineV7
+            !window.groupCallEngineV8
                 ?.isHandlingCall?.()
         ) {
             scheduleRefresh();
@@ -269,7 +269,7 @@
         }
     });
 
-    window.groupCallBootstrapV7 = {
+    window.groupCallBootstrapV8 = {
         BUILD,
         loadEngine,
         refresh: refreshState,

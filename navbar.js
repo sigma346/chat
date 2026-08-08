@@ -890,7 +890,7 @@
                 document.createElement("script");
 
             videoFitScript.src =
-                "player-call-video-fit.js?v=6";
+                "player-call-video-fit.js?v=8.0";
             videoFitScript.async = false;
             videoFitScript.dataset.playerCallVideoFit = "true";
 
