@@ -5,13 +5,6 @@
 
     window.__playerCallVideoFitLoaded = true;
 
-    /*
-     * The main call script currently requests a fixed 1280x720 camera.
-     * That can make a portrait phone camera negotiate a landscape crop.
-     *
-     * Intercept only that call-camera request and let the browser use
-     * the camera's natural aspect/orientation instead.
-     */
     function installCameraConstraintFix() {
         const mediaDevices = navigator.mediaDevices;
 
@@ -52,25 +45,12 @@
                 ...constraints,
                 video: {
                     ...remainingVideoConstraints,
-
-                    /*
-                     * Prefer the front camera on phones, but do not force it.
-                     * The browser may still use another available camera.
-                     */
                     facingMode:
                         remainingVideoConstraints.facingMode
                         ?? { ideal: "user" },
-
-                    /*
-                     * "none" asks supporting browsers not to crop-and-scale
-                     * the camera to satisfy an artificial target resolution.
-                     * It is only an ideal constraint, so unsupported browsers
-                     * simply ignore it.
-                     */
                     resizeMode:
                         remainingVideoConstraints.resizeMode
                         ?? { ideal: "none" },
-
                     frameRate:
                         remainingVideoConstraints.frameRate
                         ?? { ideal: 24, max: 30 }
@@ -93,18 +73,17 @@
     }
 
     function injectVideoFitStyles() {
-        if (document.querySelector("#player-call-video-fit-styles")) {
+        if (
+            document.querySelector(
+                "#player-call-video-fit-styles"
+            )
+        ) {
             return;
         }
 
         const style = document.createElement("style");
         style.id = "player-call-video-fit-styles";
         style.textContent = `
-            /*
-             * Do not stretch the remote video to the dimensions of the
-             * desktop call stage. Let the video keep its real aspect ratio
-             * and shrink until the entire camera feed fits.
-             */
             .player-call-remote-video {
                 width: auto !important;
                 height: auto !important;
@@ -118,10 +97,6 @@
                 background: #070b10;
             }
 
-            /*
-             * The local preview used a forced 16:10 rectangle with
-             * object-fit: cover, which also cropped portrait cameras.
-             */
             .player-call-local-video {
                 width: auto !important;
                 height: auto !important;
@@ -133,16 +108,13 @@
                 background: #070b10 !important;
             }
 
-            .player-call-local-video[data-video-orientation="portrait"] {
+            .player-call-local-video[
+                data-video-orientation="portrait"
+            ] {
                 max-width: min(18%, 150px) !important;
                 max-height: 46% !important;
             }
 
-            /*
-             * On desktop, reduce the width of the whole call window when
-             * the remote feed is portrait. This makes a phone camera feel
-             * intentional instead of floating inside a huge landscape box.
-             */
             @media (min-width: 681px) {
                 .player-call-stage[
                     data-mode="video"
@@ -161,10 +133,6 @@
                 }
             }
 
-            /*
-             * Mobile remains full-screen, but the videos still retain
-             * their true aspect ratio.
-             */
             @media (max-width: 680px) {
                 .player-call-remote-video {
                     max-width: 100% !important;
@@ -172,7 +140,9 @@
                 }
 
                 .player-call-local-video,
-                .player-call-local-video[data-video-orientation="portrait"] {
+                .player-call-local-video[
+                    data-video-orientation="portrait"
+                ] {
                     width: auto !important;
                     height: auto !important;
                     max-width: 32% !important;
@@ -224,19 +194,19 @@
         }
     }
 
-    function attachOrientationTracking(root) {
-        if (!root || root.dataset.videoFitTracking === "true") {
+    function attachOrientationTracking() {
+        const root = document.querySelector(
+            "#player-call-root"
+        );
+
+        if (
+            !root
+            || root.dataset.videoFitTracking === "true"
+        ) {
             return;
         }
 
         root.dataset.videoFitTracking = "true";
-
-        const remoteVideo = root.querySelector(
-            ".player-call-remote-video"
-        );
-        const localVideo = root.querySelector(
-            ".player-call-local-video"
-        );
 
         const register = (video, kind) => {
             if (!video) {
@@ -247,54 +217,92 @@
                 updateVideoOrientation(video, kind);
             };
 
-            video.addEventListener("loadedmetadata", update);
-            video.addEventListener("resize", update);
-            video.addEventListener("playing", update);
+            video.addEventListener(
+                "loadedmetadata",
+                update
+            );
 
-            /*
-             * Covers cases where this helper loads after metadata has
-             * already become available.
-             */
+            video.addEventListener(
+                "resize",
+                update
+            );
+
+            video.addEventListener(
+                "playing",
+                update
+            );
+
             update();
         };
 
-        register(remoteVideo, "remote");
-        register(localVideo, "local");
-    }
-
-    function watchForCallUi() {
-        const existingRoot = document.querySelector(
-            "#player-call-root"
+        register(
+            root.querySelector(
+                ".player-call-remote-video"
+            ),
+            "remote"
         );
 
-        if (existingRoot) {
-            attachOrientationTracking(existingRoot);
+        register(
+            root.querySelector(
+                ".player-call-local-video"
+            ),
+            "local"
+        );
+    }
+
+    function loadGroupCallBootstrap() {
+        if (
+            document.querySelector(
+                'script[data-group-call-bootstrap-v4="true"]'
+            )
+        ) {
             return;
         }
 
-        const observer = new MutationObserver(() => {
-            const root = document.querySelector(
-                "#player-call-root"
+        const script = document.createElement("script");
+        script.src = "group-call-bootstrap.js?v=4";
+        script.async = true;
+        script.dataset.groupCallBootstrapV4 = "true";
+
+        script.addEventListener("error", () => {
+            console.warn(
+                "The lightweight group-call bootstrap could not be loaded."
             );
-
-            if (!root) {
-                return;
-            }
-
-            observer.disconnect();
-            attachOrientationTracking(root);
         });
 
-        observer.observe(
-            document.documentElement,
-            {
-                childList: true,
-                subtree: true
-            }
-        );
+        document.body.append(script);
     }
 
     installCameraConstraintFix();
     injectVideoFitStyles();
-    watchForCallUi();
+
+    /*
+     * No whole-page MutationObserver here. The existing private-call UI is
+     * created immediately after this helper, so a few small delayed checks
+     * are enough and cannot create a render/update feedback loop.
+     */
+    window.setTimeout(
+        attachOrientationTracking,
+        150
+    );
+
+    window.setTimeout(
+        attachOrientationTracking,
+        650
+    );
+
+    window.setTimeout(
+        attachOrientationTracking,
+        1500
+    );
+
+    /*
+     * Group calls are intentionally bootstrapped after the normal page and
+     * private-call system have had time to initialise. The bootstrap itself
+     * never opens media devices or creates WebRTC peers.
+     */
+    window.setTimeout(
+        loadGroupCallBootstrap,
+        1000
+    );
 })();
