@@ -134,13 +134,27 @@
 .chat-system-notification-hide {
     display: grid;
     place-items: center;
+    flex: 0 0 22px;
     width: 22px;
     height: 22px;
+    min-width: 22px;
+    min-height: 22px;
     padding: 0;
+    overflow: hidden;
     border-radius: 50%;
+    background: transparent;
     color: var(--muted);
     font-size: 1rem;
     line-height: 1;
+}
+
+html.ui-overhaul .chat-system-notification-hide {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    padding: 0;
+    border-radius: 50%;
 }
 
 .chat-system-notification-link:hover,
@@ -201,6 +215,7 @@
     }
 
     .chat-system-notification-summary {
+        display: grid;
         gap: 1px;
     }
 }
