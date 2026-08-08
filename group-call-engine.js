@@ -1,32 +1,18 @@
 (() => {
-    if (
-        window.groupCallEngineV4
-        || !window.supabaseClient
-    ) {
-        return;
-    }
+    if (window.groupCallEngineV7 || !window.supabaseClient) return;
 
-    const VERSION = "6";
-    const HEARTBEAT_MS = 45_000;
-    const STATE_POLL_MS = 2_500;
-    const SIGNAL_POLL_MS = 2_000;
-    const ICE_BATCH_MS = 120;
-    const MICROPHONE_STORAGE_KEY =
-        "preferred-player-call-microphone-v1";
-    const VIEW_STORAGE_KEY =
-        "group-call-view-v4";
-
-    const fallbackIceServers = [
-        {
-            urls: [
-                "stun:stun.cloudflare.com:3478"
-            ]
-        }
-    ];
+    const BUILD = "PUSH V7.1";
+    const HEARTBEAT_MS = 45000;
+    const STATE_POLL_MS = 2500;
+    const SIGNAL_POLL_MS = 1800;
+    const OFFER_TIMEOUT_MS = 6000;
+    const MICROPHONE_STORAGE_KEY = "preferred-player-call-microphone-v1";
+    const VIEW_STORAGE_KEY = "group-call-view-v7";
 
     let currentUser = null;
     let activeState = null;
     let currentCallId = null;
+
     let localStream = null;
     let localAudioTrack = null;
     let cameraTrack = null;
@@ -35,28 +21,25 @@
     let cameraEnabled = true;
     let screenSharing = false;
 
-    let peers = new Map();
-    let tileRecords = new Map();
-    let detectors = new Map();
+    const peers = new Map();
+    const tiles = new Map();
 
     let signalChannel = null;
     let signalCursor = 0;
     let signalChain = Promise.resolve();
 
-    let statePollTimer = null;
-    let signalPollTimer = null;
+    let stateTimer = null;
+    let signalTimer = null;
     let heartbeatTimer = null;
     let durationTimer = null;
-    let speakingTimer = null;
 
+    let connecting = false;
     let stateRefreshing = false;
     let signalPolling = false;
-    let connecting = false;
     let actionBusy = false;
     let disposed = false;
 
     let iceServersPromise = null;
-    let audioContext = null;
 
     let composerPurpose = "create";
     let composerMode = "video";
@@ -67,634 +50,263 @@
         crypto.randomUUID?.()
         ?? `${Date.now()}-${Math.random()}`;
 
-    const notifiedInviteIds = new Set();
-
     const ui = {};
 
-    function directCallActive() {
-        return Boolean(
-            window.playerCalls?.activeCall
-        );
-    }
+    window.__GROUP_CALL_PUSH__ = BUILD;
+    console.info(`[GroupCall] ${BUILD} loaded`, {
+        pageSessionId
+    });
 
     function callMode() {
-        return (
-            activeState?.call?.call_mode
-            ?? composerMode
-            ?? "video"
-        );
+        return activeState?.call?.call_mode ?? composerMode ?? "video";
+    }
+
+    function membershipStatus() {
+        return activeState?.membership?.status ?? null;
     }
 
     function joinedParticipants() {
-        return (
-            activeState?.participants
-            ?? []
-        ).filter(
-            (participant) =>
-                participant.status === "joined"
+        return (activeState?.participants ?? []).filter(
+            (participant) => participant.status === "joined"
         );
     }
 
     function activeParticipants() {
-        return (
-            activeState?.participants
-            ?? []
-        ).filter(
+        return (activeState?.participants ?? []).filter(
             (participant) =>
                 participant.status === "joined"
                 || participant.status === "invited"
         );
     }
 
-    function membershipStatus() {
-        return (
-            activeState?.membership?.status
-            ?? null
-        );
+    function participantById(userId) {
+        return (activeState?.participants ?? []).find(
+            (participant) => participant.user_id === userId
+        ) ?? null;
+    }
+
+    function currentHost() {
+        return (activeState?.participants ?? []).find(
+            (participant) => participant.is_host
+        ) ?? null;
     }
 
     function isHost() {
         return Boolean(
             currentUser
-            && activeState?.call?.host_id
-                === currentUser.id
+            && activeState?.call?.host_id === currentUser.id
         );
+    }
+
+    function directCallActive() {
+        return Boolean(window.playerCalls?.activeCall);
     }
 
     function modeLimit(mode) {
-        return mode === "video"
-            ? 4
-            : 6;
+        return mode === "video" ? 4 : 6;
     }
 
     function initials(username) {
-        const clean =
-            String(username ?? "?")
-                .replaceAll("_", " ")
-                .trim();
+        const value = String(username ?? "?")
+            .replaceAll("_", " ")
+            .trim();
 
-        if (!clean) {
-            return "?";
-        }
+        if (!value) return "?";
 
-        const parts =
-            clean.split(/\s+/).filter(Boolean);
+        const parts = value.split(/\s+/).filter(Boolean);
 
         if (parts.length === 1) {
-            return parts[0]
-                .slice(0, 2)
-                .toUpperCase();
+            return parts[0].slice(0, 2).toUpperCase();
         }
 
-        return (
-            `${parts[0][0]}${parts.at(-1)[0]}`
-        ).toUpperCase();
+        return `${parts[0][0]}${parts.at(-1)[0]}`.toUpperCase();
     }
 
     function formatDuration(seconds) {
-        const safe =
-            Math.max(
-                0,
-                Math.floor(seconds)
-            );
+        const total = Math.max(0, Math.floor(seconds));
+        const minutes = Math.floor(total / 60);
+        const remainder = total % 60;
 
-        const minutes =
-            Math.floor(safe / 60);
-
-        const remaining =
-            safe % 60;
-
-        return (
-            `${String(minutes).padStart(2, "0")}:`
-            + `${String(remaining).padStart(2, "0")}`
-        );
+        return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
     }
 
     function createUi() {
-        if (
-            document.querySelector(
-                "#group-call-v4-root"
-            )
-        ) {
-            return;
-        }
+        if (document.querySelector("#group-call-v7-root")) return;
 
-        const root =
-            document.createElement("section");
-
-        root.id = "group-call-v4-root";
-        root.className =
-            "group-call-v4-root hidden";
-
-        root.setAttribute(
-            "aria-live",
-            "polite"
-        );
+        const root = document.createElement("section");
+        root.id = "group-call-v7-root";
+        root.className = "group-call-v4-root hidden";
+        root.setAttribute("aria-live", "polite");
 
         root.innerHTML = `
-            <div
-                class="gcv4-backdrop hidden"
-                data-gcv4-action="mini"
-            ></div>
+            <style>
+                .gcv7-push {
+                    display: inline-flex;
+                    align-items: center;
+                    min-height: 20px;
+                    padding: 2px 6px;
+                    border: 1px solid rgba(98,230,189,.42);
+                    border-radius: 999px;
+                    background: rgba(98,230,189,.11);
+                    color: #9bf0d5;
+                    font: 900 .58rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+                    letter-spacing: .04em;
+                    white-space: nowrap;
+                }
+                .gcv7-peer-status {
+                    color: #9fb0c7 !important;
+                }
+                .gcv7-peer-status.turn {
+                    color: #ffe09b !important;
+                }
+                .gcv7-peer-status.connected {
+                    color: #9bf0d5 !important;
+                }
+            </style>
 
-            <aside
-                class="gcv4-incoming hidden"
-                aria-label="Incoming group call"
-            >
-                <div
-                    class="gcv4-incoming-icon"
-                    aria-hidden="true"
-                >◉</div>
+            <div class="gcv4-backdrop hidden" data-gcv7-action="mini"></div>
 
+            <aside class="gcv4-incoming hidden">
+                <div class="gcv4-incoming-icon">◉</div>
                 <div class="gcv4-incoming-copy">
-                    <span class="gcv4-kicker">
-                        GROUP CALL
-                    </span>
-
-                    <strong
-                        class="gcv4-incoming-title"
-                    ></strong>
-
-                    <span
-                        class="gcv4-incoming-detail"
-                    ></span>
+                    <span class="gcv4-kicker">GROUP CALL · ${BUILD}</span>
+                    <strong class="gcv4-incoming-title"></strong>
+                    <span class="gcv4-incoming-detail"></span>
                 </div>
-
-                <div
-                    class="gcv4-incoming-actions"
-                >
-                    <button
-                        type="button"
-                        class="gcv4-button accept"
-                        data-gcv4-action="accept"
-                    >
-                        Join
-                    </button>
-
-                    <button
-                        type="button"
-                        class="gcv4-button danger"
-                        data-gcv4-action="decline"
-                    >
-                        Decline
-                    </button>
+                <div class="gcv4-incoming-actions">
+                    <button type="button" class="gcv4-button accept" data-gcv7-action="accept">Join</button>
+                    <button type="button" class="gcv4-button danger" data-gcv7-action="decline">Decline</button>
                 </div>
             </aside>
 
-            <section
-                class="gcv4-stage hidden"
-                aria-label="Group call"
-            >
+            <section class="gcv4-stage hidden">
                 <header class="gcv4-header">
                     <div class="gcv4-heading-copy">
-                        <span
-                            class="gcv4-kicker gcv4-mode-label"
-                        >
-                            GROUP VIDEO CALL
-                        </span>
-
-                        <strong
-                            class="gcv4-heading"
-                        >
-                            Group call
-                        </strong>
+                        <span class="gcv4-kicker gcv4-mode-label">GROUP VIDEO CALL</span>
+                        <strong class="gcv4-heading">Group call</strong>
                     </div>
 
-                    <div
-                        class="gcv4-header-meta"
-                    >
-                        <span
-                            class="gcv4-count"
-                        >
-                            0/0
-                        </span>
-
-                        <span
-                            class="gcv4-duration"
-                        >
-                            00:00
-                        </span>
-
-                        <button
-                            type="button"
-                            class="gcv4-size-button"
-                            data-gcv4-action="expand"
-                        >
-                            Expand
-                        </button>
+                    <div class="gcv4-header-meta">
+                        <span class="gcv7-push">${BUILD}</span>
+                        <span class="gcv4-count">0/0</span>
+                        <span class="gcv4-duration">00:00</span>
+                        <button type="button" class="gcv4-size-button" data-gcv7-action="expand">Expand</button>
                     </div>
                 </header>
 
-                <div
-                    class="gcv4-grid"
-                ></div>
+                <div class="gcv4-grid"></div>
+                <p class="gcv4-error" role="alert"></p>
 
-                <p
-                    class="gcv4-error"
-                    role="alert"
-                ></p>
-
-                <div
-                    class="gcv4-controls"
-                >
-                    <button
-                        type="button"
-                        class="gcv4-control"
-                        data-gcv4-action="invite"
-                    >
-                        Invite
-                    </button>
-
-                    <button
-                        type="button"
-                        class="gcv4-control"
-                        data-gcv4-action="devices"
-                    >
-                        Devices
-                    </button>
-
-                    <button
-                        type="button"
-                        class="gcv4-control"
-                        data-gcv4-action="microphone"
-                    >
-                        Mute
-                    </button>
-
-                    <button
-                        type="button"
-                        class="gcv4-control"
-                        data-gcv4-action="camera"
-                    >
-                        Camera off
-                    </button>
-
-                    <button
-                        type="button"
-                        class="gcv4-control"
-                        data-gcv4-action="screen"
-                    >
-                        Share screen
-                    </button>
-
-                    <button
-                        type="button"
-                        class="gcv4-control danger"
-                        data-gcv4-action="leave"
-                    >
-                        Leave
-                    </button>
-
-                    <button
-                        type="button"
-                        class="gcv4-control danger hidden"
-                        data-gcv4-action="end"
-                    >
-                        End for all
-                    </button>
+                <div class="gcv4-controls">
+                    <button type="button" class="gcv4-control" data-gcv7-action="invite">Invite</button>
+                    <button type="button" class="gcv4-control" data-gcv7-action="devices">Devices</button>
+                    <button type="button" class="gcv4-control" data-gcv7-action="microphone">Mute</button>
+                    <button type="button" class="gcv4-control" data-gcv7-action="camera">Camera off</button>
+                    <button type="button" class="gcv4-control" data-gcv7-action="screen">Share screen</button>
+                    <button type="button" class="gcv4-control danger" data-gcv7-action="leave">Leave</button>
+                    <button type="button" class="gcv4-control danger hidden" data-gcv7-action="end">End for all</button>
                 </div>
             </section>
 
-            <section
-                class="gcv4-composer hidden"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="gcv4-composer-title"
-            >
-                <header
-                    class="gcv4-dialog-header"
-                >
+            <section class="gcv4-composer hidden" role="dialog" aria-modal="true">
+                <header class="gcv4-dialog-header">
                     <div>
-                        <span
-                            class="gcv4-kicker"
-                        >
-                            GROUP CALL
-                        </span>
-
-                        <h2
-                            id="gcv4-composer-title"
-                        >
-                            Start a group call
-                        </h2>
+                        <span class="gcv4-kicker">GROUP CALL · ${BUILD}</span>
+                        <h2 class="gcv7-composer-title">Start a group call</h2>
                     </div>
-
-                    <button
-                        type="button"
-                        class="gcv4-close"
-                        data-gcv4-action="close-composer"
-                        aria-label="Close"
-                    >
-                        ×
-                    </button>
+                    <button type="button" class="gcv4-close" data-gcv7-action="close-composer">×</button>
                 </header>
 
-                <div
-                    class="gcv4-mode-picker"
-                >
-                    <button
-                        type="button"
-                        data-gcv4-mode="audio"
-                    >
-                        Audio
-                    </button>
-
-                    <button
-                        type="button"
-                        data-gcv4-mode="video"
-                        class="active"
-                    >
-                        Video
-                    </button>
+                <div class="gcv4-mode-picker">
+                    <button type="button" data-gcv7-mode="audio">Audio</button>
+                    <button type="button" data-gcv7-mode="video" class="active">Video</button>
                 </div>
 
-                <div
-                    class="gcv4-composer-summary"
-                >
-                    <span
-                        class="gcv4-selection-count"
-                    >
-                        0 selected
-                    </span>
-
-                    <span
-                        class="gcv4-selection-limit"
-                    >
-                        Up to 3 friends
-                    </span>
+                <div class="gcv4-composer-summary">
+                    <span class="gcv7-selection-count">0 selected</span>
+                    <span class="gcv7-selection-limit">Up to 3 friends</span>
                 </div>
 
-                <div
-                    class="gcv4-friend-list"
-                ></div>
+                <div class="gcv4-friend-list"></div>
+                <p class="gcv4-composer-message" role="alert"></p>
 
-                <p
-                    class="gcv4-composer-message"
-                    role="alert"
-                ></p>
-
-                <div
-                    class="gcv4-dialog-actions"
-                >
-                    <button
-                        type="button"
-                        class="gcv4-button neutral"
-                        data-gcv4-action="close-composer"
-                    >
-                        Cancel
-                    </button>
-
-                    <button
-                        type="button"
-                        class="gcv4-button accept gcv4-submit"
-                        data-gcv4-action="submit-composer"
-                    >
-                        Start video call
-                    </button>
+                <div class="gcv4-dialog-actions">
+                    <button type="button" class="gcv4-button neutral" data-gcv7-action="close-composer">Cancel</button>
+                    <button type="button" class="gcv4-button accept gcv7-submit" data-gcv7-action="submit-composer">Start video call</button>
                 </div>
             </section>
 
-            <section
-                class="gcv4-device-panel hidden"
-                role="dialog"
-                aria-modal="false"
-                aria-labelledby="gcv4-device-title"
-            >
-                <header
-                    class="gcv4-dialog-header"
-                >
+            <section class="gcv4-device-panel hidden" role="dialog">
+                <header class="gcv4-dialog-header">
                     <div>
-                        <span
-                            class="gcv4-kicker"
-                        >
-                            CALL SETTINGS
-                        </span>
-
-                        <h2
-                            id="gcv4-device-title"
-                        >
-                            Microphone
-                        </h2>
+                        <span class="gcv4-kicker">CALL SETTINGS · ${BUILD}</span>
+                        <h2>Microphone</h2>
                     </div>
-
-                    <button
-                        type="button"
-                        class="gcv4-close"
-                        data-gcv4-action="close-devices"
-                        aria-label="Close"
-                    >
-                        ×
-                    </button>
+                    <button type="button" class="gcv4-close" data-gcv7-action="close-devices">×</button>
                 </header>
 
-                <label
-                    class="gcv4-device-field"
-                >
-                    <span>
-                        Microphone input
-                    </span>
-
-                    <select
-                        class="gcv4-microphone-select"
-                    >
-                        <option value="">
-                            Default microphone
-                        </option>
+                <label class="gcv4-device-field">
+                    <span>Microphone input</span>
+                    <select class="gcv7-microphone-select">
+                        <option value="">Default microphone</option>
                     </select>
                 </label>
 
-                <p
-                    class="gcv4-device-message"
-                    role="status"
-                ></p>
+                <p class="gcv4-device-message"></p>
             </section>
 
-            <div
-                class="gcv4-toast hidden"
-                role="status"
-            ></div>
+            <div class="gcv4-toast hidden"></div>
         `;
 
         document.body.append(root);
 
         ui.root = root;
-        ui.backdrop =
-            root.querySelector(
-                ".gcv4-backdrop"
-            );
+        ui.backdrop = root.querySelector(".gcv4-backdrop");
+        ui.incoming = root.querySelector(".gcv4-incoming");
+        ui.incomingTitle = root.querySelector(".gcv4-incoming-title");
+        ui.incomingDetail = root.querySelector(".gcv4-incoming-detail");
+        ui.stage = root.querySelector(".gcv4-stage");
+        ui.modeLabel = root.querySelector(".gcv4-mode-label");
+        ui.heading = root.querySelector(".gcv4-heading");
+        ui.count = root.querySelector(".gcv4-count");
+        ui.duration = root.querySelector(".gcv4-duration");
+        ui.sizeButton = root.querySelector(".gcv4-size-button");
+        ui.grid = root.querySelector(".gcv4-grid");
+        ui.error = root.querySelector(".gcv4-error");
+        ui.inviteButton = root.querySelector('[data-gcv7-action="invite"]');
+        ui.microphoneButton = root.querySelector('[data-gcv7-action="microphone"]');
+        ui.cameraButton = root.querySelector('[data-gcv7-action="camera"]');
+        ui.screenButton = root.querySelector('[data-gcv7-action="screen"]');
+        ui.endButton = root.querySelector('[data-gcv7-action="end"]');
 
-        ui.incoming =
-            root.querySelector(
-                ".gcv4-incoming"
-            );
+        ui.composer = root.querySelector(".gcv4-composer");
+        ui.composerTitle = root.querySelector(".gcv7-composer-title");
+        ui.modePicker = root.querySelector(".gcv4-mode-picker");
+        ui.selectionCount = root.querySelector(".gcv7-selection-count");
+        ui.selectionLimit = root.querySelector(".gcv7-selection-limit");
+        ui.friendList = root.querySelector(".gcv4-friend-list");
+        ui.composerMessage = root.querySelector(".gcv4-composer-message");
+        ui.submitButton = root.querySelector(".gcv7-submit");
 
-        ui.incomingTitle =
-            root.querySelector(
-                ".gcv4-incoming-title"
-            );
+        ui.devicePanel = root.querySelector(".gcv4-device-panel");
+        ui.microphoneSelect = root.querySelector(".gcv7-microphone-select");
+        ui.deviceMessage = root.querySelector(".gcv4-device-message");
+        ui.toast = root.querySelector(".gcv4-toast");
 
-        ui.incomingDetail =
-            root.querySelector(
-                ".gcv4-incoming-detail"
-            );
+        root.addEventListener("click", handleRootClick);
 
-        ui.stage =
-            root.querySelector(
-                ".gcv4-stage"
-            );
+        ui.microphoneSelect.addEventListener("change", () => {
+            changeMicrophone(ui.microphoneSelect.value).catch((error) => {
+                ui.deviceMessage.textContent =
+                    error.message || "The microphone could not be changed.";
+            });
+        });
 
-        ui.modeLabel =
-            root.querySelector(
-                ".gcv4-mode-label"
-            );
-
-        ui.heading =
-            root.querySelector(
-                ".gcv4-heading"
-            );
-
-        ui.count =
-            root.querySelector(
-                ".gcv4-count"
-            );
-
-        ui.duration =
-            root.querySelector(
-                ".gcv4-duration"
-            );
-
-        ui.sizeButton =
-            root.querySelector(
-                ".gcv4-size-button"
-            );
-
-        ui.grid =
-            root.querySelector(
-                ".gcv4-grid"
-            );
-
-        ui.error =
-            root.querySelector(
-                ".gcv4-error"
-            );
-
-        ui.inviteButton =
-            root.querySelector(
-                '[data-gcv4-action="invite"]'
-            );
-
-        ui.microphoneButton =
-            root.querySelector(
-                '[data-gcv4-action="microphone"]'
-            );
-
-        ui.cameraButton =
-            root.querySelector(
-                '[data-gcv4-action="camera"]'
-            );
-
-        ui.screenButton =
-            root.querySelector(
-                '[data-gcv4-action="screen"]'
-            );
-
-        ui.endButton =
-            root.querySelector(
-                '[data-gcv4-action="end"]'
-            );
-
-        ui.composer =
-            root.querySelector(
-                ".gcv4-composer"
-            );
-
-        ui.composerTitle =
-            root.querySelector(
-                "#gcv4-composer-title"
-            );
-
-        ui.modePicker =
-            root.querySelector(
-                ".gcv4-mode-picker"
-            );
-
-        ui.selectionCount =
-            root.querySelector(
-                ".gcv4-selection-count"
-            );
-
-        ui.selectionLimit =
-            root.querySelector(
-                ".gcv4-selection-limit"
-            );
-
-        ui.friendList =
-            root.querySelector(
-                ".gcv4-friend-list"
-            );
-
-        ui.composerMessage =
-            root.querySelector(
-                ".gcv4-composer-message"
-            );
-
-        ui.submitButton =
-            root.querySelector(
-                ".gcv4-submit"
-            );
-
-        ui.devicePanel =
-            root.querySelector(
-                ".gcv4-device-panel"
-            );
-
-        ui.microphoneSelect =
-            root.querySelector(
-                ".gcv4-microphone-select"
-            );
-
-        ui.deviceMessage =
-            root.querySelector(
-                ".gcv4-device-message"
-            );
-
-        ui.toast =
-            root.querySelector(
-                ".gcv4-toast"
-            );
-
-        root.addEventListener(
-            "click",
-            handleRootClick
-        );
-
-        /*
-         * Some mobile browsers initially block remote audio autoplay.
-         * Any later tap/click is enough to unlock it, so retry playback on
-         * user interaction without interrupting the call.
-         */
         document.addEventListener(
             "pointerdown",
-            retryRemotePlayback,
-            {
-                passive: true
-            }
+            retryPlayback,
+            { passive: true }
         );
-
-        ui.microphoneSelect
-            .addEventListener(
-                "change",
-                () => {
-                    changeMicrophone(
-                        ui.microphoneSelect
-                            .value
-                    ).catch((error) => {
-                        ui.deviceMessage
-                            .textContent =
-                            error.message
-                            || "The microphone could not be changed.";
-                    });
-                }
-            );
     }
 
     function updateRootVisibility() {
@@ -704,74 +316,45 @@
             ui.composer,
             ui.devicePanel,
             ui.toast
-        ].some(
-            (element) =>
-                element
-                && !element.classList
-                    .contains("hidden")
+        ].some((element) =>
+            element && !element.classList.contains("hidden")
         );
 
-        ui.root.classList.toggle(
-            "hidden",
-            !visible
-        );
+        ui.root?.classList.toggle("hidden", !visible);
     }
 
     function setError(message = "") {
-        ui.error.textContent =
-            String(message ?? "");
+        if (ui.error) ui.error.textContent = String(message ?? "");
     }
 
-    function setComposerMessage(
-        message = ""
-    ) {
-        ui.composerMessage.textContent =
-            String(message ?? "");
+    function setComposerMessage(message = "") {
+        if (ui.composerMessage) {
+            ui.composerMessage.textContent = String(message ?? "");
+        }
     }
 
-    function showToast(
-        message,
-        kind = ""
-    ) {
-        ui.root.classList.remove(
-            "hidden"
-        );
+    function showToast(message, kind = "") {
+        createUi();
+        ui.root.classList.remove("hidden");
+        ui.toast.textContent = String(message ?? "");
+        ui.toast.className = `gcv4-toast ${kind}`.trim();
 
-        ui.toast.textContent =
-            String(message ?? "");
-
-        ui.toast.className =
-            `gcv4-toast ${kind}`
-                .trim();
-
-        window.setTimeout(
-            () => {
-                ui.toast.classList
-                    .add("hidden");
-
-                updateRootVisibility();
-            },
-            3200
-        );
+        window.setTimeout(() => {
+            ui.toast.classList.add("hidden");
+            updateRootVisibility();
+        }, 3000);
     }
 
     async function ensureUser() {
-        if (currentUser) {
-            return currentUser;
-        }
+        if (currentUser) return currentUser;
 
         const {
             data: { user },
             error
-        } =
-            await window.supabaseClient
-                .auth
-                .getUser();
+        } = await window.supabaseClient.auth.getUser();
 
         if (error || !user) {
-            throw new Error(
-                "You must be signed in to use group calls."
-            );
+            throw new Error("You must be signed in to use group calls.");
         }
 
         currentUser = user;
@@ -780,92 +363,47 @@
 
     function preferredMicrophoneId() {
         try {
-            return (
-                window.localStorage
-                    .getItem(
-                        MICROPHONE_STORAGE_KEY
-                    )
-                || ""
-            );
-        } catch (error) {
+            return localStorage.getItem(MICROPHONE_STORAGE_KEY) || "";
+        } catch {
             return "";
         }
     }
 
-    function savePreferredMicrophoneId(
-        deviceId
-    ) {
+    function savePreferredMicrophoneId(deviceId) {
         try {
             if (deviceId) {
-                window.localStorage
-                    .setItem(
-                        MICROPHONE_STORAGE_KEY,
-                        deviceId
-                    );
+                localStorage.setItem(MICROPHONE_STORAGE_KEY, deviceId);
             } else {
-                window.localStorage
-                    .removeItem(
-                        MICROPHONE_STORAGE_KEY
-                    );
+                localStorage.removeItem(MICROPHONE_STORAGE_KEY);
             }
-        } catch (error) {
-            console.warn(
-                "Microphone preference could not be saved:",
-                error
-            );
+        } catch {
+            // Preference storage is optional.
         }
     }
 
-    function microphoneConstraints(
-        deviceId =
-            preferredMicrophoneId()
-    ) {
-        return {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            ...(deviceId
-                ? {
-                    deviceId: {
-                        exact: deviceId
-                    }
-                }
-                : {})
-        };
-    }
-
-    async function requestMicrophone(
-        deviceId =
-            preferredMicrophoneId()
-    ) {
+    async function requestMicrophone(deviceId = preferredMicrophoneId()) {
         try {
-            return (
-                await navigator.mediaDevices
-                    .getUserMedia({
-                        audio:
-                            microphoneConstraints(
-                                deviceId
-                            ),
-                        video: false
-                    })
-            );
+            return await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                    ...(deviceId
+                        ? { deviceId: { exact: deviceId } }
+                        : {})
+                },
+                video: false
+            });
         } catch (error) {
             if (
                 deviceId
                 && (
-                    error?.name
-                        === "NotFoundError"
-                    || error?.name
-                        === "OverconstrainedError"
+                    error?.name === "NotFoundError"
+                    || error?.name === "OverconstrainedError"
                 )
             ) {
-                savePreferredMicrophoneId(
-                    ""
-                );
-
-                return requestMicrophone(
-                    ""
-                );
+                savePreferredMicrophoneId("");
+                return requestMicrophone("");
             }
 
             throw error;
@@ -873,302 +411,182 @@
     }
 
     async function requestCamera() {
-        return (
-            await navigator.mediaDevices
-                .getUserMedia({
-                    audio: false,
-                    video: {
-                        facingMode: {
-                            ideal: "user"
-                        },
-                        frameRate: {
-                            ideal: 24,
-                            max: 30
-                        },
-                        resizeMode: {
-                            ideal: "none"
-                        }
-                    }
-                })
+        return navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+                facingMode: { ideal: "user" },
+                frameRate: { ideal: 24, max: 30 },
+                resizeMode: { ideal: "none" }
+            }
+        });
+    }
+
+    async function ensureLocalMedia() {
+        if (!localStream) localStream = new MediaStream();
+
+        const warnings = [];
+
+        if (!localAudioTrack || localAudioTrack.readyState === "ended") {
+            try {
+                const stream = await requestMicrophone();
+                localAudioTrack = stream.getAudioTracks()[0] ?? null;
+
+                if (localAudioTrack) {
+                    localStream.addTrack(localAudioTrack);
+                    microphoneEnabled = true;
+                }
+            } catch {
+                microphoneEnabled = false;
+                warnings.push(
+                    "Microphone access is unavailable. You can still listen."
+                );
+            }
+        }
+
+        if (
+            callMode() === "video"
+            && (!cameraTrack || cameraTrack.readyState === "ended")
+        ) {
+            try {
+                const stream = await requestCamera();
+                cameraTrack = stream.getVideoTracks()[0] ?? null;
+
+                if (cameraTrack) {
+                    localStream.addTrack(cameraTrack);
+                    cameraEnabled = true;
+                }
+            } catch {
+                cameraEnabled = false;
+                warnings.push(
+                    "Camera access is unavailable. The call will continue with audio."
+                );
+            }
+        } else if (callMode() !== "video") {
+            cameraEnabled = false;
+        }
+
+        if (localAudioTrack) {
+            localAudioTrack.enabled = microphoneEnabled;
+        }
+
+        if (cameraTrack) {
+            cameraTrack.enabled = cameraEnabled;
+        }
+
+        await updateServerMedia();
+
+        if (warnings.length) {
+            setError(warnings.join(" "));
+        }
+
+        const me = participantById(currentUser.id);
+        if (me) updateTile(me);
+    }
+
+    function outgoingVideoTrack() {
+        return screenTrack ?? cameraTrack ?? null;
+    }
+
+    async function updateServerMedia() {
+        if (!currentCallId || membershipStatus() !== "joined") return;
+
+        const { error } = await window.supabaseClient.rpc(
+            "update_group_call_media",
+            {
+                p_call_id: currentCallId,
+                p_microphone_enabled: microphoneEnabled,
+                p_camera_enabled:
+                    callMode() === "video"
+                    && (cameraEnabled || screenSharing)
+            }
         );
+
+        if (error) {
+            console.warn("Group-call media state update failed:", error);
+        }
     }
 
     async function loadIceServers() {
-        if (iceServersPromise) {
-            return iceServersPromise;
-        }
+        if (iceServersPromise) return iceServersPromise;
 
-        iceServersPromise = (
-            async () => {
-                try {
-                    const {
-                        data,
-                        error
-                    } =
-                        await window
-                            .supabaseClient
-                            .functions
-                            .invoke(
-                                "get-call-ice-servers",
-                                {
-                                    body: {}
-                                }
-                            );
+        iceServersPromise = (async () => {
+            try {
+                const { data, error } =
+                    await window.supabaseClient.functions.invoke(
+                        "get-call-ice-servers",
+                        { body: {} }
+                    );
 
-                    if (
-                        error
-                        || !Array.isArray(
-                            data?.iceServers
-                        )
-                        || !data
-                            .iceServers
-                            .length
-                    ) {
-                        return (
-                            fallbackIceServers
-                        );
-                    }
-
+                if (
+                    !error
+                    && Array.isArray(data?.iceServers)
+                    && data.iceServers.length
+                ) {
                     return data.iceServers;
-                } catch (error) {
-                    console.warn(
-                        "TURN configuration was unavailable for the group call:",
-                        error
-                    );
-
-                    return (
-                        fallbackIceServers
-                    );
                 }
+            } catch (error) {
+                console.warn("ICE server endpoint failed:", error);
             }
-        )();
+
+            return [
+                {
+                    urls: [
+                        "stun:stun.cloudflare.com:3478",
+                        "stun:stun.l.google.com:19302",
+                        "stun:stun1.l.google.com:19302"
+                    ]
+                }
+            ];
+        })();
 
         return iceServersPromise;
     }
 
-    async function loadFullState(
-        callId
-    ) {
-        const {
-            data,
-            error
-        } = await window.supabaseClient
-            .rpc(
+    async function loadFullState(callId) {
+        const { data, error } =
+            await window.supabaseClient.rpc(
                 "get_group_call_state",
-                {
-                    p_call_id: callId
-                }
+                { p_call_id: callId }
             );
 
-        if (error) {
-            throw error;
-        }
-
+        if (error) throw error;
         return data ?? null;
     }
 
-    function participantById(userId) {
-        return (
-            activeState?.participants
-            ?? []
-        ).find(
-            (participant) =>
-                participant.user_id
-                    === userId
-        ) ?? null;
+    function isOfferer(remoteUserId) {
+        return currentUser.id.localeCompare(remoteUserId) < 0;
     }
 
-    function me() {
-        if (!currentUser) {
-            return null;
-        }
+    function createTile(participant) {
+        const tile = document.createElement("article");
+        tile.className = "gcv4-tile";
+        tile.dataset.userId = participant.user_id;
 
-        return participantById(
-            currentUser.id
-        );
-    }
-
-    function currentHost() {
-        return (
-            activeState?.participants
-            ?? []
-        ).find(
-            (participant) =>
-                participant.is_host
-        ) ?? null;
-    }
-
-    function loadViewMode() {
-        try {
-            const stored =
-                JSON.parse(
-                    window.sessionStorage
-                        .getItem(
-                            VIEW_STORAGE_KEY
-                        )
-                    || "null"
-                );
-
-            if (
-                stored?.callId
-                    === currentCallId
-                && stored?.expanded
-                    === true
-            ) {
-                return "expanded";
-            }
-        } catch (error) {
-            // Session storage is optional.
-        }
-
-        return "mini";
-    }
-
-    function saveViewMode(expanded) {
-        if (!currentCallId) {
-            return;
-        }
-
-        try {
-            window.sessionStorage
-                .setItem(
-                    VIEW_STORAGE_KEY,
-                    JSON.stringify({
-                        callId:
-                            currentCallId,
-                        expanded:
-                            Boolean(
-                                expanded
-                            )
-                    })
-                );
-        } catch (error) {
-            // Session storage is optional.
-        }
-    }
-
-    function setExpanded(expanded) {
-        if (
-            !ui.stage
-            || ui.stage.classList
-                .contains("hidden")
-        ) {
-            return;
-        }
-
-        ui.root.classList.toggle(
-            "gcv4-expanded",
-            expanded
-        );
-
-        ui.backdrop.classList.toggle(
-            "hidden",
-            !expanded
-        );
-
-        ui.sizeButton.textContent =
-            expanded
-                ? "Mini"
-                : "Expand";
-
-        ui.sizeButton.dataset.gcv4Action =
-            expanded
-                ? "mini"
-                : "expand";
-
-        saveViewMode(expanded);
-    }
-
-    function createTile(
-        participant
-    ) {
-        const tile =
-            document.createElement(
-                "article"
-            );
-
-        tile.className =
-            "gcv4-tile";
-
-        tile.dataset.userId =
-            participant.user_id;
-
-        const video =
-            document.createElement(
-                "video"
-            );
-
-        video.className =
-            "gcv4-video";
-
+        const video = document.createElement("video");
+        video.className = "gcv4-video";
         video.autoplay = true;
         video.playsInline = true;
-
-        /*
-         * Video tiles are always muted. Remote audio is played through a
-         * dedicated <audio> element owned by that peer connection. Muted
-         * video can autoplay reliably on desktop and mobile browsers, so a
-         * browser autoplay decision cannot make a valid remote camera look
-         * missing.
-         */
         video.muted = true;
 
-        if (
-            participant.user_id
-                === currentUser.id
-        ) {
-            video.classList
-                .add("mirrored");
+        if (participant.user_id === currentUser.id) {
+            video.classList.add("mirrored");
         }
 
-        const avatar =
-            document.createElement(
-                "div"
-            );
+        const avatar = document.createElement("div");
+        avatar.className = "gcv4-avatar";
+        avatar.textContent = initials(participant.username);
 
-        avatar.className =
-            "gcv4-avatar";
+        const footer = document.createElement("footer");
+        footer.className = "gcv4-tile-footer";
 
-        avatar.textContent =
-            initials(
-                participant.username
-            );
+        const name = document.createElement("strong");
+        name.className = "gcv4-tile-name";
 
-        const footer =
-            document.createElement(
-                "footer"
-            );
+        const badges = document.createElement("div");
+        badges.className = "gcv4-tile-badges";
 
-        footer.className =
-            "gcv4-tile-footer";
-
-        const name =
-            document.createElement(
-                "strong"
-            );
-
-        name.className =
-            "gcv4-tile-name";
-
-        const badges =
-            document.createElement(
-                "div"
-            );
-
-        badges.className =
-            "gcv4-tile-badges";
-
-        footer.append(
-            name,
-            badges
-        );
-
-        tile.append(
-            video,
-            avatar,
-            footer
-        );
-
+        footer.append(name, badges);
+        tile.append(video, avatar, footer);
         ui.grid.append(tile);
 
         const record = {
@@ -1179,289 +597,179 @@
             badges
         };
 
-        tileRecords.set(
-            participant.user_id,
-            record
-        );
-
+        tiles.set(participant.user_id, record);
         return record;
     }
 
-    function streamForParticipant(
-        participant
-    ) {
-        if (
-            participant.user_id
-                === currentUser.id
-        ) {
-            if (screenSharing && screenTrack) {
-                return new MediaStream([
-                    screenTrack
-                ]);
-            }
-
+    function participantStream(participant) {
+        if (participant.user_id === currentUser.id) {
             return localStream;
         }
 
-        return (
-            peers.get(
-                participant.user_id
-            )?.remoteStream
-            ?? null
+        return peers.get(participant.user_id)?.remoteStream ?? null;
+    }
+
+    function hasLiveVideo(stream) {
+        return Boolean(
+            stream?.getVideoTracks().some(
+                (track) => track.readyState === "live"
+            )
         );
     }
 
-    function updateTile(
-        participant
-    ) {
-        let record =
-            tileRecords.get(
-                participant.user_id
-            );
+    function updateTile(participant) {
+        let tile = tiles.get(participant.user_id);
 
-        if (!record) {
-            record =
-                createTile(
-                    participant
-                );
+        if (!tile) {
+            tile = createTile(participant);
         }
 
-        const isLocal =
-            participant.user_id
-                === currentUser.id;
+        const isLocal = participant.user_id === currentUser.id;
+        const stream = participantStream(participant);
+        const peer = isLocal ? null : peers.get(participant.user_id);
 
-        record.tile.classList.toggle(
-            "local",
+        const localVideoOn =
             isLocal
-        );
+            && callMode() === "video"
+            && Boolean(outgoingVideoTrack())
+            && (screenSharing || cameraEnabled);
 
-        const effectiveCamera =
-            callMode() === "video"
-            && (
-                isLocal
-                    ? (
-                        screenSharing
-                        || cameraEnabled
-                    )
-                    : Boolean(
-                        participant
-                            .camera_enabled
-                    )
-            );
+        const remoteVideoExpected =
+            !isLocal
+            && callMode() === "video"
+            && Boolean(participant.camera_enabled);
 
-        const effectiveMic =
+        const remoteVideoActuallyPresent =
+            remoteVideoExpected
+            && hasLiveVideo(stream);
+
+        const visibleVideo =
             isLocal
-                ? microphoneEnabled
-                : Boolean(
-                    participant
-                        .microphone_enabled
-                );
+                ? localVideoOn
+                : remoteVideoActuallyPresent;
 
-        record.tile.classList.toggle(
-            "camera-on",
-            effectiveCamera
-        );
-
-        record.tile.classList.toggle(
+        tile.tile.classList.toggle("local", isLocal);
+        tile.tile.classList.toggle("camera-on", visibleVideo);
+        tile.tile.classList.toggle(
             "muted",
-            !effectiveMic
-        );
-
-        record.tile.classList.toggle(
-            "screen-sharing",
             isLocal
-                && screenSharing
+                ? !microphoneEnabled
+                : !participant.microphone_enabled
         );
 
-        record.name.textContent =
+        tile.name.textContent =
             isLocal
                 ? `${participant.username} (you)`
                 : participant.username;
 
-        record.avatar.textContent =
-            initials(
-                participant.username
-            );
+        tile.avatar.textContent = initials(participant.username);
+        tile.badges.replaceChildren();
 
-        record.badges.replaceChildren();
+        const addBadge = (text, className = "") => {
+            const badge = document.createElement("span");
+            badge.textContent = text;
+            if (className) badge.className = className;
+            tile.badges.append(badge);
+        };
 
-        if (participant.is_host) {
-            const host =
-                document.createElement(
-                    "span"
+        if (participant.is_host) addBadge("HOST", "gcv4-host-badge");
+
+        addBadge(
+            isLocal
+                ? (microphoneEnabled ? "MIC" : "MUTED")
+                : (participant.microphone_enabled ? "MIC" : "MUTED"),
+            "gcv4-mic-badge"
+        );
+
+        if (callMode() === "video") {
+            if (isLocal) {
+                addBadge(
+                    screenSharing
+                        ? "SCREEN"
+                        : localVideoOn
+                            ? "VIDEO"
+                            : "CAM OFF"
                 );
+            } else if (remoteVideoExpected && !remoteVideoActuallyPresent) {
+                addBadge("VIDEO WAIT");
+            } else {
+                addBadge(remoteVideoActuallyPresent ? "VIDEO" : "CAM OFF");
+            }
+        }
 
-            host.className =
-                "gcv4-host-badge";
-
-            host.textContent = "HOST";
-
-            record.badges.append(
-                host
+        if (peer?.transport) {
+            addBadge(
+                peer.transport,
+                `gcv7-peer-status ${
+                    peer.transport === "TURN"
+                        ? "turn"
+                        : peer.transport === "P2P"
+                            ? "connected"
+                            : ""
+                }`
+            );
+        } else if (peer) {
+            addBadge(
+                String(peer.pc.connectionState || "new").toUpperCase(),
+                "gcv7-peer-status"
             );
         }
 
-        const mic =
-            document.createElement(
-                "span"
-            );
-
-        mic.className =
-            "gcv4-mic-badge";
-
-        mic.textContent =
-            effectiveMic
-                ? "MIC"
-                : "MUTED";
-
-        record.badges.append(mic);
-
-        if (
-            callMode() === "video"
-        ) {
-            const camera =
-                document.createElement(
-                    "span"
-                );
-
-            camera.textContent =
-                effectiveCamera
-                    ? (
-                        isLocal
-                        && screenSharing
-                            ? "SCREEN"
-                            : "VIDEO"
-                    )
-                    : "CAM OFF";
-
-            record.badges.append(
-                camera
-            );
-        }
-
-        const stream =
-            streamForParticipant(
-                participant
-            );
-
-        if (
-            stream
-            && record.video.srcObject
-                !== stream
-        ) {
-            record.video.srcObject =
-                stream;
-
-            record.video
-                .play()
-                .catch(() => {});
+        if (stream && tile.video.srcObject !== stream) {
+            tile.video.srcObject = stream;
+            tile.video.play().catch(() => {});
         }
     }
 
     function removeUnusedTiles() {
-        const allowed =
-            new Set(
-                joinedParticipants()
-                    .map(
-                        (participant) =>
-                            participant.user_id
-                    )
-            );
+        const allowed = new Set(
+            joinedParticipants().map((participant) => participant.user_id)
+        );
 
-        for (
-            const [
-                userId,
-                record
-            ]
-            of tileRecords
-        ) {
-            if (
-                allowed.has(
-                    userId
-                )
-            ) {
-                continue;
-            }
-
+        for (const [userId, record] of tiles) {
+            if (allowed.has(userId)) continue;
             record.tile.remove();
-            tileRecords.delete(
-                userId
-            );
-            removeSpeakingDetector(
-                userId
-            );
+            tiles.delete(userId);
         }
     }
 
     function renderStage() {
-        if (
-            !activeState?.call
-            || membershipStatus()
-                !== "joined"
-        ) {
-            return;
-        }
+        if (!activeState?.call || membershipStatus() !== "joined") return;
 
-        const mode =
-            callMode();
-
-        const joined =
-            joinedParticipants();
+        const participants = joinedParticipants();
 
         ui.modeLabel.textContent =
-            mode === "video"
+            callMode() === "video"
                 ? "GROUP VIDEO CALL"
                 : "GROUP AUDIO CALL";
 
         ui.heading.textContent =
-            `${
-                joined.length
-            } participant${
-                joined.length === 1
-                    ? ""
-                    : "s"
-            }`;
+            `${participants.length} participant${participants.length === 1 ? "" : "s"}`;
 
         ui.count.textContent =
-            `${joined.length}/${
-                activeState.call
-                    .max_participants
-            }`;
+            `${participants.length}/${activeState.call.max_participants}`;
 
-        ui.grid.dataset.mode =
-            mode;
-
-        const activeCount =
-            activeParticipants().length;
+        ui.grid.dataset.mode = callMode();
 
         ui.inviteButton.disabled =
-            activeCount
-                >= Number(
-                    activeState.call
-                        .max_participants
-                );
+            activeParticipants().length
+            >= Number(activeState.call.max_participants);
 
         ui.cameraButton.classList.toggle(
             "hidden",
-            mode !== "video"
+            callMode() !== "video"
         );
 
         ui.screenButton.classList.toggle(
             "hidden",
-            mode !== "video"
-            || !navigator.mediaDevices
-                ?.getDisplayMedia
+            callMode() !== "video"
+            || !navigator.mediaDevices?.getDisplayMedia
         );
 
-        ui.endButton.classList.toggle(
-            "hidden",
-            !isHost()
-        );
+        ui.endButton.classList.toggle("hidden", !isHost());
 
         ui.microphoneButton.textContent =
-            microphoneEnabled
-                ? "Mute"
-                : "Unmute";
+            microphoneEnabled ? "Mute" : "Unmute";
 
         ui.cameraButton.textContent =
             screenSharing
@@ -1471,1503 +779,719 @@
                     : "Camera on";
 
         ui.screenButton.textContent =
-            screenSharing
-                ? "Stop sharing"
-                : "Share screen";
+            screenSharing ? "Stop sharing" : "Share screen";
 
-        for (
-            const participant
-            of joined
-        ) {
-            updateTile(
-                participant
-            );
+        for (const participant of participants) {
+            updateTile(participant);
         }
 
         removeUnusedTiles();
 
-        ui.incoming.classList
-            .add("hidden");
+        ui.incoming.classList.add("hidden");
+        ui.stage.classList.remove("hidden");
+        ui.root.classList.remove("hidden");
 
-        ui.stage.classList
-            .remove("hidden");
+        if (!ui.root.dataset.initialViewApplied) {
+            ui.root.dataset.initialViewApplied = "true";
 
-        ui.root.classList
-            .remove("hidden");
+            let expanded = false;
 
-        if (
-            !ui.root.dataset
-                .initialViewApplied
-        ) {
-            ui.root.dataset
-                .initialViewApplied =
-                "true";
+            try {
+                const stored = JSON.parse(
+                    sessionStorage.getItem(VIEW_STORAGE_KEY) || "null"
+                );
 
-            setExpanded(
-                loadViewMode()
-                    === "expanded"
-            );
+                expanded =
+                    stored?.callId === currentCallId
+                    && stored?.expanded === true;
+            } catch {
+                // Session storage is optional.
+            }
+
+            setExpanded(expanded);
         }
 
         updateRootVisibility();
     }
 
     function renderIncoming() {
-        if (
-            !activeState?.call
-            || membershipStatus()
-                !== "invited"
-        ) {
-            ui.incoming.classList
-                .add("hidden");
-
+        if (!activeState?.call || membershipStatus() !== "invited") {
+            ui.incoming.classList.add("hidden");
             updateRootVisibility();
             return;
         }
 
-        const host =
-            currentHost();
-
-        const joined =
-            joinedParticipants().length;
+        const host = currentHost();
 
         ui.incomingTitle.textContent =
-            `${
-                host?.username
-                ?? "A friend"
-            } started a group ${
-                callMode()
-            } call`;
+            `${host?.username ?? "A friend"} started a group ${callMode()} call`;
 
         ui.incomingDetail.textContent =
             directCallActive()
                 ? "Finish your private call before joining."
-                : `${
-                    joined
-                } already joined · ${
-                    activeState.call
-                        .max_participants
-                } max`;
+                : `${joinedParticipants().length} already joined · ${activeState.call.max_participants} max`;
 
-        const acceptButton =
-            ui.incoming.querySelector(
-                '[data-gcv4-action="accept"]'
-            );
+        ui.incoming
+            .querySelector('[data-gcv7-action="accept"]')
+            .disabled = directCallActive();
 
-        acceptButton.disabled =
-            directCallActive();
-
-        ui.incoming.classList
-            .remove("hidden");
-
-        ui.stage.classList
-            .add("hidden");
-
-        ui.root.classList
-            .remove("hidden");
-
+        ui.incoming.classList.remove("hidden");
+        ui.stage.classList.add("hidden");
+        ui.root.classList.remove("hidden");
         updateRootVisibility();
+    }
 
-        if (
-            !notifiedInviteIds.has(
-                currentCallId
-            )
-        ) {
-            notifiedInviteIds.add(
-                currentCallId
+    function setExpanded(expanded) {
+        if (!ui.stage || ui.stage.classList.contains("hidden")) return;
+
+        ui.root.classList.toggle("gcv4-expanded", expanded);
+        ui.backdrop.classList.toggle("hidden", !expanded);
+
+        ui.sizeButton.textContent = expanded ? "Mini" : "Expand";
+        ui.sizeButton.dataset.gcv7Action =
+            expanded ? "mini" : "expand";
+
+        try {
+            sessionStorage.setItem(
+                VIEW_STORAGE_KEY,
+                JSON.stringify({
+                    callId: currentCallId,
+                    expanded
+                })
             );
-
-            window.siteDesktopNotifications
-                ?.show?.({
-                    title:
-                        `Group ${callMode()} call`,
-                    body:
-                        `${
-                            host?.username
-                            ?? "A friend"
-                        } invited you to join.`,
-                    tag:
-                        `group-call-v4-${currentCallId}`,
-                    requireInteraction: true,
-                    url:
-                        window.location.href
-                });
+        } catch {
+            // Session storage is optional.
         }
     }
 
-    function updateDuration() {
-        if (
-            !activeState?.call
-            || !ui.duration
-        ) {
-            return;
-        }
+    async function updateTransport(record) {
+        try {
+            const stats = await record.pc.getStats();
+            let selectedPair = null;
 
-        const started =
-            new Date(
-                activeState.call
-                    .created_at
-            ).getTime();
-
-        const elapsed =
-            Number.isFinite(started)
-                ? (
-                    Date.now()
-                    - started
-                ) / 1000
-                : 0;
-
-        ui.duration.textContent =
-            formatDuration(
-                elapsed
-            );
-    }
-
-    async function updateServerMedia() {
-        if (
-            !currentCallId
-            || membershipStatus()
-                !== "joined"
-        ) {
-            return;
-        }
-
-        const {
-            error
-        } =
-            await window.supabaseClient
-                .rpc(
-                    "update_group_call_media",
-                    {
-                        p_call_id:
-                            currentCallId,
-                        p_microphone_enabled:
-                            microphoneEnabled,
-                        p_camera_enabled:
-                            callMode()
-                                === "video"
-                                && (
-                                    cameraEnabled
-                                    || screenSharing
-                                )
-                    }
-                );
-
-        if (error) {
-            console.warn(
-                "Group-call media state could not be updated:",
-                error
-            );
-        }
-    }
-
-    async function ensureLocalMedia() {
-        if (!localStream) {
-            localStream =
-                new MediaStream();
-        }
-
-        const warnings = [];
-
-        if (
-            !localAudioTrack
-            || localAudioTrack
-                .readyState
-                === "ended"
-        ) {
-            try {
-                const stream =
-                    await requestMicrophone();
-
-                const track =
-                    stream.getAudioTracks()[0]
-                    ?? null;
-
-                if (track) {
-                    localAudioTrack =
-                        track;
-
-                    localStream.addTrack(
-                        track
-                    );
-
-                    microphoneEnabled =
-                        true;
+            stats.forEach((report) => {
+                if (
+                    report.type === "transport"
+                    && report.selectedCandidatePairId
+                ) {
+                    selectedPair = stats.get(report.selectedCandidatePairId);
                 }
-            } catch (error) {
-                microphoneEnabled =
-                    false;
-
-                warnings.push(
-                    "Microphone access is unavailable. You can still listen to the call."
-                );
-            }
-        }
-
-        if (
-            callMode() === "video"
-            && (
-                !cameraTrack
-                || cameraTrack
-                    .readyState
-                    === "ended"
-            )
-        ) {
-            try {
-                const stream =
-                    await requestCamera();
-
-                const track =
-                    stream.getVideoTracks()[0]
-                    ?? null;
-
-                if (track) {
-                    cameraTrack =
-                        track;
-
-                    localStream.addTrack(
-                        track
-                    );
-
-                    cameraEnabled =
-                        true;
-                }
-            } catch (error) {
-                cameraEnabled =
-                    false;
-
-                warnings.push(
-                    "Camera access is unavailable. The call will continue with audio."
-                );
-            }
-        } else if (
-            callMode() !== "video"
-        ) {
-            cameraEnabled = false;
-        }
-
-        if (localAudioTrack) {
-            localAudioTrack.enabled =
-                microphoneEnabled;
-        }
-
-        if (cameraTrack) {
-            cameraTrack.enabled =
-                cameraEnabled;
-        }
-
-        /*
-         * Signals can arrive while getUserMedia is still waiting on a
-         * permission prompt. In that case createPeer() has already created
-         * senders with null tracks. Push the newly-acquired microphone and
-         * camera into every peer before continuing.
-         *
-         * Without this, a later-joining participant can receive everyone
-         * else while nobody receives that participant.
-         */
-        const mediaDirectionChanged =
-            await syncAllSenders();
-
-        if (
-            peers.size
-            && mediaDirectionChanged
-        ) {
-            await renegotiateAllPeers({
-                force: true
             });
+
+            if (!selectedPair) {
+                stats.forEach((report) => {
+                    if (
+                        report.type === "candidate-pair"
+                        && report.state === "succeeded"
+                        && report.nominated
+                    ) {
+                        selectedPair = report;
+                    }
+                });
+            }
+
+            if (!selectedPair) return;
+
+            const local = stats.get(selectedPair.localCandidateId);
+            const remote = stats.get(selectedPair.remoteCandidateId);
+
+            record.transport =
+                local?.candidateType === "relay"
+                || remote?.candidateType === "relay"
+                    ? "TURN"
+                    : "P2P";
+
+            const participant = participantById(record.remoteUserId);
+            if (participant) updateTile(participant);
+        } catch {
+            // Transport diagnostics are optional.
         }
-
-        await updateServerMedia();
-
-        if (warnings.length) {
-            setError(
-                warnings.join(" ")
-            );
-        }
-
-        const participant =
-            me();
-
-        if (participant) {
-            updateTile(
-                participant
-            );
-        }
-
-        installSpeakingDetector(
-            currentUser.id,
-            localStream
-        );
     }
 
-    function outgoingVideoTrack() {
-        return (
-            screenTrack
-            ?? cameraTrack
-            ?? null
-        );
-    }
-
-    function directionCanSend(direction) {
-        return (
-            direction === "sendrecv"
-            || direction === "sendonly"
-        );
-    }
-
-    async function syncPeerSenders(
-        record
-    ) {
-        if (!record) {
-            return false;
-        }
-
-        let negotiationNeeded = false;
-
-        const desiredAudioTrack =
-            localAudioTrack
-            ?? null;
+    async function syncPeerTracks(record) {
+        let directionChanged = false;
 
         const desiredAudioDirection =
-            desiredAudioTrack
-                ? "sendrecv"
-                : "recvonly";
+            localAudioTrack ? "sendrecv" : "recvonly";
 
-        if (
-            record.audioTransceiver
-            && record.audioTransceiver.direction
-                !== desiredAudioDirection
-        ) {
-            record.audioTransceiver.direction =
-                desiredAudioDirection;
-
-            negotiationNeeded = true;
+        if (record.audioTx.direction !== desiredAudioDirection) {
+            record.audioTx.direction = desiredAudioDirection;
+            directionChanged = true;
         }
 
-        /*
-         * currentDirection describes what the last completed SDP exchange
-         * actually negotiated. If it is recvonly and a microphone now exists,
-         * replaceTrack() by itself is not enough. A new offer/answer is needed.
-         */
-        if (
-            desiredAudioTrack
-            && record.audioTransceiver
-                ?.currentDirection
-            && !directionCanSend(
-                record.audioTransceiver
-                    .currentDirection
-            )
-        ) {
-            negotiationNeeded = true;
-        }
+        await record.audioTx.sender.replaceTrack(localAudioTrack ?? null);
 
-        await record.audioSender
-            ?.replaceTrack(
-                desiredAudioTrack
-            );
-
-        if (
-            record.videoSender
-            && record.videoTransceiver
-        ) {
-            const desiredVideoTrack =
-                outgoingVideoTrack();
-
+        if (record.videoTx) {
+            const videoTrack = outgoingVideoTrack();
             const desiredVideoDirection =
-                desiredVideoTrack
-                    ? "sendrecv"
-                    : "recvonly";
+                videoTrack ? "sendrecv" : "recvonly";
 
-            if (
-                record.videoTransceiver
-                    .direction
-                    !== desiredVideoDirection
-            ) {
-                record.videoTransceiver
-                    .direction =
-                    desiredVideoDirection;
-
-                negotiationNeeded = true;
+            if (record.videoTx.direction !== desiredVideoDirection) {
+                record.videoTx.direction = desiredVideoDirection;
+                directionChanged = true;
             }
 
-            if (
-                desiredVideoTrack
-                && record.videoTransceiver
-                    .currentDirection
-                && !directionCanSend(
-                    record.videoTransceiver
-                        .currentDirection
-                )
-            ) {
-                negotiationNeeded = true;
-            }
-
-            await record.videoSender
-                .replaceTrack(
-                    desiredVideoTrack
-                    ?? null
-                );
+            await record.videoTx.sender.replaceTrack(videoTrack ?? null);
         }
 
-        return negotiationNeeded;
+        return directionChanged;
     }
 
-    async function syncAllSenders() {
-        const results =
-            await Promise.all(
-                Array.from(
-                    peers.values()
-                ).map(
-                    (record) =>
-                        syncPeerSenders(
-                            record
-                        ).catch(
-                            () => false
-                        )
-                )
-            );
+    async function createPeer(remoteUserId) {
+        const existing = peers.get(remoteUserId);
+        if (existing) return existing;
 
-        return results.some(Boolean);
-    }
+        const pc = new RTCPeerConnection({
+            iceServers: await loadIceServers()
+        });
 
-    async function renegotiatePeer(
-        remoteUserId,
-        {
-            iceRestart = false,
-            delay = 0
-        } = {}
-    ) {
-        if (delay > 0) {
-            await new Promise(
-                (resolve) =>
-                    window.setTimeout(
-                        resolve,
-                        delay
-                    )
-            );
-        }
+        const audioTx = pc.addTransceiver("audio", {
+            direction: localAudioTrack ? "sendrecv" : "recvonly"
+        });
 
-        const record =
-            peers.get(
-                remoteUserId
-            );
-
-        if (
-            !record
-            || record.pc.signalingState
-                === "closed"
-        ) {
-            return;
-        }
-
-        const needsDirectionUpdate =
-            await syncPeerSenders(
-                record
-            );
-
-        /*
-         * We deliberately allow either side to offer here. The engine already
-         * uses the perfect-negotiation polite/impolite collision handling.
-         * This matters when the participant who gained a late camera is not
-         * the deterministic offerer for that pair.
-         */
-        if (
-            needsDirectionUpdate
-            || iceRestart
-        ) {
-            await makeOffer(
-                remoteUserId,
-                {
-                    iceRestart
-                }
-            );
-        }
-    }
-
-    async function renegotiateAllPeers(
-        {
-            force = false,
-            staggerMs = 80
-        } = {}
-    ) {
-        let index = 0;
-
-        for (
-            const remoteUserId
-            of peers.keys()
-        ) {
-            const record =
-                peers.get(
-                    remoteUserId
-                );
-
-            if (!record) {
-                continue;
-            }
-
-            const needsDirectionUpdate =
-                await syncPeerSenders(
-                    record
-                );
-
-            if (
-                force
-                || needsDirectionUpdate
-            ) {
-                const delay =
-                    index * staggerMs;
-
-                index += 1;
-
-                window.setTimeout(
-                    () => {
-                        makeOffer(
-                            remoteUserId
-                        ).catch(
-                            (error) => {
-                                console.warn(
-                                    "Group-call media renegotiation failed:",
-                                    error
-                                );
-                            }
-                        );
-                    },
-                    delay
-                );
-            }
-        }
-    }
-
-    function retryRemotePlayback() {
-        for (
-            const record
-            of peers.values()
-        ) {
-            record.remoteAudio
-                ?.play()
-                .catch(
-                    () => {}
-                );
-
-            tileRecords
-                .get(
-                    record.remoteUserId
-                )?.video
-                ?.play()
-                .catch(
-                    () => {}
-                );
-        }
-    }
-
-    async function createPeer(
-        remoteUserId
-    ) {
-        const existing =
-            peers.get(
-                remoteUserId
-            );
-
-        if (existing) {
-            return existing;
-        }
-
-        const iceServers =
-            await loadIceServers();
-
-        const pc =
-            new RTCPeerConnection({
-                iceServers
-            });
-
-        const audioTransceiver =
-            pc.addTransceiver(
-                "audio",
-                {
-                    direction:
-                        localAudioTrack
-                            ? "sendrecv"
-                            : "recvonly"
-                }
-            );
-
-        const videoTransceiver =
-            callMode()
-                === "video"
-                ? pc.addTransceiver(
-                    "video",
-                    {
-                        direction:
-                            outgoingVideoTrack()
-                                ? "sendrecv"
-                                : "recvonly"
-                    }
-                )
+        const videoTx =
+            callMode() === "video"
+                ? pc.addTransceiver("video", {
+                    direction: outgoingVideoTrack()
+                        ? "sendrecv"
+                        : "recvonly"
+                })
                 : null;
 
-        const remoteStream =
-            new MediaStream();
-
-        const remoteAudio =
-            document.createElement(
-                "audio"
-            );
+        const remoteStream = new MediaStream();
+        const remoteAudio = document.createElement("audio");
 
         remoteAudio.autoplay = true;
         remoteAudio.playsInline = true;
         remoteAudio.hidden = true;
-        remoteAudio.dataset.groupCallPeer =
-            remoteUserId;
-        remoteAudio.srcObject =
-            remoteStream;
-
-        ui.root.append(
-            remoteAudio
-        );
+        remoteAudio.srcObject = remoteStream;
+        ui.root.append(remoteAudio);
 
         const record = {
             remoteUserId,
             pc,
+            audioTx,
+            videoTx,
             remoteStream,
             remoteAudio,
-            audioTransceiver,
-            videoTransceiver,
-            audioSender:
-                audioTransceiver.sender,
-            videoSender:
-                videoTransceiver
-                    ?.sender
-                ?? null,
-            makingOffer: false,
-            ignoreOffer: false,
-            isSettingRemoteAnswerPending:
-                false,
-            polite:
-                currentUser.id
-                    .localeCompare(
-                        remoteUserId
-                    ) > 0,
             remoteSessionId: "",
             pendingCandidates: [],
-            pendingLocalCandidates: [],
-            iceFlushTimer: null,
+            localIce: [],
+            iceTimer: null,
+            offerTimer: null,
+            offerTimeout: null,
+            pendingOfferId: "",
+            remoteNegotiationId: "",
+            localNegotiationId: "",
+            requestedIceRestart: false,
+            transport: "",
             reconnectTimer: null
         };
 
-        peers.set(
-            remoteUserId,
-            record
-        );
+        peers.set(remoteUserId, record);
 
-        await syncPeerSenders(
-            record
-        );
+        pc.addEventListener("icecandidate", (event) => {
+            if (!event.candidate) return;
 
-        pc.addEventListener(
-            "icecandidate",
-            (event) => {
-                if (!event.candidate) {
-                    return;
-                }
+            record.localIce.push(event.candidate.toJSON());
+            scheduleIceFlush(record);
+        });
 
-                record
-                    .pendingLocalCandidates
-                    .push(
-                        event.candidate
-                            .toJSON()
-                    );
+        pc.addEventListener("track", (event) => {
+            const track = event.track;
 
-                scheduleIceFlush(
-                    record
-                );
+            if (
+                !remoteStream
+                    .getTracks()
+                    .some((existingTrack) => existingTrack.id === track.id)
+            ) {
+                remoteStream.addTrack(track);
             }
-        );
 
-        pc.addEventListener(
-            "track",
-            (event) => {
-                const track =
-                    event.track;
+            const participant = participantById(remoteUserId);
+            if (participant) updateTile(participant);
 
-                if (
-                    !remoteStream
-                        .getTracks()
-                        .some(
-                            (existingTrack) =>
-                                existingTrack.id
-                                    === track.id
-                        )
-                ) {
-                    remoteStream
-                        .addTrack(
-                            track
-                        );
-                }
+            remoteAudio.play().catch(() => {});
+            tiles.get(remoteUserId)?.video.play().catch(() => {});
+        });
 
-                const participant =
-                    participantById(
-                        remoteUserId
-                    );
+        pc.addEventListener("connectionstatechange", () => {
+            const participant = participantById(remoteUserId);
 
-                if (participant) {
-                    updateTile(
-                        participant
-                    );
-                }
+            if (participant) updateTile(participant);
 
-                if (
-                    track.kind
-                        === "audio"
-                ) {
-                    installSpeakingDetector(
-                        remoteUserId,
-                        remoteStream
-                    );
-
-                    record.remoteAudio
-                        ?.play()
-                        .catch(
-                            () => {}
-                        );
-                }
-
-                tileRecords
-                    .get(
-                        remoteUserId
-                    )?.video
-                    ?.play()
-                    .catch(
-                        () => {}
-                    );
+            if (pc.connectionState === "connected") {
+                updateTransport(record);
             }
-        );
 
-        pc.addEventListener(
-            "connectionstatechange",
-            () => {
-                const tile =
-                    tileRecords.get(
-                        remoteUserId
-                    )?.tile;
-
-                const state =
-                    pc.connectionState;
-
-                tile?.classList.toggle(
-                    "reconnecting",
-                    state === "connecting"
-                    || state
-                        === "disconnected"
-                    || state === "failed"
-                );
-
-                if (
-                    state === "failed"
-                    || state
-                        === "disconnected"
-                ) {
-                    schedulePeerReconnect(
-                        remoteUserId
-                    );
-                }
+            if (
+                pc.connectionState === "failed"
+                || pc.connectionState === "disconnected"
+            ) {
+                scheduleReconnect(record);
             }
-        );
+        });
 
+        await syncPeerTracks(record);
         return record;
     }
 
-    function closePeer(
-        remoteUserId
-    ) {
-        const record =
-            peers.get(
-                remoteUserId
-            );
+    function closePeer(remoteUserId) {
+        const record = peers.get(remoteUserId);
+        if (!record) return;
 
-        if (!record) {
-            return;
-        }
-
-        window.clearTimeout(
-            record.iceFlushTimer
-        );
-
-        window.clearTimeout(
-            record.reconnectTimer
-        );
+        clearTimeout(record.iceTimer);
+        clearTimeout(record.offerTimer);
+        clearTimeout(record.offerTimeout);
+        clearTimeout(record.reconnectTimer);
 
         try {
             record.pc.close();
-        } catch (error) {
-            // Closing an already-closed peer is harmless.
+        } catch {
+            // Already closed.
         }
 
         try {
-            record.remoteAudio
-                ?.pause();
-            record.remoteAudio
-                ?.remove();
-        } catch (error) {
-            // The audio element may already be gone during page teardown.
+            record.remoteAudio.pause();
+            record.remoteAudio.remove();
+        } catch {
+            // Already removed.
         }
 
-        peers.delete(
-            remoteUserId
-        );
-
-        removeSpeakingDetector(
-            remoteUserId
-        );
+        peers.delete(remoteUserId);
     }
 
-    async function resetPeer(
-        remoteUserId,
-        remoteSessionId = ""
-    ) {
-        closePeer(
-            remoteUserId
-        );
+    async function resetPeer(remoteUserId, remoteSessionId = "") {
+        closePeer(remoteUserId);
 
-        const record =
-            await createPeer(
-                remoteUserId
-            );
-
-        record.remoteSessionId =
-            remoteSessionId;
+        const record = await createPeer(remoteUserId);
+        record.remoteSessionId = remoteSessionId;
 
         return record;
     }
 
-    function shouldOffer(
-        remoteUserId
-    ) {
-        return (
-            currentUser.id
-                .localeCompare(
-                    remoteUserId
-                ) < 0
+    async function sendSignal(recipientId, signalType, payload = {}) {
+        if (!currentCallId || !recipientId) return;
+
+        const { error } = await window.supabaseClient.rpc(
+            "send_group_call_signal",
+            {
+                p_call_id: currentCallId,
+                p_recipient_id: recipientId,
+                p_signal_type: signalType,
+                p_payload: {
+                    ...payload,
+                    session_id: pageSessionId,
+                    build: BUILD
+                }
+            }
         );
+
+        if (error) throw error;
     }
 
-    async function sendSignal(
-        recipientId,
-        signalType,
-        payload = {}
-    ) {
-        if (
-            !currentCallId
-            || !recipientId
-        ) {
-            return;
-        }
+    function scheduleIceFlush(record) {
+        if (record.iceTimer) return;
 
-        const {
-            error
-        } =
-            await window.supabaseClient
-                .rpc(
-                    "send_group_call_signal",
+        record.iceTimer = window.setTimeout(async () => {
+            record.iceTimer = null;
+            const candidates = record.localIce.splice(0);
+
+            if (!candidates.length) return;
+
+            try {
+                await sendSignal(
+                    record.remoteUserId,
+                    "ice",
                     {
-                        p_call_id:
-                            currentCallId,
-                        p_recipient_id:
-                            recipientId,
-                        p_signal_type:
-                            signalType,
-                        p_payload: {
-                            ...payload,
-                            session_id:
-                                pageSessionId
-                        }
+                        candidates,
+                        negotiation_id:
+                            record.localNegotiationId || ""
                     }
                 );
-
-        if (error) {
-            throw error;
-        }
-    }
-
-    function scheduleIceFlush(
-        record
-    ) {
-        if (record.iceFlushTimer) {
-            return;
-        }
-
-        record.iceFlushTimer =
-            window.setTimeout(
-                async () => {
-                    record.iceFlushTimer =
-                        null;
-
-                    const candidates =
-                        record
-                            .pendingLocalCandidates
-                            .splice(0);
-
-                    if (!candidates.length) {
-                        return;
-                    }
-
-                    try {
-                        await sendSignal(
-                            record.remoteUserId,
-                            "ice",
-                            {
-                                candidates
-                            }
-                        );
-                    } catch (error) {
-                        console.warn(
-                            "Group-call ICE candidates could not be sent:",
-                            error
-                        );
-                    }
-                },
-                ICE_BATCH_MS
-            );
-    }
-
-    async function flushRemoteCandidates(
-        record
-    ) {
-        if (
-            !record.pc
-                .remoteDescription
-            || !record
-                .pendingCandidates
-                .length
-        ) {
-            return;
-        }
-
-        const pending =
-            record
-                .pendingCandidates
-                .splice(0);
-
-        for (
-            const candidate
-            of pending
-        ) {
-            try {
-                await record.pc
-                    .addIceCandidate(
-                        candidate
-                    );
             } catch (error) {
-                if (
-                    !record.ignoreOffer
-                ) {
-                    console.warn(
-                        "Remote ICE candidate could not be applied:",
-                        error
-                    );
-                }
+                console.warn("Group-call ICE send failed:", error);
+            }
+        }, 100);
+    }
+
+    async function flushCandidates(record) {
+        if (!record.pc.remoteDescription) return;
+
+        const pending = record.pendingCandidates.splice(0);
+
+        for (const entry of pending) {
+            if (
+                entry.negotiationId
+                && record.remoteNegotiationId
+                && entry.negotiationId !== record.remoteNegotiationId
+            ) {
+                continue;
+            }
+
+            try {
+                await record.pc.addIceCandidate(entry.candidate);
+            } catch (error) {
+                console.warn("Group-call ICE candidate rejected:", error);
             }
         }
     }
 
-    async function makeOffer(
-        remoteUserId,
+    function scheduleOffer(
+        record,
+        {
+            iceRestart = false,
+            delay = 120
+        } = {}
+    ) {
+        if (!isOfferer(record.remoteUserId)) return;
+
+        record.requestedIceRestart ||= iceRestart;
+
+        if (record.offerTimer) return;
+
+        record.offerTimer = window.setTimeout(async () => {
+            record.offerTimer = null;
+
+            if (
+                record.pc.signalingState !== "stable"
+                || record.pendingOfferId
+            ) {
+                scheduleOffer(record, {
+                    iceRestart: record.requestedIceRestart,
+                    delay: 250
+                });
+                return;
+            }
+
+            try {
+                await makeOffer(
+                    record,
+                    record.requestedIceRestart
+                );
+
+                record.requestedIceRestart = false;
+            } catch (error) {
+                console.warn("Group-call offer failed:", error);
+                scheduleReconnect(record);
+            }
+        }, delay);
+    }
+
+    async function makeOffer(record, iceRestart = false) {
+        if (!isOfferer(record.remoteUserId)) return;
+        if (record.pc.signalingState !== "stable") return;
+
+        await syncPeerTracks(record);
+
+        const negotiationId =
+            crypto.randomUUID?.()
+            ?? `${Date.now()}-${Math.random()}`;
+
+        record.pendingOfferId = negotiationId;
+        record.localNegotiationId = negotiationId;
+
+        const offer = await record.pc.createOffer({ iceRestart });
+        await record.pc.setLocalDescription(offer);
+
+        await sendSignal(
+            record.remoteUserId,
+            "offer",
+            {
+                negotiation_id: negotiationId,
+                description: record.pc.localDescription.toJSON()
+            }
+        );
+
+        clearTimeout(record.offerTimeout);
+
+        record.offerTimeout = window.setTimeout(async () => {
+            if (record.pendingOfferId !== negotiationId) return;
+
+            console.warn(
+                `[GroupCall] ${BUILD} offer timed out`,
+                record.remoteUserId
+            );
+
+            const session = record.remoteSessionId;
+            const rebuilt =
+                await resetPeer(record.remoteUserId, session);
+
+            scheduleOffer(rebuilt, {
+                iceRestart: true,
+                delay: 120
+            });
+        }, OFFER_TIMEOUT_MS);
+    }
+
+    async function requestNegotiation(
+        record,
         {
             iceRestart = false
         } = {}
     ) {
-        const record =
-            await createPeer(
-                remoteUserId
-            );
-
-        if (
-            record.makingOffer
-            || record.pc
-                .signalingState
-                !== "stable"
-        ) {
+        if (isOfferer(record.remoteUserId)) {
+            scheduleOffer(record, { iceRestart });
             return;
         }
 
-        try {
-            record.makingOffer =
-                true;
-
-            await syncPeerSenders(
-                record
-            );
-
-            const offer =
-                await record.pc
-                    .createOffer({
-                        iceRestart
-                    });
-
-            await record.pc
-                .setLocalDescription(
-                    offer
-                );
-
-            await sendSignal(
-                remoteUserId,
-                "offer",
-                {
-                    description:
-                        record.pc
-                            .localDescription
-                            .toJSON()
-                }
-            );
-        } finally {
-            record.makingOffer =
-                false;
-        }
+        await sendSignal(
+            record.remoteUserId,
+            "rejoin_request",
+            {
+                reason: iceRestart
+                    ? "connection_restart"
+                    : "renegotiate"
+            }
+        );
     }
 
-    async function announcePeer(
-        remoteUserId
-    ) {
-        await createPeer(
-            remoteUserId
+    async function announcePeer(remoteUserId) {
+        const record = await createPeer(remoteUserId);
+
+        await sendSignal(
+            remoteUserId,
+            "rejoin_request",
+            { reason: "peer_ready" }
         );
 
-        try {
-            await sendSignal(
-                remoteUserId,
-                "rejoin_request",
-                {
-                    reason:
-                        "peer_ready"
-                }
-            );
-        } catch (error) {
-            console.warn(
-                "Group-call peer announcement failed:",
-                error
-            );
-        }
-
-        if (
-            shouldOffer(
-                remoteUserId
-            )
-        ) {
-            window.setTimeout(
-                () => {
-                    makeOffer(
-                        remoteUserId
-                    ).catch(
-                        (error) => {
-                            console.warn(
-                                "Initial group-call offer failed:",
-                                error
-                            );
-                        }
-                    );
-                },
-                220
-            );
+        if (isOfferer(remoteUserId)) {
+            scheduleOffer(record);
         }
     }
 
-    function schedulePeerReconnect(
-        remoteUserId
-    ) {
-        const record =
-            peers.get(
-                remoteUserId
-            );
+    function scheduleReconnect(record) {
+        if (record.reconnectTimer) return;
 
-        if (
-            !record
-            || record.reconnectTimer
-        ) {
-            return;
-        }
+        record.reconnectTimer = window.setTimeout(async () => {
+            record.reconnectTimer = null;
 
-        record.reconnectTimer =
-            window.setTimeout(
-                async () => {
-                    record.reconnectTimer =
-                        null;
+            if (!participantById(record.remoteUserId)) return;
 
-                    if (
-                        !participantById(
-                            remoteUserId
-                        )
-                    ) {
-                        return;
-                    }
-
-                    try {
-                        const rebuilt =
-                            await resetPeer(
-                                remoteUserId
-                            );
-
-                        await sendSignal(
-                            remoteUserId,
-                            "rejoin_request",
-                            {
-                                reason:
-                                    "connection_restart"
-                            }
-                        );
-
-                        if (
-                            shouldOffer(
-                                remoteUserId
-                            )
-                        ) {
-                            await makeOffer(
-                                remoteUserId,
-                                {
-                                    iceRestart:
-                                        true
-                                }
-                            );
-                        }
-
-                        const tile =
-                            tileRecords
-                                .get(
-                                    remoteUserId
-                                )?.tile;
-
-                        tile?.classList
-                            .add(
-                                "reconnecting"
-                            );
-
-                        rebuilt.pc
-                            .addEventListener(
-                                "connectionstatechange",
-                                () => {}
-                            );
-                    } catch (error) {
-                        console.warn(
-                            "Group-call peer reconnect failed:",
-                            error
-                        );
-                    }
-                },
-                1800
-            );
-    }
-
-    async function handleSignal(
-        signal
-    ) {
-        if (
-            !signal
-            || signal.call_id
-                !== currentCallId
-            || signal.recipient_id
-                !== currentUser.id
-        ) {
-            return;
-        }
-
-        const remoteUserId =
-            signal.sender_id;
-
-        const payload =
-            signal.payload
-            ?? {};
-
-        const remoteSessionId =
-            String(
-                payload.session_id
-                ?? ""
-            );
-
-        if (
-            signal.signal_type
-                === "rejoin_request"
-        ) {
-            /*
-             * A peer-ready announcement is not proof that the browser page
-             * changed. V4 reset the RTCPeerConnection for every announcement,
-             * so three participants joining close together could repeatedly
-             * destroy one another's offers and ICE candidates.
-             *
-             * Only rebuild when the sender's page-session ID actually
-             * changed. Normal peer-ready / connection-restart requests keep
-             * the current connection and trigger deterministic renegotiation.
-             */
-            let record =
-                await createPeer(
-                    remoteUserId
-                );
-
-            const sessionChanged =
-                Boolean(
-                    remoteSessionId
-                    && record.remoteSessionId
-                    && record.remoteSessionId
-                        !== remoteSessionId
-                );
-
-            if (sessionChanged) {
-                record =
-                    await resetPeer(
-                        remoteUserId,
-                        remoteSessionId
-                    );
-            } else if (
-                remoteSessionId
-            ) {
-                record.remoteSessionId =
-                    remoteSessionId;
-            }
-
-            if (
-                shouldOffer(
-                    remoteUserId
-                )
-            ) {
-                const shouldRestartIce =
-                    sessionChanged
-                    || payload.reason
-                        === "connection_restart";
-
-                window.setTimeout(
-                    () => {
-                        makeOffer(
-                            remoteUserId,
-                            {
-                                iceRestart:
-                                    shouldRestartIce
-                            }
-                        ).catch(
-                            (error) => {
-                                console.warn(
-                                    "Rejoin offer failed:",
-                                    error
-                                );
-                            }
-                        );
-                    },
-                    180
-                );
-            }
-
-            const participant =
-                participantById(
-                    remoteUserId
-                );
-
-            if (participant) {
-                updateTile(
-                    participant
-                );
-            }
-
-            return;
-        }
-
-        let record =
-            await createPeer(
-                remoteUserId
-            );
-
-        if (
-            remoteSessionId
-            && record.remoteSessionId
-            && record.remoteSessionId
-                !== remoteSessionId
-        ) {
-            record =
-                await resetPeer(
-                    remoteUserId,
-                    remoteSessionId
-                );
-        } else if (
-            remoteSessionId
-        ) {
-            record.remoteSessionId =
-                remoteSessionId;
-        }
-
-        if (
-            signal.signal_type
-                === "offer"
-            || signal.signal_type
-                === "answer"
-        ) {
-            const description =
-                payload.description;
-
-            if (!description?.type) {
-                return;
-            }
-
-            const readyForOffer =
-                !record.makingOffer
-                && (
-                    record.pc
-                        .signalingState
-                        === "stable"
-                    || record
-                        .isSettingRemoteAnswerPending
-                );
-
-            const offerCollision =
-                description.type
-                    === "offer"
-                && !readyForOffer;
-
-            record.ignoreOffer =
-                !record.polite
-                && offerCollision;
-
-            if (record.ignoreOffer) {
-                return;
-            }
+            const session = record.remoteSessionId;
+            const rebuilt =
+                await resetPeer(record.remoteUserId, session);
 
             try {
-                record
-                    .isSettingRemoteAnswerPending =
-                    description.type
-                        === "answer";
-
-                if (
-                    offerCollision
-                    && record.polite
-                    && record.pc
-                        .signalingState
-                        !== "stable"
-                ) {
-                    await record.pc
-                        .setLocalDescription({
-                            type:
-                                "rollback"
-                        });
-                }
-
-                await record.pc
-                    .setRemoteDescription(
-                        description
-                    );
-
-                record
-                    .isSettingRemoteAnswerPending =
-                    false;
-
-                await flushRemoteCandidates(
-                    record
+                await sendSignal(
+                    rebuilt.remoteUserId,
+                    "rejoin_request",
+                    { reason: "connection_restart" }
                 );
 
-                if (
-                    description.type
-                        === "offer"
-                ) {
-                    await syncPeerSenders(
-                        record
-                    );
-
-                    const answer =
-                        await record.pc
-                            .createAnswer();
-
-                    await record.pc
-                        .setLocalDescription(
-                            answer
-                        );
-
-                    await sendSignal(
-                        remoteUserId,
-                        "answer",
-                        {
-                            description:
-                                record.pc
-                                    .localDescription
-                                    .toJSON()
-                        }
-                    );
+                if (isOfferer(rebuilt.remoteUserId)) {
+                    scheduleOffer(rebuilt, {
+                        iceRestart: true
+                    });
                 }
             } catch (error) {
-                record
-                    .isSettingRemoteAnswerPending =
-                    false;
+                console.warn("Group-call reconnect failed:", error);
+            }
+        }, 1800);
+    }
 
-                console.warn(
-                    "Group-call SDP could not be processed:",
-                    error
-                );
+    async function handleOffer(record, payload) {
+        if (isOfferer(record.remoteUserId)) {
+            console.warn(
+                `[GroupCall] ${BUILD} ignored unexpected offer from deterministic answerer`
+            );
+            return;
+        }
+
+        const negotiationId =
+            String(payload.negotiation_id ?? "");
+
+        const description = payload.description;
+
+        if (!negotiationId || description?.type !== "offer") return;
+
+        if (
+            record.remoteNegotiationId === negotiationId
+            && record.pc.signalingState === "stable"
+        ) {
+            return;
+        }
+
+        if (record.pc.signalingState !== "stable") {
+            record = await resetPeer(
+                record.remoteUserId,
+                record.remoteSessionId
+            );
+        }
+
+        await syncPeerTracks(record);
+
+        record.remoteNegotiationId = negotiationId;
+
+        await record.pc.setRemoteDescription(description);
+        await flushCandidates(record);
+
+        const answer = await record.pc.createAnswer();
+
+        record.localNegotiationId = negotiationId;
+
+        await record.pc.setLocalDescription(answer);
+
+        await sendSignal(
+            record.remoteUserId,
+            "answer",
+            {
+                negotiation_id: negotiationId,
+                description: record.pc.localDescription.toJSON()
+            }
+        );
+    }
+
+    async function handleAnswer(record, payload) {
+        if (!isOfferer(record.remoteUserId)) return;
+
+        const negotiationId =
+            String(payload.negotiation_id ?? "");
+
+        const description = payload.description;
+
+        if (
+            !negotiationId
+            || description?.type !== "answer"
+        ) {
+            return;
+        }
+
+        /*
+         * This is the exact V6 console error guard:
+         * a stale/duplicate answer is not valid once the peer has already
+         * returned to stable, and it must never be applied to a newer offer.
+         */
+        if (
+            negotiationId !== record.pendingOfferId
+            || record.pc.signalingState !== "have-local-offer"
+        ) {
+            console.info(
+                `[GroupCall] ${BUILD} ignored stale answer`,
+                {
+                    remoteUserId: record.remoteUserId,
+                    negotiationId,
+                    expected: record.pendingOfferId,
+                    signalingState:
+                        record.pc.signalingState
+                }
+            );
+            return;
+        }
+
+        record.remoteNegotiationId = negotiationId;
+
+        await record.pc.setRemoteDescription(description);
+
+        record.pendingOfferId = "";
+        clearTimeout(record.offerTimeout);
+        record.offerTimeout = null;
+
+        await flushCandidates(record);
+    }
+
+    async function handleIce(record, payload) {
+        const negotiationId =
+            String(payload.negotiation_id ?? "");
+
+        const candidates =
+            Array.isArray(payload.candidates)
+                ? payload.candidates
+                : payload.candidate
+                    ? [payload.candidate]
+                    : [];
+
+        for (const candidate of candidates) {
+            if (
+                negotiationId
+                && record.remoteNegotiationId
+                && negotiationId !== record.remoteNegotiationId
+            ) {
+                continue;
+            }
+
+            if (record.pc.remoteDescription) {
+                try {
+                    await record.pc.addIceCandidate(candidate);
+                } catch (error) {
+                    console.warn(
+                        "Group-call ICE candidate failed:",
+                        error
+                    );
+                }
+            } else {
+                record.pendingCandidates.push({
+                    negotiationId,
+                    candidate
+                });
+            }
+        }
+    }
+
+    async function handleSignal(signal) {
+        if (
+            !signal
+            || signal.call_id !== currentCallId
+            || signal.recipient_id !== currentUser.id
+        ) {
+            return;
+        }
+
+        const remoteUserId = signal.sender_id;
+        const payload = signal.payload ?? {};
+        const remoteSessionId =
+            String(payload.session_id ?? "");
+
+        let record = await createPeer(remoteUserId);
+
+        if (
+            remoteSessionId
+            && record.remoteSessionId
+            && remoteSessionId !== record.remoteSessionId
+        ) {
+            record = await resetPeer(
+                remoteUserId,
+                remoteSessionId
+            );
+        } else if (remoteSessionId) {
+            record.remoteSessionId = remoteSessionId;
+        }
+
+        if (signal.signal_type === "rejoin_request") {
+            if (isOfferer(remoteUserId)) {
+                scheduleOffer(record, {
+                    iceRestart:
+                        payload.reason === "connection_restart"
+                });
             }
 
             return;
         }
 
-        if (
-            signal.signal_type
-                === "ice"
-        ) {
-            const candidates =
-                Array.isArray(
-                    payload.candidates
-                )
-                    ? payload.candidates
-                    : payload.candidate
-                        ? [
-                            payload.candidate
-                        ]
-                        : [];
+        if (signal.signal_type === "offer") {
+            await handleOffer(record, payload);
+            return;
+        }
 
-            for (
-                const candidate
-                of candidates
-            ) {
-                if (
-                    record.pc
-                        .remoteDescription
-                ) {
-                    try {
-                        await record.pc
-                            .addIceCandidate(
-                                candidate
-                            );
-                    } catch (error) {
-                        if (
-                            !record.ignoreOffer
-                        ) {
-                            console.warn(
-                                "Group-call ICE candidate failed:",
-                                error
-                            );
-                        }
-                    }
-                } else {
-                    record
-                        .pendingCandidates
-                        .push(
-                            candidate
-                        );
-                }
-            }
+        if (signal.signal_type === "answer") {
+            await handleAnswer(record, payload);
+            return;
+        }
+
+        if (signal.signal_type === "ice") {
+            await handleIce(record, payload);
         }
     }
 
-    function queueSignal(
-        signal
-    ) {
-        signalChain =
-            signalChain
-                .then(
-                    () =>
-                        handleSignal(
-                            signal
-                        )
-                )
-                .catch(
-                    (error) => {
-                        console.warn(
-                            "Group-call signalling failed:",
-                            error
-                        );
-                    }
+    function queueSignal(signal) {
+        signalChain = signalChain
+            .then(() => handleSignal(signal))
+            .catch((error) => {
+                console.warn(
+                    `[GroupCall] ${BUILD} signalling failed:`,
+                    error
                 );
+            });
 
         return signalChain;
     }
@@ -2976,8 +1500,7 @@
         if (
             signalPolling
             || !currentCallId
-            || membershipStatus()
-                !== "joined"
+            || membershipStatus() !== "joined"
         ) {
             return;
         }
@@ -2985,46 +1508,24 @@
         signalPolling = true;
 
         try {
-            const {
-                data,
-                error
-            } =
-                await window
-                    .supabaseClient
-                    .rpc(
-                        "get_group_call_signals",
-                        {
-                            p_call_id:
-                                currentCallId,
-                            p_after_id:
-                                signalCursor
-                        }
-                    );
-
-            if (error) {
-                return;
-            }
-
-            const signals =
-                Array.isArray(data)
-                    ? data
-                    : [];
-
-            for (
-                const signal
-                of signals
-            ) {
-                signalCursor =
-                    Math.max(
-                        signalCursor,
-                        Number(
-                            signal.id
-                        )
-                    );
-
-                queueSignal(
-                    signal
+            const { data, error } =
+                await window.supabaseClient.rpc(
+                    "get_group_call_signals",
+                    {
+                        p_call_id: currentCallId,
+                        p_after_id: signalCursor
+                    }
                 );
+
+            if (error) return;
+
+            for (const signal of Array.isArray(data) ? data : []) {
+                signalCursor = Math.max(
+                    signalCursor,
+                    Number(signal.id)
+                );
+
+                queueSignal(signal);
             }
         } finally {
             signalPolling = false;
@@ -3032,170 +1533,100 @@
     }
 
     async function startSignalSystem() {
-        if (
-            !currentCallId
-            || membershipStatus()
-                !== "joined"
-        ) {
-            return;
+        const { data: cursor, error } =
+            await window.supabaseClient.rpc(
+                "get_group_call_signal_cursor",
+                { p_call_id: currentCallId }
+            );
+
+        if (!error) {
+            signalCursor = Number(cursor ?? 0);
         }
 
         if (signalChannel) {
-            window.supabaseClient
-                .removeChannel(
-                    signalChannel
-                );
-
-            signalChannel = null;
+            window.supabaseClient.removeChannel(signalChannel);
         }
 
-        const {
-            data: cursor,
-            error
-        } =
-            await window.supabaseClient
-                .rpc(
-                    "get_group_call_signal_cursor",
-                    {
-                        p_call_id:
-                            currentCallId
+        signalChannel = window.supabaseClient
+            .channel(
+                `group-call-v7-${currentCallId}-${pageSessionId}`
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "group_call_signals",
+                    filter:
+                        `recipient_id=eq.${currentUser.id}`
+                },
+                (payload) => {
+                    const signal = payload.new;
+
+                    if (
+                        !signal
+                        || signal.call_id !== currentCallId
+                    ) {
+                        return;
                     }
-                );
 
-        if (!error) {
-            signalCursor =
-                Number(cursor ?? 0);
-        }
+                    signalCursor = Math.max(
+                        signalCursor,
+                        Number(signal.id)
+                    );
 
-        signalChannel =
-            window.supabaseClient
-                .channel(
-                    `group-call-v4-signals-${currentCallId}-${pageSessionId}`
-                )
-                .on(
-                    "postgres_changes",
-                    {
-                        event: "INSERT",
-                        schema: "public",
-                        table:
-                            "group_call_signals",
-                        filter:
-                            `recipient_id=eq.${currentUser.id}`
-                    },
-                    (payload) => {
-                        const signal =
-                            payload.new;
+                    queueSignal(signal);
+                }
+            )
+            .subscribe();
 
-                        if (
-                            !signal
-                            || signal.call_id
-                                !== currentCallId
-                        ) {
-                            return;
-                        }
+        clearInterval(signalTimer);
 
-                        signalCursor =
-                            Math.max(
-                                signalCursor,
-                                Number(
-                                    signal.id
-                                )
-                            );
-
-                        queueSignal(
-                            signal
-                        );
-                    }
-                )
-                .subscribe();
-
-        window.clearInterval(
-            signalPollTimer
+        signalTimer = window.setInterval(
+            () => pollSignals().catch(() => {}),
+            SIGNAL_POLL_MS
         );
 
-        signalPollTimer =
-            window.setInterval(
-                () => {
-                    pollSignals()
-                        .catch(
-                            () => {}
-                        );
-                },
-                SIGNAL_POLL_MS
-            );
+        /*
+         * Catch signals inserted in the small gap between reading the cursor
+         * and the realtime subscription becoming active.
+         */
+        window.setTimeout(
+            () => pollSignals().catch(() => {}),
+            250
+        );
     }
 
-    async function reconcilePeers(
-        {
-            announceNew = false
-        } = {}
-    ) {
-        if (
-            !currentUser
-            || membershipStatus()
-                !== "joined"
-        ) {
-            return;
-        }
+    async function reconcilePeers({ announceNew = false } = {}) {
+        if (!currentUser || membershipStatus() !== "joined") return;
 
         const remoteParticipants =
-            joinedParticipants()
-                .filter(
-                    (participant) =>
-                        participant.user_id
-                            !== currentUser.id
-                );
+            joinedParticipants().filter(
+                (participant) =>
+                    participant.user_id !== currentUser.id
+            );
 
         const remoteIds =
             new Set(
-                remoteParticipants
-                    .map(
-                        (participant) =>
-                            participant.user_id
-                    )
+                remoteParticipants.map(
+                    (participant) => participant.user_id
+                )
             );
 
-        for (
-            const remoteUserId
-            of Array.from(
-                peers.keys()
-            )
-        ) {
-            if (
-                !remoteIds.has(
-                    remoteUserId
-                )
-            ) {
-                closePeer(
-                    remoteUserId
-                );
+        for (const remoteUserId of Array.from(peers.keys())) {
+            if (!remoteIds.has(remoteUserId)) {
+                closePeer(remoteUserId);
             }
         }
 
-        for (
-            const participant
-            of remoteParticipants
-        ) {
-            const existed =
-                peers.has(
-                    participant.user_id
-                );
+        for (const participant of remoteParticipants) {
+            const existed = peers.has(participant.user_id);
 
-            await createPeer(
-                participant.user_id
-            );
+            await createPeer(participant.user_id);
+            updateTile(participant);
 
-            updateTile(
-                participant
-            );
-
-            if (
-                announceNew
-                && !existed
-            ) {
-                await announcePeer(
-                    participant.user_id
-                );
+            if (announceNew && !existed) {
+                await announcePeer(participant.user_id);
             }
         }
 
@@ -3203,36 +1634,22 @@
     }
 
     async function refreshState() {
-        if (
-            stateRefreshing
-            || !currentCallId
-        ) {
-            return;
-        }
+        if (stateRefreshing || !currentCallId) return;
 
         stateRefreshing = true;
 
         try {
-            const state =
-                await loadFullState(
-                    currentCallId
-                );
+            const state = await loadFullState(currentCallId);
 
             if (!state?.call) {
-                const hadCall =
-                    Boolean(
-                        activeState?.call
-                    );
+                const hadCall = Boolean(activeState?.call);
 
                 await cleanupCallLocal();
-
                 activeState = null;
                 currentCallId = null;
 
                 if (hadCall) {
-                    showToast(
-                        "The group call ended."
-                    );
+                    showToast("The group call ended.");
                 }
 
                 return;
@@ -3240,19 +1657,13 @@
 
             activeState = state;
 
-            if (
-                membershipStatus()
-                    === "invited"
-            ) {
+            if (membershipStatus() === "invited") {
                 renderIncoming();
                 startStatePolling();
                 return;
             }
 
-            if (
-                membershipStatus()
-                    === "joined"
-            ) {
+            if (membershipStatus() === "joined") {
                 renderStage();
 
                 if (!connecting) {
@@ -3262,302 +1673,75 @@
                 }
             }
         } catch (error) {
-            console.warn(
-                "Group-call state refresh failed:",
-                error
-            );
+            console.warn("Group-call state refresh failed:", error);
         } finally {
             stateRefreshing = false;
         }
     }
 
     function startStatePolling() {
-        window.clearInterval(
-            statePollTimer
+        clearInterval(stateTimer);
+
+        stateTimer = window.setInterval(
+            () => refreshState().catch(() => {}),
+            STATE_POLL_MS
         );
-
-        statePollTimer =
-            window.setInterval(
-                () => {
-                    refreshState()
-                        .catch(
-                            () => {}
-                        );
-                },
-                STATE_POLL_MS
-            );
-    }
-
-    async function heartbeat() {
-        if (
-            !currentCallId
-            || membershipStatus()
-                !== "joined"
-        ) {
-            return;
-        }
-
-        try {
-            const {
-                data,
-                error
-            } =
-                await window
-                    .supabaseClient
-                    .rpc(
-                        "touch_group_call",
-                        {
-                            p_call_id:
-                                currentCallId
-                        }
-                    );
-
-            if (
-                error
-                || data === false
-            ) {
-                await refreshState();
-            }
-        } catch (error) {
-            console.warn(
-                "Group-call heartbeat failed:",
-                error
-            );
-        }
     }
 
     function startHeartbeat() {
-        window.clearInterval(
-            heartbeatTimer
+        clearInterval(heartbeatTimer);
+
+        const touch = async () => {
+            if (!currentCallId || membershipStatus() !== "joined") return;
+
+            try {
+                const { data, error } =
+                    await window.supabaseClient.rpc(
+                        "touch_group_call",
+                        { p_call_id: currentCallId }
+                    );
+
+                if (error || data === false) {
+                    await refreshState();
+                }
+            } catch {
+                // The next heartbeat/state poll can recover.
+            }
+        };
+
+        touch();
+
+        heartbeatTimer = window.setInterval(
+            touch,
+            HEARTBEAT_MS
         );
-
-        heartbeatTimer =
-            window.setInterval(
-                () => {
-                    heartbeat()
-                        .catch(
-                            () => {}
-                        );
-                },
-                HEARTBEAT_MS
-            );
-
-        heartbeat()
-            .catch(
-                () => {}
-            );
     }
 
     function startDurationTimer() {
-        window.clearInterval(
-            durationTimer
-        );
+        clearInterval(durationTimer);
 
-        updateDuration();
+        const update = () => {
+            if (!activeState?.call) return;
 
-        durationTimer =
-            window.setInterval(
-                updateDuration,
-                1000
-            );
-    }
+            const start =
+                new Date(activeState.call.created_at).getTime();
 
-    function ensureAudioContext() {
-        if (
-            audioContext
-            || !(
-                window.AudioContext
-                || window.webkitAudioContext
-            )
-        ) {
-            return (
-                audioContext
-            );
-        }
+            ui.duration.textContent =
+                formatDuration(
+                    Number.isFinite(start)
+                        ? (Date.now() - start) / 1000
+                        : 0
+                );
+        };
 
-        const Context =
-            window.AudioContext
-            || window.webkitAudioContext;
-
-        audioContext =
-            new Context();
-
-        audioContext
-            .resume?.()
-            .catch(
-                () => {}
-            );
-
-        return audioContext;
-    }
-
-    function removeSpeakingDetector(
-        userId
-    ) {
-        const detector =
-            detectors.get(
-                userId
-            );
-
-        if (!detector) {
-            return;
-        }
-
-        try {
-            detector.source
-                ?.disconnect();
-        } catch (error) {
-            // Already disconnected.
-        }
-
-        detectors.delete(
-            userId
-        );
-    }
-
-    function installSpeakingDetector(
-        userId,
-        stream
-    ) {
-        if (
-            !stream
-            || !stream
-                .getAudioTracks()
-                .some(
-                    (track) =>
-                        track.readyState
-                            === "live"
-                )
-        ) {
-            return;
-        }
-
-        removeSpeakingDetector(
-            userId
-        );
-
-        try {
-            const context =
-                ensureAudioContext();
-
-            if (!context) {
-                return;
-            }
-
-            const source =
-                context
-                    .createMediaStreamSource(
-                        stream
-                    );
-
-            const analyser =
-                context
-                    .createAnalyser();
-
-            analyser.fftSize = 256;
-            analyser.smoothingTimeConstant =
-                0.55;
-
-            source.connect(
-                analyser
-            );
-
-            detectors.set(
-                userId,
-                {
-                    source,
-                    analyser,
-                    buffer:
-                        new Uint8Array(
-                            analyser.fftSize
-                        )
-                }
-            );
-
-            startSpeakingTimer();
-        } catch (error) {
-            // Speaking indicators are optional.
-        }
-    }
-
-    function startSpeakingTimer() {
-        if (speakingTimer) {
-            return;
-        }
-
-        speakingTimer =
-            window.setInterval(
-                () => {
-                    if (
-                        !detectors.size
-                    ) {
-                        window.clearInterval(
-                            speakingTimer
-                        );
-
-                        speakingTimer =
-                            null;
-
-                        return;
-                    }
-
-                    for (
-                        const [
-                            userId,
-                            detector
-                        ]
-                        of detectors
-                    ) {
-                        detector.analyser
-                            .getByteTimeDomainData(
-                                detector.buffer
-                            );
-
-                        let sum = 0;
-
-                        for (
-                            const value
-                            of detector.buffer
-                        ) {
-                            const centred =
-                                (
-                                    value
-                                    - 128
-                                ) / 128;
-
-                            sum +=
-                                centred
-                                * centred;
-                        }
-
-                        const rms =
-                            Math.sqrt(
-                                sum
-                                / detector
-                                    .buffer
-                                    .length
-                            );
-
-                        tileRecords
-                            .get(
-                                userId
-                            )?.tile
-                            .classList
-                            .toggle(
-                                "speaking",
-                                rms > 0.045
-                            );
-                    }
-                },
-                170
-            );
+        update();
+        durationTimer = window.setInterval(update, 1000);
     }
 
     async function connectJoinedCall() {
         if (
             connecting
-            || membershipStatus()
-                !== "joined"
+            || membershipStatus() !== "joined"
             || !currentCallId
         ) {
             return;
@@ -3570,19 +1754,11 @@
             renderStage();
 
             /*
-             * Acquire local media BEFORE we begin accepting SDP offers.
-             *
-             * V4/V5 started signalling first. A joining phone/laptop could
-             * therefore answer an offer while its permission prompt was still
-             * open. Chrome then generated a recvonly answer. Adding a camera
-             * later with replaceTrack() cannot change an already-negotiated
-             * recvonly transceiver into sendrecv without another SDP exchange.
-             *
-             * Starting media first guarantees the initial answer advertises
-             * the tracks that are actually available.
+             * Media first, signalling second.
+             * No participant can generate a recvonly answer merely because
+             * its permission dialog was still open.
              */
             await ensureLocalMedia();
-
             await startSignalSystem();
 
             await reconcilePeers({
@@ -3594,14 +1770,15 @@
             startDurationTimer();
 
             if (
-                loadViewMode()
-                    !== "expanded"
+                !ui.root.classList.contains(
+                    "gcv4-expanded"
+                )
             ) {
                 setExpanded(false);
             }
         } catch (error) {
             console.warn(
-                "Group call could not fully connect:",
+                `[GroupCall] ${BUILD} could not fully connect:`,
                 error
             );
 
@@ -3616,130 +1793,77 @@
         }
     }
 
-    async function resumeFromBootstrap(
-        bootstrapState
-    ) {
-        if (
-            disposed
-            || !bootstrapState
-                ?.call_id
-        ) {
-            return;
-        }
+    async function resumeFromBootstrap(bootstrapState) {
+        if (disposed || !bootstrapState?.call_id) return;
 
         await ensureUser();
         createUi();
 
         if (
             currentCallId
-            && currentCallId
-                !== bootstrapState.call_id
+            && currentCallId !== bootstrapState.call_id
         ) {
             await cleanupCallLocal();
         }
 
-        currentCallId =
-            bootstrapState.call_id;
+        currentCallId = bootstrapState.call_id;
+        activeState = await loadFullState(currentCallId);
 
-        const state =
-            await loadFullState(
-                currentCallId
-            );
-
-        if (!state?.call) {
+        if (!activeState?.call) {
             currentCallId = null;
             return;
         }
 
-        activeState = state;
-
-        if (
-            membershipStatus()
-                === "invited"
-        ) {
+        if (membershipStatus() === "invited") {
             renderIncoming();
             startStatePolling();
             return;
         }
 
-        if (
-            membershipStatus()
-                === "joined"
-        ) {
+        if (membershipStatus() === "joined") {
             await connectJoinedCall();
         }
     }
 
-    async function respondToInvite(
-        accept
-    ) {
-        if (
-            actionBusy
-            || !currentCallId
-        ) {
-            return;
-        }
+    async function respondToInvite(accept) {
+        if (actionBusy || !currentCallId) return;
 
-        if (
-            accept
-            && directCallActive()
-        ) {
+        if (accept && directCallActive()) {
             setError(
                 "End your private call before joining this group call."
             );
-
             return;
         }
 
         actionBusy = true;
 
         try {
-            const {
-                error
-            } =
-                await window
-                    .supabaseClient
-                    .rpc(
-                        "respond_to_group_call",
-                        {
-                            p_call_id:
-                                currentCallId,
-                            p_accept:
-                                Boolean(
-                                    accept
-                                )
-                        }
-                    );
+            const { error } =
+                await window.supabaseClient.rpc(
+                    "respond_to_group_call",
+                    {
+                        p_call_id: currentCallId,
+                        p_accept: Boolean(accept)
+                    }
+                );
 
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
             if (!accept) {
                 await cleanupCallLocal();
-
                 activeState = null;
                 currentCallId = null;
-
-                showToast(
-                    "Group call declined."
-                );
-
+                showToast("Group call declined.");
                 return;
             }
 
-            const state =
-                await loadFullState(
-                    currentCallId
-                );
+            activeState = await loadFullState(currentCallId);
 
-            if (!state?.call) {
+            if (!activeState?.call) {
                 throw new Error(
                     "The group call is no longer active."
                 );
             }
-
-            activeState = state;
 
             await connectJoinedCall();
         } catch (error) {
@@ -3753,44 +1877,24 @@
     }
 
     async function leaveCall() {
-        if (
-            actionBusy
-            || !currentCallId
-        ) {
-            return;
-        }
+        if (actionBusy || !currentCallId) return;
 
         actionBusy = true;
 
-        const leavingCallId =
-            currentCallId;
-
         try {
-            const {
-                error
-            } =
-                await window
-                    .supabaseClient
-                    .rpc(
-                        "leave_group_call",
-                        {
-                            p_call_id:
-                                leavingCallId
-                        }
-                    );
+            const { error } =
+                await window.supabaseClient.rpc(
+                    "leave_group_call",
+                    { p_call_id: currentCallId }
+                );
 
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
             await cleanupCallLocal();
-
             activeState = null;
             currentCallId = null;
 
-            showToast(
-                "You left the group call."
-            );
+            showToast("You left the group call.");
         } catch (error) {
             setError(
                 error.message
@@ -3802,42 +1906,24 @@
     }
 
     async function endCallForAll() {
-        if (
-            actionBusy
-            || !currentCallId
-            || !isHost()
-        ) {
-            return;
-        }
+        if (actionBusy || !currentCallId || !isHost()) return;
 
         actionBusy = true;
 
         try {
-            const {
-                error
-            } =
-                await window
-                    .supabaseClient
-                    .rpc(
-                        "end_group_call",
-                        {
-                            p_call_id:
-                                currentCallId
-                        }
-                    );
+            const { error } =
+                await window.supabaseClient.rpc(
+                    "end_group_call",
+                    { p_call_id: currentCallId }
+                );
 
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
             await cleanupCallLocal();
-
             activeState = null;
             currentCallId = null;
 
-            showToast(
-                "Group call ended."
-            );
+            showToast("Group call ended.");
         } catch (error) {
             setError(
                 error.message
@@ -3848,70 +1934,41 @@
         }
     }
 
-    async function toggleMicrophone() {
-        if (
-            !currentCallId
-            || membershipStatus()
-                !== "joined"
-        ) {
-            return;
-        }
+    async function renegotiateAll() {
+        for (const record of peers.values()) {
+            const changed = await syncPeerTracks(record);
 
-        if (
-            !localAudioTrack
-            || localAudioTrack
-                .readyState
-                === "ended"
-        ) {
+            if (changed) {
+                await requestNegotiation(record);
+            }
+        }
+    }
+
+    async function toggleMicrophone() {
+        if (!currentCallId || membershipStatus() !== "joined") return;
+
+        if (!localAudioTrack || localAudioTrack.readyState === "ended") {
             try {
-                const stream =
-                    await requestMicrophone();
+                const stream = await requestMicrophone();
 
                 localAudioTrack =
-                    stream
-                        .getAudioTracks()[0]
-                    ?? null;
+                    stream.getAudioTracks()[0] ?? null;
 
-                if (
-                    localAudioTrack
-                ) {
-                    if (!localStream) {
-                        localStream =
-                            new MediaStream();
-                    }
-
-                    localStream
-                        .addTrack(
-                            localAudioTrack
-                        );
-
-                    microphoneEnabled =
-                        true;
-
-                    await syncAllSenders();
-
-                    await renegotiateAllPeers({
-                        force: true
-                    });
-
-                    installSpeakingDetector(
-                        currentUser.id,
-                        localStream
-                    );
+                if (localAudioTrack) {
+                    if (!localStream) localStream = new MediaStream();
+                    localStream.addTrack(localAudioTrack);
+                    microphoneEnabled = true;
+                    await renegotiateAll();
                 }
-            } catch (error) {
+            } catch {
                 setError(
-                    "Microphone permission is unavailable. Check the browser site permissions."
+                    "Microphone permission is unavailable. Check browser site permissions."
                 );
-
                 return;
             }
         } else {
-            microphoneEnabled =
-                !microphoneEnabled;
-
-            localAudioTrack.enabled =
-                microphoneEnabled;
+            microphoneEnabled = !microphoneEnabled;
+            localAudioTrack.enabled = microphoneEnabled;
         }
 
         await updateServerMedia();
@@ -3919,81 +1976,34 @@
     }
 
     async function toggleCamera() {
-        if (
-            callMode() !== "video"
-            || !currentCallId
-        ) {
-            return;
-        }
+        if (callMode() !== "video" || !currentCallId) return;
 
         if (screenSharing) {
             await stopScreenShare();
-
-            if (
-                cameraTrack
-                && cameraTrack.readyState
-                    !== "ended"
-            ) {
-                cameraEnabled = true;
-                cameraTrack.enabled = true;
-
-                await syncAllSenders();
-                await updateServerMedia();
-                renderStage();
-                return;
-            }
         }
 
-        if (
-            !cameraTrack
-            || cameraTrack
-                .readyState
-                === "ended"
-        ) {
+        if (!cameraTrack || cameraTrack.readyState === "ended") {
             try {
-                const stream =
-                    await requestCamera();
+                const stream = await requestCamera();
 
                 cameraTrack =
-                    stream
-                        .getVideoTracks()[0]
-                    ?? null;
+                    stream.getVideoTracks()[0] ?? null;
 
-                if (
-                    cameraTrack
-                ) {
-                    if (!localStream) {
-                        localStream =
-                            new MediaStream();
-                    }
-
-                    localStream
-                        .addTrack(
-                            cameraTrack
-                        );
-
-                    cameraEnabled =
-                        true;
-
-                    await syncAllSenders();
-
-                    await renegotiateAllPeers({
-                        force: true
-                    });
+                if (cameraTrack) {
+                    if (!localStream) localStream = new MediaStream();
+                    localStream.addTrack(cameraTrack);
+                    cameraEnabled = true;
+                    await renegotiateAll();
                 }
-            } catch (error) {
+            } catch {
                 setError(
-                    "Camera permission is unavailable. Check the browser site permissions."
+                    "Camera permission is unavailable. Check browser site permissions."
                 );
-
                 return;
             }
         } else {
-            cameraEnabled =
-                !cameraEnabled;
-
-            cameraTrack.enabled =
-                cameraEnabled;
+            cameraEnabled = !cameraEnabled;
+            cameraTrack.enabled = cameraEnabled;
         }
 
         await updateServerMedia();
@@ -4001,23 +2011,22 @@
     }
 
     async function stopScreenShare() {
-        if (!screenTrack) {
-            return;
-        }
+        if (!screenTrack) return;
 
-        const oldTrack =
-            screenTrack;
-
+        const oldTrack = screenTrack;
         screenTrack = null;
         screenSharing = false;
 
         try {
             oldTrack.stop();
-        } catch (error) {
+        } catch {
             // Already stopped.
         }
 
-        await syncAllSenders();
+        for (const record of peers.values()) {
+            await syncPeerTracks(record);
+        }
+
         await updateServerMedia();
         renderStage();
     }
@@ -4025,8 +2034,7 @@
     async function toggleScreenShare() {
         if (
             callMode() !== "video"
-            || !navigator.mediaDevices
-                ?.getDisplayMedia
+            || !navigator.mediaDevices?.getDisplayMedia
         ) {
             return;
         }
@@ -4038,51 +2046,36 @@
 
         try {
             const stream =
-                await navigator
-                    .mediaDevices
-                    .getDisplayMedia({
-                        video: true,
-                        audio: false
-                    });
+                await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: false
+                });
 
-            const track =
-                stream
-                    .getVideoTracks()[0]
-                ?? null;
+            screenTrack =
+                stream.getVideoTracks()[0] ?? null;
 
-            if (!track) {
-                return;
-            }
+            if (!screenTrack) return;
 
-            screenTrack = track;
             screenSharing = true;
 
-            track.addEventListener(
+            screenTrack.addEventListener(
                 "ended",
                 () => {
-                    if (
-                        screenTrack
-                            === track
-                    ) {
-                        stopScreenShare()
-                            .catch(
-                                () => {}
-                            );
+                    if (screenSharing) {
+                        stopScreenShare().catch(() => {});
                     }
                 },
-                {
-                    once: true
-                }
+                { once: true }
             );
 
-            await syncAllSenders();
+            for (const record of peers.values()) {
+                await syncPeerTracks(record);
+            }
+
             await updateServerMedia();
             renderStage();
         } catch (error) {
-            if (
-                error?.name
-                    !== "NotAllowedError"
-            ) {
+            if (error?.name !== "NotAllowedError") {
                 setError(
                     error.message
                     || "Screen sharing could not start."
@@ -4092,92 +2085,43 @@
     }
 
     async function refreshMicrophoneDevices() {
-        ui.deviceMessage.textContent =
-            "";
-
-        if (
-            !navigator.mediaDevices
-                ?.enumerateDevices
-        ) {
-            ui.deviceMessage.textContent =
-                "This browser cannot list microphones.";
-
-            return;
-        }
-
         const devices =
-            await navigator.mediaDevices
-                .enumerateDevices();
+            await navigator.mediaDevices.enumerateDevices();
 
-        const microphones =
-            devices.filter(
-                (device) =>
-                    device.kind
-                        === "audioinput"
-            );
+        const microphones = devices.filter(
+            (device) => device.kind === "audioinput"
+        );
 
-        const selected =
-            preferredMicrophoneId();
+        const selected = preferredMicrophoneId();
 
-        ui.microphoneSelect
-            .replaceChildren();
+        ui.microphoneSelect.replaceChildren();
 
         const defaultOption =
-            document.createElement(
-                "option"
-            );
+            document.createElement("option");
 
         defaultOption.value = "";
-        defaultOption.textContent =
-            "Default microphone";
+        defaultOption.textContent = "Default microphone";
 
-        ui.microphoneSelect.append(
-            defaultOption
-        );
+        ui.microphoneSelect.append(defaultOption);
 
-        microphones.forEach(
-            (device, index) => {
-                const option =
-                    document.createElement(
-                        "option"
-                    );
-
-                option.value =
-                    device.deviceId;
-
-                option.textContent =
-                    device.label
-                    || `Microphone ${
-                        index + 1
-                    }`;
-
-                ui.microphoneSelect
-                    .append(
-                        option
-                    );
-            }
-        );
+        microphones.forEach((device, index) => {
+            const option = document.createElement("option");
+            option.value = device.deviceId;
+            option.textContent =
+                device.label || `Microphone ${index + 1}`;
+            ui.microphoneSelect.append(option);
+        });
 
         ui.microphoneSelect.value =
-            Array.from(
-                ui.microphoneSelect
-                    .options
-            ).some(
-                (option) =>
-                    option.value
-                        === selected
-            )
+            Array.from(ui.microphoneSelect.options)
+                .some((option) => option.value === selected)
                 ? selected
                 : "";
     }
 
     async function openDevices() {
-        ui.devicePanel.classList
-            .remove("hidden");
-
-        ui.root.classList
-            .remove("hidden");
-
+        ui.devicePanel.classList.remove("hidden");
+        ui.root.classList.remove("hidden");
         updateRootVisibility();
 
         try {
@@ -4190,24 +2134,13 @@
     }
 
     function closeDevices() {
-        ui.devicePanel.classList
-            .add("hidden");
-
+        ui.devicePanel.classList.add("hidden");
         updateRootVisibility();
     }
 
-    async function changeMicrophone(
-        deviceId
-    ) {
-        const stream =
-            await requestMicrophone(
-                deviceId
-            );
-
-        const newTrack =
-            stream
-                .getAudioTracks()[0]
-            ?? null;
+    async function changeMicrophone(deviceId) {
+        const stream = await requestMicrophone(deviceId);
+        const newTrack = stream.getAudioTracks()[0] ?? null;
 
         if (!newTrack) {
             throw new Error(
@@ -4215,47 +2148,31 @@
             );
         }
 
-        const oldTrack =
-            localAudioTrack;
+        const oldTrack = localAudioTrack;
 
-        localAudioTrack =
-            newTrack;
-
+        localAudioTrack = newTrack;
+        localAudioTrack.enabled = true;
         microphoneEnabled = true;
-        newTrack.enabled = true;
 
-        if (!localStream) {
-            localStream =
-                new MediaStream();
-        }
+        if (!localStream) localStream = new MediaStream();
 
         if (oldTrack) {
-            localStream
-                .removeTrack(
-                    oldTrack
-                );
+            localStream.removeTrack(oldTrack);
         }
 
-        localStream.addTrack(
-            newTrack
-        );
+        localStream.addTrack(newTrack);
 
-        await syncAllSenders();
+        for (const record of peers.values()) {
+            await syncPeerTracks(record);
+        }
 
         try {
             oldTrack?.stop();
-        } catch (error) {
+        } catch {
             // Already stopped.
         }
 
-        savePreferredMicrophoneId(
-            deviceId
-        );
-
-        installSpeakingDetector(
-            currentUser.id,
-            localStream
-        );
+        savePreferredMicrophoneId(deviceId);
 
         await updateServerMedia();
         renderStage();
@@ -4265,327 +2182,170 @@
     }
 
     async function loadFriends() {
-        const {
-            data,
-            error
-        } =
-            await window.supabaseClient
-                .rpc(
-                    "get_my_friends",
-                    {
-                        p_search: null
-                    }
-                );
+        const { data, error } =
+            await window.supabaseClient.rpc(
+                "get_my_friends",
+                { p_search: null }
+            );
 
-        if (error) {
-            throw error;
-        }
-
-        return (
-            Array.isArray(data)
-                ? data
-                : []
-        );
+        if (error) throw error;
+        return Array.isArray(data) ? data : [];
     }
 
-    function composerSelectionLimit() {
-        if (
-            composerPurpose
-                === "invite"
-        ) {
+    function selectionLimit() {
+        if (composerPurpose === "invite") {
             return Math.max(
                 0,
                 Number(
-                    activeState?.call
-                        ?.max_participants
-                    ?? 0
-                )
-                - activeParticipants()
-                    .length
+                    activeState?.call?.max_participants ?? 0
+                ) - activeParticipants().length
             );
         }
 
-        return (
-            modeLimit(
-                composerMode
-            ) - 1
-        );
+        return modeLimit(composerMode) - 1;
     }
 
     function updateComposerSummary() {
-        const limit =
-            composerSelectionLimit();
+        const limit = selectionLimit();
 
         ui.selectionCount.textContent =
-            `${
-                composerSelected.size
-            } selected`;
+            `${composerSelected.size} selected`;
 
         ui.selectionLimit.textContent =
             limit === 1
                 ? "1 spot available"
-                : `${
-                    limit
-                } spots available`;
+                : `${limit} spots available`;
 
         ui.submitButton.disabled =
-            composerSelected.size
-                < 1
-            || composerSelected.size
-                > limit;
+            composerSelected.size < 1
+            || composerSelected.size > limit;
 
         ui.submitButton.textContent =
-            composerPurpose
-                === "invite"
+            composerPurpose === "invite"
                 ? "Send invites"
-                : `Start ${
-                    composerMode
-                } call`;
+                : `Start ${composerMode} call`;
 
         ui.modePicker
-            .querySelectorAll(
-                "[data-gcv4-mode]"
-            )
-            .forEach(
-                (button) => {
-                    button.classList
-                        .toggle(
-                            "active",
-                            button.dataset
-                                .gcv4Mode
-                                === composerMode
-                        );
+            .querySelectorAll("[data-gcv7-mode]")
+            .forEach((button) => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.gcv7Mode === composerMode
+                );
 
-                    button.disabled =
-                        composerPurpose
-                            === "invite";
-                }
-            );
+                button.disabled =
+                    composerPurpose === "invite";
+            });
     }
 
     function renderComposerFriends() {
-        ui.friendList
-            .replaceChildren();
+        ui.friendList.replaceChildren();
 
         const excluded =
             new Set(
-                composerPurpose
-                    === "invite"
-                    ? activeParticipants()
-                        .map(
-                            (participant) =>
-                                participant
-                                    .user_id
-                        )
+                composerPurpose === "invite"
+                    ? activeParticipants().map(
+                        (participant) =>
+                            participant.user_id
+                    )
                     : []
             );
 
         const available =
             composerFriends.filter(
-                (friend) =>
-                    !excluded.has(
-                        friend.user_id
-                    )
+                (friend) => !excluded.has(friend.user_id)
             );
 
         if (!available.length) {
-            const empty =
-                document.createElement(
-                    "p"
-                );
-
-            empty.className =
-                "gcv4-empty";
-
+            const empty = document.createElement("p");
+            empty.className = "gcv4-empty";
             empty.textContent =
-                composerPurpose
-                    === "invite"
+                composerPurpose === "invite"
                     ? "No additional friends are available to invite."
                     : "Add some friends before starting a group call.";
 
-            ui.friendList.append(
-                empty
-            );
-
+            ui.friendList.append(empty);
             updateComposerSummary();
             return;
         }
 
-        const limit =
-            composerSelectionLimit();
+        const limit = selectionLimit();
 
-        for (
-            const friend
-            of available
-        ) {
-            const label =
-                document.createElement(
-                    "label"
-                );
+        for (const friend of available) {
+            const label = document.createElement("label");
+            label.className = "gcv4-friend-option";
 
-            label.className =
-                "gcv4-friend-option";
-
-            const checkbox =
-                document.createElement(
-                    "input"
-                );
-
-            checkbox.type =
-                "checkbox";
-
-            checkbox.value =
-                friend.user_id;
-
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = friend.user_id;
             checkbox.checked =
-                composerSelected.has(
-                    friend.user_id
-                );
+                composerSelected.has(friend.user_id);
 
-            const avatar =
-                document.createElement(
-                    "span"
-                );
+            const avatar = document.createElement("span");
+            avatar.className = "gcv4-friend-avatar";
+            avatar.textContent = initials(friend.username);
 
-            avatar.className =
-                "gcv4-friend-avatar";
+            const copy = document.createElement("span");
+            copy.className = "gcv4-friend-copy";
 
-            avatar.textContent =
-                initials(
-                    friend.username
-                );
+            const name = document.createElement("strong");
+            name.textContent = friend.username;
 
-            const copy =
-                document.createElement(
-                    "span"
-                );
-
-            copy.className =
-                "gcv4-friend-copy";
-
-            const name =
-                document.createElement(
-                    "strong"
-                );
-
-            name.textContent =
-                friend.username;
-
-            const level =
-                document.createElement(
-                    "small"
-                );
-
+            const level = document.createElement("small");
             level.textContent =
-                `Level ${
-                    Number(
-                        friend.level
-                        ?? 1
-                    )
-                }`;
+                `Level ${Number(friend.level ?? 1)}`;
 
-            copy.append(
-                name,
-                level
-            );
+            copy.append(name, level);
 
-            checkbox.addEventListener(
-                "change",
-                () => {
-                    if (
-                        checkbox.checked
-                    ) {
-                        if (
-                            composerSelected
-                                .size
-                                >= limit
-                        ) {
-                            checkbox.checked =
-                                false;
-
-                            setComposerMessage(
-                                `That call has room for ${
-                                    limit
-                                } friend${
-                                    limit === 1
-                                        ? ""
-                                        : "s"
-                                } from this screen.`
-                            );
-
-                            return;
-                        }
-
-                        composerSelected
-                            .add(
-                                friend
-                                    .user_id
-                            );
-                    } else {
-                        composerSelected
-                            .delete(
-                                friend
-                                    .user_id
-                            );
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) {
+                    if (composerSelected.size >= limit) {
+                        checkbox.checked = false;
+                        setComposerMessage(
+                            `Only ${limit} more friend${limit === 1 ? "" : "s"} can be selected.`
+                        );
+                        return;
                     }
 
-                    setComposerMessage("");
-                    updateComposerSummary();
+                    composerSelected.add(friend.user_id);
+                } else {
+                    composerSelected.delete(friend.user_id);
                 }
-            );
 
-            label.append(
-                checkbox,
-                avatar,
-                copy
-            );
+                setComposerMessage("");
+                updateComposerSummary();
+            });
 
-            ui.friendList.append(
-                label
-            );
+            label.append(checkbox, avatar, copy);
+            ui.friendList.append(label);
         }
 
         updateComposerSummary();
     }
 
-    async function openComposer(
-        {
-            purpose = "create"
-        } = {}
-    ) {
+    async function openComposer({ purpose = "create" } = {}) {
         await ensureUser();
         createUi();
 
-        if (
-            purpose === "create"
-            && activeState?.call
-        ) {
+        if (purpose === "create" && activeState?.call) {
             purpose = "invite";
         }
 
-        if (
-            purpose === "create"
-            && directCallActive()
-        ) {
+        if (purpose === "create" && directCallActive()) {
             showToast(
                 "End your private call before starting a group call.",
                 "error"
             );
-
             return;
         }
 
-        composerPurpose =
-            purpose;
-
+        composerPurpose = purpose;
         composerMode =
             purpose === "invite"
                 ? callMode()
                 : "video";
 
-        composerSelected =
-            new Set();
-
+        composerSelected = new Set();
         setComposerMessage("");
 
         ui.composerTitle.textContent =
@@ -4593,21 +2353,12 @@
                 ? "Invite to group call"
                 : "Start a group call";
 
-        ui.composer.classList
-            .remove("hidden");
-
-        ui.backdrop.classList
-            .remove("hidden");
-
-        ui.root.classList
-            .remove("hidden");
-
-        updateRootVisibility();
+        ui.composer.classList.remove("hidden");
+        ui.backdrop.classList.remove("hidden");
+        ui.root.classList.remove("hidden");
 
         try {
-            composerFriends =
-                await loadFriends();
-
+            composerFriends = await loadFriends();
             renderComposerFriends();
         } catch (error) {
             setComposerMessage(
@@ -4615,140 +2366,82 @@
                 || "Friends could not be loaded."
             );
         }
+
+        updateRootVisibility();
     }
 
     function closeComposer() {
-        ui.composer.classList
-            .add("hidden");
+        ui.composer.classList.add("hidden");
 
-        if (
-            !ui.root.classList
-                .contains(
-                    "gcv4-expanded"
-                )
-        ) {
-            ui.backdrop.classList
-                .add("hidden");
+        if (!ui.root.classList.contains("gcv4-expanded")) {
+            ui.backdrop.classList.add("hidden");
         }
 
         updateRootVisibility();
     }
 
     async function submitComposer() {
-        if (
-            actionBusy
-            || composerSelected.size
-                < 1
-        ) {
-            return;
-        }
+        if (actionBusy || composerSelected.size < 1) return;
 
-        const selected =
-            Array.from(
-                composerSelected
-            );
+        const selected = Array.from(composerSelected);
 
-        const limit =
-            composerSelectionLimit();
-
-        if (
-            selected.length
-                > limit
-        ) {
+        if (selected.length > selectionLimit()) {
             setComposerMessage(
-                "Too many players are selected for this call."
+                "Too many players are selected."
             );
-
             return;
         }
 
         actionBusy = true;
-        ui.submitButton.disabled =
-            true;
+        ui.submitButton.disabled = true;
 
         try {
-            if (
-                composerPurpose
-                    === "invite"
-            ) {
-                const {
-                    data,
-                    error
-                } =
-                    await window
-                        .supabaseClient
-                        .rpc(
-                            "invite_to_group_call",
-                            {
-                                p_call_id:
-                                    currentCallId,
-                                p_invitee_ids:
-                                    selected
-                            }
-                        );
+            if (composerPurpose === "invite") {
+                const { data, error } =
+                    await window.supabaseClient.rpc(
+                        "invite_to_group_call",
+                        {
+                            p_call_id: currentCallId,
+                            p_invitee_ids: selected
+                        }
+                    );
 
-                if (error) {
-                    throw error;
-                }
+                if (error) throw error;
 
                 closeComposer();
 
                 showToast(
-                    `${
-                        Number(data ?? 0)
-                    } invitation${
-                        Number(data ?? 0)
-                            === 1
-                            ? ""
-                            : "s"
-                    } sent.`
+                    `${Number(data ?? 0)} invitation${Number(data ?? 0) === 1 ? "" : "s"} sent.`
                 );
 
                 await refreshState();
                 return;
             }
 
-            if (
-                directCallActive()
-            ) {
+            if (directCallActive()) {
                 throw new Error(
                     "End your private call before starting a group call."
                 );
             }
 
-            const {
-                data: callId,
-                error
-            } =
-                await window
-                    .supabaseClient
-                    .rpc(
-                        "create_group_call",
-                        {
-                            p_call_mode:
-                                composerMode,
-                            p_invitee_ids:
-                                selected
-                        }
-                    );
-
-            if (error) {
-                throw error;
-            }
-
-            currentCallId =
-                callId;
-
-            activeState =
-                await loadFullState(
-                    currentCallId
+            const { data: callId, error } =
+                await window.supabaseClient.rpc(
+                    "create_group_call",
+                    {
+                        p_call_mode: composerMode,
+                        p_invitee_ids: selected
+                    }
                 );
+
+            if (error) throw error;
+
+            currentCallId = callId;
+            activeState =
+                await loadFullState(currentCallId);
 
             closeComposer();
 
-            if (
-                !activeState?.call
-            ) {
+            if (!activeState?.call) {
                 throw new Error(
                     "The new group call could not be loaded."
                 );
@@ -4766,93 +2459,42 @@
         }
     }
 
+    function retryPlayback() {
+        for (const record of peers.values()) {
+            record.remoteAudio.play().catch(() => {});
+            tiles
+                .get(record.remoteUserId)
+                ?.video
+                ?.play()
+                .catch(() => {});
+        }
+    }
+
     async function cleanupCallLocal() {
-        window.clearInterval(
-            statePollTimer
-        );
+        clearInterval(stateTimer);
+        clearInterval(signalTimer);
+        clearInterval(heartbeatTimer);
+        clearInterval(durationTimer);
 
-        window.clearInterval(
-            signalPollTimer
-        );
-
-        window.clearInterval(
-            heartbeatTimer
-        );
-
-        window.clearInterval(
-            durationTimer
-        );
-
-        statePollTimer = null;
-        signalPollTimer = null;
+        stateTimer = null;
+        signalTimer = null;
         heartbeatTimer = null;
         durationTimer = null;
 
-        if (
-            signalChannel
-            && window.supabaseClient
-        ) {
-            window.supabaseClient
-                .removeChannel(
-                    signalChannel
-                );
-
+        if (signalChannel) {
+            window.supabaseClient.removeChannel(signalChannel);
             signalChannel = null;
         }
 
-        for (
-            const remoteUserId
-            of Array.from(
-                peers.keys()
-            )
-        ) {
-            closePeer(
-                remoteUserId
-            );
+        for (const remoteUserId of Array.from(peers.keys())) {
+            closePeer(remoteUserId);
         }
 
-        peers.clear();
-
-        for (
-            const userId
-            of Array.from(
-                detectors.keys()
-            )
-        ) {
-            removeSpeakingDetector(
-                userId
-            );
-        }
-
-        if (speakingTimer) {
-            window.clearInterval(
-                speakingTimer
-            );
-
-            speakingTimer = null;
-        }
-
-        if (screenTrack) {
+        for (const track of localStream?.getTracks() ?? []) {
             try {
-                screenTrack.stop();
-            } catch (error) {
+                track.stop();
+            } catch {
                 // Already stopped.
-            }
-
-            screenTrack = null;
-        }
-
-        if (localStream) {
-            for (
-                const track
-                of localStream
-                    .getTracks()
-            ) {
-                try {
-                    track.stop();
-                } catch (error) {
-                    // Already stopped.
-                }
             }
         }
 
@@ -4865,85 +2507,45 @@
         cameraEnabled = true;
         screenSharing = false;
 
-        tileRecords.forEach(
-            (record) =>
-                record.tile.remove()
-        );
-
-        tileRecords.clear();
-
-        if (ui.stage) {
-            ui.stage.classList
-                .add("hidden");
+        for (const record of tiles.values()) {
+            record.tile.remove();
         }
 
-        if (ui.incoming) {
-            ui.incoming.classList
-                .add("hidden");
-        }
+        tiles.clear();
 
-        if (ui.devicePanel) {
-            ui.devicePanel.classList
-                .add("hidden");
-        }
-
-        if (ui.backdrop) {
-            ui.backdrop.classList
-                .add("hidden");
-        }
+        ui.stage?.classList.add("hidden");
+        ui.incoming?.classList.add("hidden");
+        ui.devicePanel?.classList.add("hidden");
+        ui.backdrop?.classList.add("hidden");
 
         if (ui.root) {
-            ui.root.classList
-                .remove(
-                    "gcv4-expanded"
-                );
-
-            delete ui.root.dataset
-                .initialViewApplied;
-
-            updateRootVisibility();
+            ui.root.classList.remove("gcv4-expanded");
+            delete ui.root.dataset.initialViewApplied;
         }
 
-        connecting = false;
+        updateRootVisibility();
+
         signalCursor = 0;
-        signalChain =
-            Promise.resolve();
+        signalChain = Promise.resolve();
+        connecting = false;
     }
 
-    async function handleRootClick(
-        event
-    ) {
+    async function handleRootClick(event) {
         const modeButton =
-            event.target.closest(
-                "[data-gcv4-mode]"
-            );
+            event.target.closest("[data-gcv7-mode]");
 
         if (modeButton) {
-            if (
-                composerPurpose
-                    !== "create"
-            ) {
-                return;
-            }
+            if (composerPurpose !== "create") return;
 
             composerMode =
-                modeButton.dataset
-                    .gcv4Mode;
+                modeButton.dataset.gcv7Mode;
 
-            const limit =
-                composerSelectionLimit();
+            const limit = selectionLimit();
 
-            while (
-                composerSelected.size
-                    > limit
-            ) {
-                const last =
-                    Array.from(
-                        composerSelected
-                    ).at(-1);
-
-                composerSelected
-                    .delete(last);
+            while (composerSelected.size > limit) {
+                composerSelected.delete(
+                    Array.from(composerSelected).at(-1)
+                );
             }
 
             renderComposerFriends();
@@ -4951,128 +2553,53 @@
         }
 
         const button =
-            event.target.closest(
-                "[data-gcv4-action]"
-            );
+            event.target.closest("[data-gcv7-action]");
 
         if (!button) {
-            /*
-             * A click anywhere on the active call is also a useful chance
-             * to satisfy browsers that blocked media autoplay after a page
-             * navigation.
-             */
-            ui.grid
-                ?.querySelectorAll(
-                    "video"
-                )
-                .forEach(
-                    (video) => {
-                        video.play()
-                            .catch(
-                                () => {}
-                            );
-                    }
-                );
-
-            audioContext
-                ?.resume?.()
-                .catch(
-                    () => {}
-                );
-
+            retryPlayback();
             return;
         }
 
-        const action =
-            button.dataset
-                .gcv4Action;
+        const action = button.dataset.gcv7Action;
 
         if (action === "accept") {
-            await respondToInvite(
-                true
-            );
-        } else if (
-            action === "decline"
-        ) {
-            await respondToInvite(
-                false
-            );
-        } else if (
-            action === "expand"
-        ) {
+            await respondToInvite(true);
+        } else if (action === "decline") {
+            await respondToInvite(false);
+        } else if (action === "expand") {
             setExpanded(true);
-        } else if (
-            action === "mini"
-        ) {
+        } else if (action === "mini") {
             if (
                 button === ui.backdrop
-                && !ui.composer
-                    .classList
-                    .contains(
-                        "hidden"
-                    )
+                && !ui.composer.classList.contains("hidden")
             ) {
                 return;
             }
 
             setExpanded(false);
-        } else if (
-            action === "invite"
-        ) {
-            await openComposer({
-                purpose: "invite"
-            });
-        } else if (
-            action
-                === "close-composer"
-        ) {
+        } else if (action === "invite") {
+            await openComposer({ purpose: "invite" });
+        } else if (action === "close-composer") {
             closeComposer();
-        } else if (
-            action
-                === "submit-composer"
-        ) {
+        } else if (action === "submit-composer") {
             await submitComposer();
-        } else if (
-            action
-                === "devices"
-        ) {
+        } else if (action === "devices") {
             await openDevices();
-        } else if (
-            action
-                === "close-devices"
-        ) {
+        } else if (action === "close-devices") {
             closeDevices();
-        } else if (
-            action
-                === "microphone"
-        ) {
+        } else if (action === "microphone") {
             await toggleMicrophone();
-        } else if (
-            action
-                === "camera"
-        ) {
+        } else if (action === "camera") {
             await toggleCamera();
-        } else if (
-            action
-                === "screen"
-        ) {
+        } else if (action === "screen") {
             await toggleScreenShare();
-        } else if (
-            action
-                === "leave"
-        ) {
+        } else if (action === "leave") {
             await leaveCall();
         } else if (
             action === "end"
+            && confirm("End this group call for everyone?")
         ) {
-            const confirmed =
-                window.confirm(
-                    "End this group call for everyone?"
-                );
-
-            if (confirmed) {
-                await endCallForAll();
-            }
+            await endCallForAll();
         }
     }
 
@@ -5082,66 +2609,44 @@
             () => {
                 if (
                     ui.devicePanel
-                    && !ui.devicePanel
-                        .classList
-                        .contains(
-                            "hidden"
-                        )
+                    && !ui.devicePanel.classList.contains("hidden")
                 ) {
-                    refreshMicrophoneDevices()
-                        .catch(
-                            () => {}
-                        );
+                    refreshMicrophoneDevices().catch(() => {});
                 }
             }
         );
 
-    /*
-     * Important: navigation closes only this page's media and peer objects.
-     * It does NOT call leave_group_call. The next page's lightweight
-     * bootstrap sees the still-joined membership and reconnects the call.
-     */
-    window.addEventListener(
-        "pagehide",
-        () => {
-            disposed = true;
-
-            cleanupCallLocal()
-                .catch(
-                    () => {}
-                );
-        }
-    );
+    window.addEventListener("pagehide", () => {
+        disposed = true;
+        cleanupCallLocal().catch(() => {});
+    });
 
     createUi();
 
-    window.groupCallEngineV4 = {
-        VERSION,
-
+    const api = {
+        BUILD,
         resumeFromBootstrap,
-
         openComposer,
-
         isHandlingCall() {
             return Boolean(
                 currentCallId
                 || activeState?.call
                 || (
                     ui.composer
-                    && !ui.composer
-                        .classList
-                        .contains(
-                            "hidden"
-                        )
+                    && !ui.composer.classList.contains("hidden")
                 )
             );
         },
-
         get activeCall() {
-            return (
-                activeState?.call
-                ?? null
-            );
+            return activeState?.call ?? null;
         }
     };
+
+    window.groupCallEngineV7 = api;
+
+    /*
+     * Keep the old global alias too so any already-deployed helper that only
+     * checks the V4 name still recognises the active engine.
+     */
+    window.groupCallEngineV4 = api;
 })();
