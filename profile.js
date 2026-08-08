@@ -28,6 +28,12 @@ const profileFriendPrimaryButton = document.querySelector(
 const profileFriendSecondaryButton = document.querySelector(
     "#profile-friend-secondary-button"
 );
+const profileAudioCallButton = document.querySelector(
+    "#profile-audio-call-button"
+);
+const profileVideoCallButton = document.querySelector(
+    "#profile-video-call-button"
+);
 const profileFriendsLink = document.querySelector(
     "#profile-friends-link"
 );
@@ -286,6 +292,8 @@ function renderFriendRelationship(data) {
     profileFriendActions.classList.remove("hidden");
     profileFriendPrimaryButton.classList.add("hidden");
     profileFriendSecondaryButton.classList.add("hidden");
+    profileAudioCallButton.classList.add("hidden");
+    profileVideoCallButton.classList.add("hidden");
     profileFriendPrimaryButton.disabled = false;
     profileFriendSecondaryButton.disabled = false;
     profileFriendsLink.textContent = loadedProfile?.is_self
@@ -314,6 +322,15 @@ function renderFriendRelationship(data) {
         profileFriendSecondaryButton.textContent = "Remove";
         profileFriendSecondaryButton.dataset.action = "remove";
         profileFriendSecondaryButton.classList.remove("hidden");
+
+        for (const callButton of [
+            profileAudioCallButton,
+            profileVideoCallButton
+        ]) {
+            callButton.dataset.playerCallUser = loadedProfile.id;
+            callButton.dataset.playerCallName = loadedProfile.username;
+            callButton.classList.remove("hidden");
+        }
         return;
     }
 

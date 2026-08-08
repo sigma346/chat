@@ -786,6 +786,39 @@
         document.body.append(script);
     }
 
+    function loadPlayerCallSystem() {
+        if (
+            !document.querySelector(
+                'link[data-player-calls="true"]'
+            )
+        ) {
+            const link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = "player-calls.css?v=1";
+            link.dataset.playerCalls = "true";
+            document.head.append(link);
+        }
+
+        if (
+            document.querySelector(
+                'script[data-player-calls="true"]'
+            )
+        ) {
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = "player-calls.js?v=1";
+        script.dataset.playerCalls = "true";
+        script.addEventListener("error", () => {
+            console.warn(
+                "The player call system could not be loaded."
+            );
+        });
+
+        document.body.append(script);
+    }
+
     function loadCardBotSystem() {
         const isHeartsPage =
             currentFile === "hearts-table.html";
@@ -1101,6 +1134,7 @@
 
         loadCardBotSystem();
         loadCardGameGuide();
+        loadPlayerCallSystem();
         loadUiOverhaulScript();
         loadLevelProgress();
         showFriendlyModeBanner();

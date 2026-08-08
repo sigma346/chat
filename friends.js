@@ -141,6 +141,18 @@ function createButton(label, action, data, className = "") {
     return button;
 }
 
+function createCallButton(label, player, mode) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className =
+        `friend-call-action ${mode}`;
+    button.textContent = label;
+    button.dataset.playerCallUser = player.user_id;
+    button.dataset.playerCallName = player.username;
+    button.dataset.playerCallMode = mode;
+    return button;
+}
+
 function createFriendCard(
     player,
     mode
@@ -266,6 +278,16 @@ function createFriendCard(
         );
     } else if (mode === "friend") {
         actions.append(
+            createCallButton(
+                "Audio call",
+                player,
+                "audio"
+            ),
+            createCallButton(
+                "Video call",
+                player,
+                "video"
+            ),
             createButton(
                 "Remove friend",
                 "remove",
