@@ -92,9 +92,7 @@ const badgeSymbols = {
     badge_slot_spinner: "🎰",
     badge_rr_survivor: "☠",
     badge_first_trade: "↗",
-    badge_bull_market: "▲",
-    badge_crypto_pioneer: "₿",
-    badge_crypto_bull: "◆"
+    badge_bull_market: "▲"
 };
 
 const categoryNames = {
@@ -587,6 +585,26 @@ function renderPlayerStatistics(data) {
         statisticCard(
             "Chips received",
             `${formatNumber(overall.received_chips)} chips`
+        ),
+        statisticCard(
+            "Chips gained",
+            `${formatNumber(overall.chips_gained)} chips`,
+            "All recorded wallet income"
+        ),
+        statisticCard(
+            "Chips lost",
+            `${formatNumber(overall.chips_lost)} chips`,
+            "All recorded wallet spending"
+        ),
+        statisticCard(
+            "Gained today",
+            `${formatNumber(overall.chips_gained_today)} chips`,
+            "Since midnight Brisbane time"
+        ),
+        statisticCard(
+            "Lost today",
+            `${formatNumber(overall.chips_lost_today)} chips`,
+            "Since midnight Brisbane time"
         )
     );
 
@@ -805,19 +823,33 @@ async function refreshAchievements() {
 }
 
 async function loadPlayerStatistics() {
-    const {
-        data,
-        error
-    } = await window.supabaseClient.rpc(
-        "get_player_statistics",
-        profileRequestParameters()
-    );
+    const parameters = profileRequestParameters();
+    const [statisticsResult, chipFlowResult] = await Promise.all([
+        window.supabaseClient.rpc(
+            "get_player_statistics",
+            parameters
+        ),
+        window.supabaseClient.rpc(
+            "get_player_chip_flow_statistics",
+            parameters
+        )
+    ]);
 
-    if (error) {
-        throw error;
+    if (statisticsResult.error) {
+        throw statisticsResult.error;
     }
 
-    renderPlayerStatistics(data);
+    if (chipFlowResult.error) {
+        throw chipFlowResult.error;
+    }
+
+    renderPlayerStatistics({
+        ...statisticsResult.data,
+        overall: {
+            ...(statisticsResult.data?.overall ?? {}),
+            ...(chipFlowResult.data ?? {})
+        }
+    });
 }
 
 async function loadPlayerAchievements() {

@@ -6,7 +6,7 @@
         return;
     }
 
-    const MAX_CHAT_NOTIFICATIONS = 1;
+    const MAX_CHAT_NOTIFICATIONS = 3;
     const MAX_STORED_NOTIFICATIONS = 20;
     const MAX_HIDDEN_KEYS = 100;
     const HIDDEN_STORAGE_KEY = "hidden-chat-notifications-v1";
@@ -66,10 +66,12 @@
 
     function isUsefulNotification(notification) {
         const eventKey = String(notification.event_key ?? "");
+        const category = String(notification.category ?? "").toLowerCase();
 
         if (
-            eventKey.startsWith("roulette-warning:")
-            || eventKey.startsWith("roulette-spin:")
+            category === "roulette"
+            || eventKey.startsWith("roulette-")
+            || eventKey.startsWith("roulette:")
         ) {
             return false;
         }
@@ -122,6 +124,29 @@
     }
 
 
+    function findChatMessageList() {
+        const selectors = [
+            "#chat-messages",
+            ".chat-messages",
+            "[data-chat-messages]",
+            "#messages",
+            ".messages",
+            "#messages-container",
+            ".messages-container"
+        ];
+
+        for (const selector of selectors) {
+            const candidate = document.querySelector(selector);
+
+            if (candidate) {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+
     function ensureFallbackMount() {
         let fallback = document.querySelector(
             "#chat-notification-fallback"
@@ -136,7 +161,14 @@
         fallback.className = "chat-notification-fallback";
         fallback.setAttribute("aria-label", "Chat notifications");
 
-        document.body.append(fallback);
+        const navbar = document.querySelector(".shared-site-nav");
+
+        if (navbar) {
+            navbar.insertAdjacentElement("afterend", fallback);
+        } else {
+            const main = document.querySelector("main") || document.body;
+            main.prepend(fallback);
+        }
 
         return fallback;
     }
@@ -232,11 +264,11 @@
         const hideButton = document.createElement("button");
         hideButton.type = "button";
         hideButton.className = "chat-system-notification-hide";
-        hideButton.textContent = "×";
-        hideButton.title = "Dismiss this notification";
+        hideButton.textContent = "Hide";
+        hideButton.title = "Hide this notification";
         hideButton.setAttribute(
             "aria-label",
-            `Dismiss notification: ${notification.title}`
+            `Hide notification: ${notification.title}`
         );
         hideButton.addEventListener("click", () => {
             hideNotification(notification);
@@ -257,6 +289,7 @@
         chatObserver?.disconnect();
 
         try {
+            const chatList = findChatMessageList();
             const fallback = document.querySelector(
                 "#chat-notification-fallback"
             );
@@ -278,7 +311,7 @@
                 return;
             }
 
-            const mount = fallback || ensureFallbackMount();
+            const mount = chatList || fallback || ensureFallbackMount();
 
             for (const notification of recent) {
                 mount.append(
@@ -286,6 +319,9 @@
                 );
             }
 
+            if (chatList && fallback) {
+                fallback.remove();
+            }
         } finally {
             rendering = false;
             observeChatRenders();
