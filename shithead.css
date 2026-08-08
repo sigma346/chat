@@ -1,0 +1,669 @@
+.game-type-badge.shithead {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin-top: 0.35rem;
+    padding: 0.22rem 0.48rem;
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    border-radius: 999px;
+    background: rgba(111, 76, 181, 0.16);
+    color: #ddd1ff;
+    font-size: 0.66rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.shithead-page {
+    align-items: start;
+}
+
+.shithead-layout {
+    display: grid;
+    gap: 0.9rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.shithead-panel {
+    overflow: hidden;
+    padding: 1.25rem;
+}
+
+.shithead-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.shithead-header h1 {
+    margin: 0;
+}
+
+.shithead-information-bar {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin: 1rem 0;
+}
+
+.shithead-information-bar > span {
+    display: grid;
+    gap: 0.18rem;
+    min-width: 0;
+    padding: 0.75rem 0.8rem;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 0.8rem;
+    background: rgba(8, 13, 22, 0.5);
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.055em;
+}
+
+.shithead-information-bar strong {
+    overflow-wrap: anywhere;
+    color: var(--text);
+    font-size: 0.9rem;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.shithead-game-surface {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.62fr);
+    gap: 1rem;
+    min-height: 400px;
+    padding: 1rem;
+    border: 10px solid #35251b;
+    border-radius: 2rem;
+    background:
+        radial-gradient(
+            circle at 50% 48%,
+            rgba(31, 143, 106, 0.98),
+            rgba(12, 76, 57, 0.98) 62%,
+            rgba(6, 48, 36, 0.98)
+        );
+    box-shadow:
+        inset 0 0 55px rgba(0, 0, 0, 0.38),
+        0 18px 45px rgba(0, 0, 0, 0.22);
+}
+
+.shithead-player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+    align-content: start;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.shithead-player {
+    min-width: 0;
+    padding: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.26);
+    border-radius: 0.9rem;
+    background: rgba(8, 13, 22, 0.91);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
+    transition:
+        border-color 150ms ease,
+        transform 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.shithead-player.is-turn {
+    border-color: rgba(98, 230, 189, 0.75);
+    box-shadow:
+        0 0 0 3px rgba(98, 230, 189, 0.12),
+        0 10px 30px rgba(0, 0, 0, 0.28);
+    transform: translateY(-1px);
+}
+
+.shithead-player.is-me {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(98, 230, 189, 0.1),
+            rgba(8, 13, 22, 0.92) 45%
+        );
+}
+
+.shithead-player-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.shithead-player-heading > div {
+    min-width: 0;
+}
+
+.shithead-player-heading strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.shithead-player-heading span {
+    color: var(--muted);
+    font-size: 0.7rem;
+}
+
+.shithead-turn-chip {
+    flex: 0 0 auto;
+    padding: 0.25rem 0.45rem;
+    border: 1px solid rgba(98, 230, 189, 0.28);
+    border-radius: 999px;
+    background: rgba(98, 230, 189, 0.11);
+    color: #cffff0 !important;
+    font-size: 0.62rem !important;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.shithead-player-counts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin-top: 0.65rem;
+}
+
+.shithead-player-counts span {
+    display: grid;
+    gap: 0.08rem;
+    min-width: 0;
+    padding: 0.42rem;
+    border-radius: 0.55rem;
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--muted);
+    font-size: 0.61rem;
+    text-align: center;
+}
+
+.shithead-player-counts strong {
+    color: var(--text);
+    font-size: 0.78rem;
+}
+
+.shithead-mini-face-up {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.22rem;
+    margin-top: 0.55rem;
+}
+
+.shithead-centre {
+    display: grid;
+    align-content: center;
+    gap: 1rem;
+    min-width: 0;
+    padding: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 1.25rem;
+    background: rgba(5, 35, 27, 0.55);
+    text-align: center;
+}
+
+.shithead-centre-stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.shithead-centre-stack > div {
+    display: grid;
+    justify-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.shithead-centre-stack .eyebrow {
+    margin: 0;
+}
+
+.shithead-stock-display,
+.shithead-pile-display {
+    display: grid;
+    place-items: center;
+    width: 88px;
+    height: 122px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 0.75rem;
+    background: rgba(5, 10, 16, 0.9);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.28);
+}
+
+.shithead-stock-display {
+    cursor: default;
+}
+
+.shithead-stock-display:disabled {
+    opacity: 1;
+}
+
+.shithead-card-back {
+    display: grid;
+    place-items: center;
+    width: calc(100% - 12px);
+    height: calc(100% - 12px);
+    border: 2px solid rgba(198, 223, 255, 0.45);
+    border-radius: 0.5rem;
+    background:
+        repeating-linear-gradient(
+            45deg,
+            rgba(106, 79, 191, 0.68) 0 7px,
+            rgba(43, 32, 88, 0.9) 7px 14px
+        );
+    color: #f7f2ff;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+
+.shithead-empty-pile {
+    color: rgba(226, 232, 240, 0.55);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.shithead-turn-block {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 0.85rem;
+    background: rgba(6, 16, 23, 0.44);
+}
+
+.shithead-turn-block strong {
+    color: #f4f7fb;
+    font-size: 1rem;
+}
+
+.shithead-turn-block p {
+    margin: 0;
+    color: #c0cbd8;
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.shithead-winner-message {
+    min-height: 1.35rem;
+    margin: 0;
+    color: #ffe69c;
+    font-weight: 850;
+}
+
+.shithead-own-area {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 1rem;
+    background: rgba(8, 13, 22, 0.5);
+}
+
+.shithead-own-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.shithead-own-heading h2 {
+    margin: 0;
+}
+
+.shithead-source-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid rgba(98, 230, 189, 0.22);
+    border-radius: 999px;
+    background: rgba(98, 230, 189, 0.08);
+    color: #cffff0;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.shithead-zone {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.shithead-zone-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.7rem;
+}
+
+.shithead-zone-heading span {
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.shithead-card-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.45rem;
+    min-height: 102px;
+    padding: 0.55rem;
+    overflow-x: auto;
+    border: 1px dashed rgba(148, 163, 184, 0.16);
+    border-radius: 0.75rem;
+    background: rgba(5, 9, 15, 0.36);
+}
+
+.shithead-hand-row {
+    min-height: 130px;
+}
+
+.shithead-card {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    flex: 0 0 70px;
+    width: 70px;
+    height: 96px;
+    padding: 0.4rem;
+    border: 2px solid rgba(18, 28, 39, 0.85);
+    border-radius: 0.6rem;
+    background: #f8fafc;
+    color: #141922;
+    box-shadow:
+        0 8px 16px rgba(0, 0, 0, 0.22),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+    font: inherit;
+    text-align: left;
+    cursor: default;
+    user-select: none;
+    transition:
+        transform 130ms ease,
+        border-color 130ms ease,
+        box-shadow 130ms ease,
+        opacity 130ms ease;
+}
+
+button.shithead-card {
+    cursor: pointer;
+}
+
+.shithead-card.red {
+    color: #c52f43;
+}
+
+.shithead-card.selectable:hover {
+    transform: translateY(-6px);
+    border-color: rgba(98, 230, 189, 0.85);
+}
+
+.shithead-card.selected {
+    transform: translateY(-9px);
+    border-color: #62e6bd;
+    box-shadow:
+        0 0 0 3px rgba(98, 230, 189, 0.22),
+        0 11px 22px rgba(0, 0, 0, 0.3);
+}
+
+.shithead-card.blocked {
+    opacity: 0.44;
+}
+
+.shithead-card-rank {
+    font-size: 1rem;
+    font-weight: 950;
+    line-height: 1;
+}
+
+.shithead-card-suit {
+    align-self: center;
+    justify-self: center;
+    font-size: 1.55rem;
+    line-height: 1;
+}
+
+.shithead-card-corner {
+    justify-self: end;
+    font-size: 0.78rem;
+    font-weight: 900;
+    line-height: 1;
+    transform: rotate(180deg);
+}
+
+.shithead-card.mini {
+    flex-basis: 38px;
+    width: 38px;
+    height: 52px;
+    padding: 0.22rem;
+    border-width: 1px;
+    border-radius: 0.38rem;
+}
+
+.shithead-card.mini .shithead-card-rank {
+    font-size: 0.65rem;
+}
+
+.shithead-card.mini .shithead-card-suit {
+    font-size: 0.9rem;
+}
+
+.shithead-card.mini .shithead-card-corner {
+    display: none;
+}
+
+.shithead-face-down-card {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: 0 0 70px;
+    width: 70px;
+    height: 96px;
+    padding: 0.35rem;
+    border: 2px solid rgba(31, 41, 55, 0.88);
+    border-radius: 0.6rem;
+    background: #0e1623;
+    box-shadow: 0 8px 17px rgba(0, 0, 0, 0.25);
+}
+
+button.shithead-face-down-card {
+    cursor: pointer;
+}
+
+button.shithead-face-down-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(164, 139, 250, 0.9);
+}
+
+.shithead-face-down-card.selected {
+    transform: translateY(-8px);
+    border-color: #a78bfa;
+    box-shadow:
+        0 0 0 3px rgba(167, 139, 250, 0.2),
+        0 10px 22px rgba(0, 0, 0, 0.3);
+}
+
+.shithead-face-down-card .shithead-card-back {
+    width: 100%;
+    height: 100%;
+}
+
+.shithead-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.shithead-controls p {
+    margin: 0.25rem 0 0;
+    color: var(--muted);
+}
+
+.shithead-action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.shithead-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+
+.shithead-rules-panel {
+    min-width: 0;
+    border: 1px solid rgba(148, 163, 184, 0.17);
+    border-radius: 0.85rem;
+    background: rgba(8, 13, 22, 0.42);
+}
+
+.shithead-rules-panel summary {
+    padding: 0.8rem 0.9rem;
+    color: var(--text);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.shithead-rules-content {
+    padding: 0 0.9rem 0.9rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    line-height: 1.55;
+}
+
+.shithead-rules-content p {
+    margin-top: 0;
+}
+
+.shithead-rules-content ul {
+    margin-bottom: 0;
+    padding-left: 1.25rem;
+}
+
+.shithead-rules-content strong {
+    color: #f4f7fb;
+}
+
+.shithead-management {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-content: start;
+}
+
+.shithead-empty-zone {
+    align-self: center;
+    margin: auto;
+    color: var(--muted);
+    font-size: 0.74rem;
+}
+
+@media (max-width: 980px) {
+    .shithead-information-bar {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .shithead-game-surface {
+        grid-template-columns: 1fr;
+    }
+
+    .shithead-centre {
+        order: -1;
+    }
+}
+
+@media (max-width: 720px) {
+    .shithead-panel {
+        padding: 0.85rem;
+    }
+
+    .shithead-header,
+    .shithead-own-heading,
+    .shithead-controls,
+    .shithead-zone-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .shithead-information-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .shithead-game-surface {
+        padding: 0.7rem;
+        border-width: 7px;
+        border-radius: 1.3rem;
+    }
+
+    .shithead-player-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .shithead-action-buttons {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .shithead-action-buttons > button {
+        flex: 1 1 140px;
+    }
+
+    .shithead-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .shithead-management {
+        justify-content: stretch;
+    }
+
+    .shithead-management > * {
+        flex: 1 1 150px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .shithead-information-bar,
+    .shithead-player-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .shithead-centre-stack {
+        gap: 0.45rem;
+    }
+
+    .shithead-stock-display,
+    .shithead-pile-display {
+        width: 72px;
+        height: 101px;
+    }
+
+    .shithead-card,
+    .shithead-face-down-card {
+        flex-basis: 62px;
+        width: 62px;
+        height: 86px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shithead-player,
+    .shithead-card,
+    .shithead-face-down-card {
+        transition: none;
+    }
+}

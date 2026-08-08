@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="poker.css">
+    <link rel="stylesheet" href="shithead.css?v=1">
 </head>
 
 <body>
@@ -83,6 +84,10 @@
 
                             <option value="hearts">
                                 Hearts
+                            </option>
+
+                            <option value="shithead">
+                                Shithead
                             </option>
 
                             <option value="solitaire_klondike">
@@ -256,6 +261,34 @@
                     </div>
 
                     <div
+                        id="shithead-settings"
+                        class="game-specific-settings hidden"
+                    >
+                        <div class="form-field">
+                            <label id="shithead-entry-stake-label" for="shithead-entry-stake-input">
+                                Entry stake per player
+                            </label>
+
+                            <input
+                                id="shithead-entry-stake-input"
+                                type="number"
+                                min="1"
+                                step="1"
+                                value="500"
+                            >
+                        </div>
+
+                        <div class="solitaire-payout-preview">
+                            <span>Format</span>
+                            <strong>Winner takes the pot</strong>
+                            <small>
+                                2–5 players. First player to get rid of every
+                                card wins the combined entry stakes.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div
                         id="solitaire-settings"
                         class="game-specific-settings hidden solitaire-create-settings"
                     >
@@ -352,6 +385,6 @@
     <script src="config.js"></script>
     <script src="supabase-client.js"></script>
     <script src="navbar.js"></script>
-    <script src="poker.js"></script>
+    <script src="poker.js?v=36"></script>
 </body>
 </html>

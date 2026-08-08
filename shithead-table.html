@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Shithead</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="poker.css">
+    <link rel="stylesheet" href="shithead.css?v=1">
+</head>
+
+<body>
+    <main class="page shithead-page">
+        <div class="shithead-layout">
+            <div id="site-navbar"></div>
+
+            <section class="panel shithead-panel">
+                <header class="shithead-header">
+                    <div>
+                        <p class="eyebrow">SHITHEAD</p>
+                        <h1 id="table-name">Loading game...</h1>
+                        <p
+                            id="table-description"
+                            class="description"
+                        >
+                            Get rid of every card before everyone else.
+                        </p>
+                    </div>
+
+                    <div class="poker-user-summary">
+                        <span id="current-username">Loading...</span>
+
+                        <span class="balance-badge">
+                            <span id="wallet-balance">0</span>
+                            wallet
+                        </span>
+                    </div>
+                </header>
+
+                <div class="shithead-information-bar">
+                    <span>
+                        Players
+                        <strong id="player-count-label">0/0</strong>
+                    </span>
+
+                    <span>
+                        Entry
+                        <strong id="entry-stake-label">0</strong>
+                    </span>
+
+                    <span>
+                        Stock
+                        <strong id="stock-count-label">0</strong>
+                    </span>
+
+                    <span>
+                        Pot
+                        <strong id="pot-label">0</strong>
+                    </span>
+
+                    <span>
+                        Play rule
+                        <strong id="play-rule-label">Any card</strong>
+                    </span>
+                </div>
+
+                <section class="shithead-game-surface">
+                    <div
+                        id="shithead-player-grid"
+                        class="shithead-player-grid"
+                    ></div>
+
+                    <div class="shithead-centre">
+                        <div class="shithead-centre-stack">
+                            <div>
+                                <p class="eyebrow">DRAW PILE</p>
+                                <button
+                                    id="stock-display"
+                                    class="shithead-stock-display"
+                                    type="button"
+                                    disabled
+                                    aria-label="Draw pile"
+                                >
+                                    <span class="shithead-card-back">SH</span>
+                                </button>
+                                <strong id="stock-display-count">0</strong>
+                            </div>
+
+                            <div>
+                                <p class="eyebrow">PLAY PILE</p>
+                                <div
+                                    id="pile-display"
+                                    class="shithead-pile-display"
+                                >
+                                    <span class="shithead-empty-pile">
+                                        Empty
+                                    </span>
+                                </div>
+                                <strong id="pile-display-count">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="shithead-turn-block">
+                            <strong id="turn-description">
+                                Waiting for players
+                            </strong>
+
+                            <p id="turn-detail">
+                                The host can start with at least two players.
+                            </p>
+                        </div>
+
+                        <p
+                            id="winner-message"
+                            class="shithead-winner-message"
+                        ></p>
+                    </div>
+                </section>
+
+                <section class="shithead-own-area">
+                    <div class="shithead-own-heading">
+                        <div>
+                            <p class="eyebrow">YOUR CARDS</p>
+                            <h2 id="own-area-title">Waiting room</h2>
+                        </div>
+
+                        <span
+                            id="source-badge"
+                            class="shithead-source-badge"
+                        >
+                            Waiting
+                        </span>
+                    </div>
+
+                    <div class="shithead-zone">
+                        <div class="shithead-zone-heading">
+                            <strong>Face down</strong>
+                            <span>Blind cards. These are played last.</span>
+                        </div>
+
+                        <div
+                            id="own-face-down"
+                            class="shithead-card-row"
+                        ></div>
+                    </div>
+
+                    <div class="shithead-zone">
+                        <div class="shithead-zone-heading">
+                            <strong>Face up</strong>
+                            <span>Playable once your hand and stock are empty.</span>
+                        </div>
+
+                        <div
+                            id="own-face-up"
+                            class="shithead-card-row"
+                        ></div>
+                    </div>
+
+                    <div class="shithead-zone">
+                        <div class="shithead-zone-heading">
+                            <strong>Hand</strong>
+                            <span>Draw back to three while stock remains.</span>
+                        </div>
+
+                        <div
+                            id="own-hand"
+                            class="shithead-card-row shithead-hand-row"
+                        ></div>
+                    </div>
+                </section>
+
+                <section
+                    id="waiting-controls"
+                    class="poker-control-panel shithead-controls"
+                >
+                    <p id="waiting-text">
+                        Waiting for more players.
+                    </p>
+
+                    <button
+                        id="start-game-button"
+                        type="button"
+                        class="hidden"
+                    >
+                        Start Shithead
+                    </button>
+                </section>
+
+                <section
+                    id="play-controls"
+                    class="poker-control-panel shithead-controls hidden"
+                >
+                    <div>
+                        <strong id="action-heading">Your turn</strong>
+                        <p id="action-instruction">
+                            Select one or more cards of the same rank.
+                        </p>
+                    </div>
+
+                    <div class="shithead-action-buttons">
+                        <button
+                            id="play-selected-button"
+                            type="button"
+                            disabled
+                        >
+                            Play selected
+                        </button>
+
+                        <button
+                            id="play-face-down-button"
+                            type="button"
+                            class="hidden"
+                            disabled
+                        >
+                            Flip selected card
+                        </button>
+
+                        <button
+                            id="pick-up-button"
+                            type="button"
+                            class="secondary-button"
+                            disabled
+                        >
+                            Pick up pile
+                        </button>
+                    </div>
+                </section>
+
+                <p
+                    id="turn-message"
+                    class="turn-message"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+
+                <div class="shithead-bottom-grid">
+                    <details class="shithead-rules-panel" open>
+                        <summary>Rules used on this site</summary>
+
+                        <div class="shithead-rules-content">
+                            <p>
+                                Each player begins with 3 cards in hand,
+                                3 face-up cards and 3 face-down cards.
+                                While the stock exists, draw back to
+                                3 cards after playing.
+                            </p>
+
+                            <ul>
+                                <li>
+                                    Normal cards must be equal to or higher
+                                    than the current effective top card.
+                                </li>
+                                <li>
+                                    <strong>2</strong> can be played on
+                                    anything and resets the pile.
+                                </li>
+                                <li>
+                                    <strong>7</strong> makes the next play
+                                    7 or lower.
+                                </li>
+                                <li>
+                                    <strong>8</strong> is transparent:
+                                    the card beneath it still controls
+                                    what may be played.
+                                </li>
+                                <li>
+                                    <strong>10</strong> burns the pile
+                                    and gives the same player another turn.
+                                </li>
+                                <li>
+                                    Four consecutive cards of the same rank
+                                    also burn the pile.
+                                </li>
+                                <li>
+                                    If you cannot or do not want to play,
+                                    pick up the whole pile.
+                                </li>
+                                <li>
+                                    After your hand and the stock are empty,
+                                    use your face-up cards. Then play your
+                                    face-down cards blindly.
+                                </li>
+                                <li>
+                                    If a blind card cannot legally be played,
+                                    you take that card and the whole pile
+                                    into your hand.
+                                </li>
+                                <li>
+                                    The first player with no cards left wins.
+                                </li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <section class="match-management-panel shithead-management">
+                        <button
+                            id="cancel-game-button"
+                            type="button"
+                            class="danger-button hidden"
+                        >
+                            Cancel and refund
+                        </button>
+
+                        <a
+                            href="poker.html"
+                            class="button-link secondary-link"
+                        >
+                            Lobby
+                        </a>
+
+                        <button
+                            id="leave-game-button"
+                            type="button"
+                            class="danger-button"
+                        >
+                            Leave game
+                        </button>
+                    </section>
+                </div>
+
+                <p
+                    id="table-error"
+                    class="form-message"
+                    role="alert"
+                ></p>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="shithead-table.js?v=1"></script>
+</body>
+</html>
