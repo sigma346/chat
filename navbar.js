@@ -834,6 +834,33 @@
             document.head.append(link);
         }
 
+        /*
+         * Load the portrait/orientation helper before the main call system.
+         * Setting async=false preserves execution order for these dynamically
+         * inserted classic scripts.
+         */
+        if (
+            !document.querySelector(
+                'script[data-player-call-video-fit="true"]'
+            )
+        ) {
+            const videoFitScript =
+                document.createElement("script");
+
+            videoFitScript.src =
+                "player-call-video-fit.js?v=1";
+            videoFitScript.async = false;
+            videoFitScript.dataset.playerCallVideoFit = "true";
+
+            videoFitScript.addEventListener("error", () => {
+                console.warn(
+                    "The player-call portrait video helper could not be loaded."
+                );
+            });
+
+            document.body.append(videoFitScript);
+        }
+
         if (
             document.querySelector(
                 'script[data-player-calls="true"]'
@@ -844,6 +871,7 @@
 
         const script = document.createElement("script");
         script.src = "player-calls.js?v=2";
+        script.async = false;
         script.dataset.playerCalls = "true";
         script.addEventListener("error", () => {
             console.warn(
