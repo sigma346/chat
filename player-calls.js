@@ -9,6 +9,8 @@
     const RING_DURATION_MS = 45_000;
     const HEARTBEAT_INTERVAL_MS = 30_000;
     const ICE_BATCH_DELAY_MS = 140;
+    const MICROPHONE_STORAGE_KEY =
+        "preferred-player-call-microphone-v1";
     const fallbackIceServers = [
         {
             urls: ["stun:stun.cloudflare.com:3478"]
@@ -34,6 +36,8 @@
     let pendingLocalCandidates = [];
     let pendingRemoteCandidates = [];
     let pendingSignals = [];
+    let selectedMicrophoneId = loadSelectedMicrophone();
+    let cameraWarning = "";
     let mediaState = {
         microphone: true,
         camera: true
@@ -45,6 +49,38 @@
         return Array.isArray(data)
             ? data[0] ?? null
             : data ?? null;
+    }
+
+    function loadSelectedMicrophone() {
+        try {
+            return window.localStorage.getItem(
+                MICROPHONE_STORAGE_KEY
+            ) || "";
+        } catch (error) {
+            return "";
+        }
+    }
+
+    function saveSelectedMicrophone(deviceId) {
+        selectedMicrophoneId = String(deviceId ?? "");
+
+        try {
+            if (selectedMicrophoneId) {
+                window.localStorage.setItem(
+                    MICROPHONE_STORAGE_KEY,
+                    selectedMicrophoneId
+                );
+            } else {
+                window.localStorage.removeItem(
+                    MICROPHONE_STORAGE_KEY
+                );
+            }
+        } catch (error) {
+            console.warn(
+                "The microphone preference could not be saved:",
+                error
+            );
+        }
     }
 
     function createCallUi() {
@@ -68,6 +104,11 @@
                     <span class="player-call-card-status"></span>
                 </div>
                 <div class="player-call-card-actions">
+                    <button
+                        type="button"
+                        class="player-call-button neutral"
+                        data-call-action="devices"
+                    >Devices</button>
                     <button
                         type="button"
                         class="player-call-button accept hidden"
@@ -123,6 +164,11 @@
                     <button
                         type="button"
                         class="player-call-control"
+                        data-call-action="devices"
+                    >Devices</button>
+                    <button
+                        type="button"
+                        class="player-call-control"
                         data-call-action="microphone"
                         aria-pressed="false"
                     >Mute</button>
@@ -139,6 +185,53 @@
                     >End call</button>
                 </div>
             </div>
+
+            <aside
+                class="player-call-device-panel hidden"
+                role="dialog"
+                aria-modal="false"
+                aria-labelledby="player-call-device-title"
+            >
+                <header class="player-call-device-header">
+                    <div>
+                        <span class="player-call-kicker">CALL SETTINGS</span>
+                        <h2 id="player-call-device-title">Microphone</h2>
+                    </div>
+                    <button
+                        type="button"
+                        class="player-call-device-close"
+                        data-call-action="close-devices"
+                        aria-label="Close call settings"
+                    >×</button>
+                </header>
+
+                <label class="player-call-device-field">
+                    <span>Microphone input</span>
+                    <select class="player-call-microphone-select">
+                        <option value="">Default microphone</option>
+                    </select>
+                </label>
+
+                <div class="player-call-device-actions">
+                    <button
+                        type="button"
+                        class="player-call-button accept"
+                        data-call-action="retry-microphone"
+                    >Test microphone permission</button>
+                </div>
+
+                <p class="player-call-device-status" role="status"></p>
+
+                <div class="player-call-permission-help hidden">
+                    <strong>If the permission prompt will not return:</strong>
+                    <ol>
+                        <li>Select the lock or site-controls icon beside the address.</li>
+                        <li>Set <b>Microphone</b> to <b>Allow</b>.</li>
+                        <li>Check that Windows/macOS also allows microphone access for the browser.</li>
+                        <li>Reload the website, then press the test button again.</li>
+                    </ol>
+                </div>
+            </aside>
 
             <div class="player-call-toast hidden" role="status"></div>
         `;
@@ -191,7 +284,61 @@
         ui.cameraButton = root.querySelector(
             '[data-call-action="camera"]'
         );
+        ui.devicePanel = root.querySelector(
+            ".player-call-device-panel"
+        );
+        ui.microphoneSelect = root.querySelector(
+            ".player-call-microphone-select"
+        );
+        ui.deviceStatus = root.querySelector(
+            ".player-call-device-status"
+        );
+        ui.permissionHelp = root.querySelector(
+            ".player-call-permission-help"
+        );
+        ui.retryMicrophoneButton = root.querySelector(
+            '[data-call-action="retry-microphone"]'
+        );
         ui.toast = root.querySelector(".player-call-toast");
+
+        ui.microphoneSelect.addEventListener(
+            "change",
+            () => {
+                chooseMicrophone(
+                    ui.microphoneSelect.value
+                ).catch((error) => {
+                    setDeviceStatus(
+                        error.message
+                        || "The microphone could not be changed.",
+                        true
+                    );
+                });
+            }
+        );
+    }
+
+    function installCallSettingsLaunch() {
+        if (
+            document.querySelector("[data-player-call-settings]")
+            || !window.location.pathname.endsWith("friends.html")
+        ) {
+            return;
+        }
+
+        const introduction = document.querySelector(
+            ".friends-hero > div:first-child"
+        );
+
+        if (!introduction) {
+            return;
+        }
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "player-call-settings-launch";
+        button.dataset.playerCallSettings = "true";
+        button.textContent = "Call settings";
+        introduction.append(button);
     }
 
     function peerId(call = currentCall) {
@@ -235,7 +382,10 @@
         window.setTimeout(() => {
             ui.toast.classList.add("hidden");
 
-            if (!currentCall) {
+            if (
+                !currentCall
+                && ui.devicePanel?.classList.contains("hidden")
+            ) {
                 ui.root.classList.add("hidden");
             }
         }, 3200);
@@ -247,10 +397,255 @@
         }
     }
 
+    function showCameraFallbackNotice() {
+        if (!cameraWarning) {
+            return;
+        }
+
+        const message = cameraWarning;
+        cameraWarning = "";
+        showToast(message, "warning");
+    }
+
+    function showMediaFailure(error, fallbackMessage) {
+        const message = error?.message || fallbackMessage;
+        showToast(message, "error");
+
+        if (String(error?.code ?? "").startsWith("microphone_")) {
+            openDeviceSettings(message).catch(() => {});
+        }
+    }
+
     function setConnectionStatus(message) {
         if (ui.connection) {
             ui.connection.textContent = message;
         }
+    }
+
+    function setDeviceStatus(message = "", error = false) {
+        if (!ui.deviceStatus) {
+            return;
+        }
+
+        ui.deviceStatus.textContent = message;
+        ui.deviceStatus.classList.toggle("error", error);
+    }
+
+    function microphonePermissionError(originalError) {
+        const error = new Error(
+            "Microphone access is blocked. Open Call settings for the browser and operating-system permission steps."
+        );
+        error.code = "microphone_permission";
+        error.originalName = originalError?.name ?? "NotAllowedError";
+        return error;
+    }
+
+    async function microphonePermissionState() {
+        if (!navigator.permissions?.query) {
+            return "unknown";
+        }
+
+        try {
+            const result = await navigator.permissions.query({
+                name: "microphone"
+            });
+            return result.state;
+        } catch (error) {
+            return "unknown";
+        }
+    }
+
+    async function refreshMicrophoneDevices() {
+        if (!ui.microphoneSelect) {
+            return [];
+        }
+
+        if (!navigator.mediaDevices?.enumerateDevices) {
+            setDeviceStatus(
+                "This browser cannot list microphone devices.",
+                true
+            );
+            return [];
+        }
+
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const microphones = devices.filter(
+            (device) => device.kind === "audioinput"
+        );
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "Default microphone";
+        ui.microphoneSelect.replaceChildren(defaultOption);
+
+        microphones.forEach((device, index) => {
+            const option = document.createElement("option");
+            option.value = device.deviceId;
+            option.textContent = device.label
+                || `Microphone ${index + 1}`;
+            ui.microphoneSelect.append(option);
+        });
+
+        const selectedExists = microphones.some(
+            (device) => device.deviceId === selectedMicrophoneId
+        );
+
+        if (selectedMicrophoneId && !selectedExists) {
+            saveSelectedMicrophone("");
+        }
+
+        ui.microphoneSelect.value = selectedMicrophoneId;
+        return microphones;
+    }
+
+    async function openDeviceSettings(message = "") {
+        ui.root.classList.remove("hidden");
+        ui.devicePanel.classList.remove("hidden");
+        setDeviceStatus(message, Boolean(message));
+
+        const permissionState = await microphonePermissionState();
+        ui.permissionHelp.classList.toggle(
+            "hidden",
+            permissionState !== "denied"
+            && !message.toLowerCase().includes("blocked")
+            && !message.toLowerCase().includes("operating system")
+        );
+
+        try {
+            const microphones = await refreshMicrophoneDevices();
+
+            if (!message && microphones.length) {
+                setDeviceStatus(
+                    `${microphones.length} microphone${
+                        microphones.length === 1 ? "" : "s"
+                    } available.`
+                );
+            } else if (!message && permissionState === "denied") {
+                setDeviceStatus(
+                    "Microphone permission is currently blocked.",
+                    true
+                );
+            }
+        } catch (error) {
+            setDeviceStatus(
+                "Microphone devices could not be listed.",
+                true
+            );
+        }
+    }
+
+    function closeDeviceSettings() {
+        ui.devicePanel.classList.add("hidden");
+
+        if (!currentCall && ui.toast.classList.contains("hidden")) {
+            ui.root.classList.add("hidden");
+        }
+    }
+
+    function microphoneConstraints(deviceId = selectedMicrophoneId) {
+        return {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            ...(deviceId
+                ? { deviceId: { exact: deviceId } }
+                : {})
+        };
+    }
+
+    async function requestMicrophone(deviceId = selectedMicrophoneId) {
+        try {
+            return await navigator.mediaDevices.getUserMedia({
+                audio: microphoneConstraints(deviceId),
+                video: false
+            });
+        } catch (error) {
+            if (
+                deviceId
+                && (
+                    error?.name === "NotFoundError"
+                    || error?.name === "OverconstrainedError"
+                )
+            ) {
+                saveSelectedMicrophone("");
+                return requestMicrophone("");
+            }
+
+            if (
+                error?.name === "NotAllowedError"
+                || error?.name === "PermissionDeniedError"
+                || error?.name === "SecurityError"
+            ) {
+                throw microphonePermissionError(error);
+            }
+
+            const unavailableError = new Error(
+                "The browser found the microphone but could not open it. Check Windows/macOS microphone privacy settings and close other apps using the device."
+            );
+            unavailableError.code = "microphone_unavailable";
+            throw unavailableError;
+        }
+    }
+
+    async function retryMicrophonePermission() {
+        ui.retryMicrophoneButton.disabled = true;
+        setDeviceStatus("Requesting microphone access…");
+
+        try {
+            const testStream = await requestMicrophone();
+            testStream.getTracks().forEach((track) => track.stop());
+            await refreshMicrophoneDevices();
+            ui.permissionHelp.classList.add("hidden");
+            setDeviceStatus(
+                "Microphone access works. You can start or accept a call now."
+            );
+        } catch (error) {
+            ui.permissionHelp.classList.remove("hidden");
+            setDeviceStatus(
+                error.message
+                || "Microphone permission is still blocked.",
+                true
+            );
+        } finally {
+            ui.retryMicrophoneButton.disabled = false;
+        }
+    }
+
+    async function chooseMicrophone(deviceId) {
+        saveSelectedMicrophone(deviceId);
+
+        if (!localStream) {
+            setDeviceStatus(
+                "This microphone will be used for the next call."
+            );
+            return;
+        }
+
+        setDeviceStatus("Switching microphone…");
+        const replacementStream = await requestMicrophone(
+            selectedMicrophoneId
+        );
+        const replacementTrack = replacementStream.getAudioTracks()[0];
+
+        if (!replacementTrack) {
+            throw new Error("The selected device has no audio track.");
+        }
+
+        replacementTrack.enabled = mediaState.microphone;
+        const sender = (peerConnection?.getSenders() ?? [])
+            .find((candidate) => candidate.track?.kind === "audio");
+
+        if (sender) {
+            await sender.replaceTrack(replacementTrack);
+        }
+
+        const previousTracks = localStream.getAudioTracks();
+        previousTracks.forEach((track) => {
+            localStream.removeTrack(track);
+            track.stop();
+        });
+        localStream.addTrack(replacementTrack);
+        await refreshMicrophoneDevices();
+        setDeviceStatus("Microphone changed successfully.");
     }
 
     function resetCardButtons() {
@@ -312,21 +707,38 @@
         startDurationClock();
     }
 
-    function callMediaConstraints(mode) {
+    function cameraConstraints() {
         return {
-            audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true
-            },
-            video: mode === "video"
-                ? {
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 },
-                    frameRate: { ideal: 24, max: 30 }
-                }
-                : false
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 24, max: 30 }
         };
+    }
+
+    async function requestOptionalCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: cameraConstraints()
+            });
+
+            return {
+                stream,
+                warning: ""
+            };
+        } catch (error) {
+            const permissionBlocked =
+                error?.name === "NotAllowedError"
+                || error?.name === "PermissionDeniedError"
+                || error?.name === "SecurityError";
+
+            return {
+                stream: null,
+                warning: permissionBlocked
+                    ? "Camera access is unavailable, so you joined with audio only. You can still see the other player's video."
+                    : "No camera is available, so you joined with audio only. You can still see the other player's video."
+            };
+        }
     }
 
     async function acquireLocalMedia(mode) {
@@ -340,26 +752,19 @@
             );
         }
 
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia(
-                callMediaConstraints(mode)
-            );
-        } catch (error) {
-            if (
-                error?.name === "NotAllowedError"
-                || error?.name === "PermissionDeniedError"
-            ) {
-                throw new Error(
-                    mode === "video"
-                        ? "Camera and microphone permission is required for this video call."
-                        : "Microphone permission is required for this audio call."
-                );
-            }
+        const microphoneStream = await requestMicrophone();
+        const cameraResult = mode === "video"
+            ? await requestOptionalCamera()
+            : { stream: null, warning: "" };
 
-            throw new Error(
-                "Your camera or microphone could not be opened."
-            );
-        }
+        localStream = new MediaStream();
+        microphoneStream.getAudioTracks().forEach((track) => {
+            localStream.addTrack(track);
+        });
+        cameraResult.stream?.getVideoTracks().forEach((track) => {
+            localStream.addTrack(track);
+        });
+        cameraWarning = cameraResult.warning;
 
         mediaState = {
             microphone: localStream.getAudioTracks().some(
@@ -373,6 +778,7 @@
         ui.localVideo.srcObject = localStream;
         ui.localVideo.play().catch(() => {});
         updateControlLabels();
+        refreshMicrophoneDevices().catch(() => {});
         return localStream;
     }
 
@@ -381,6 +787,7 @@
         remoteStream?.getTracks().forEach((track) => track.stop());
         localStream = null;
         remoteStream = null;
+        cameraWarning = "";
 
         if (ui.localVideo) {
             ui.localVideo.srcObject = null;
@@ -498,6 +905,15 @@
 
             for (const track of localStream.getTracks()) {
                 connection.addTrack(track, localStream);
+            }
+
+            if (
+                currentCall.call_mode === "video"
+                && localStream.getVideoTracks().length === 0
+            ) {
+                connection.addTransceiver("video", {
+                    direction: "recvonly"
+                });
             }
 
             connection.addEventListener("track", (event) => {
@@ -771,6 +1187,7 @@
 
         showActiveStage();
         await acquireLocalMedia(currentCall.call_mode);
+        showCameraFallbackNotice();
         await setupPeerConnection();
         startHeartbeat();
 
@@ -854,11 +1271,12 @@
                 currentCall.callee_username || username || "Player";
             showCallCard("outgoing");
             scheduleRingExpiry();
+            showCameraFallbackNotice();
         } catch (error) {
             stopMedia();
-            showToast(
-                error.message || "The call could not be started.",
-                "error"
+            showMediaFailure(
+                error,
+                "The call could not be started."
             );
         } finally {
             startingCall = false;
@@ -903,9 +1321,9 @@
             setCallError(
                 error.message || "The call could not be accepted."
             );
-            showToast(
-                error.message || "The call could not be accepted.",
-                "error"
+            showMediaFailure(
+                error,
+                "The call could not be accepted."
             );
         } finally {
             ui.acceptButton.disabled = false;
@@ -925,9 +1343,9 @@
                 createCallerOffer: isCaller()
             });
         } catch (error) {
-            showToast(
-                error.message || "The call could not be rejoined.",
-                "error"
+            showMediaFailure(
+                error,
+                "The call could not be rejoined."
             );
         } finally {
             ui.rejoinButton.disabled = false;
@@ -1154,9 +1572,16 @@
             String(!mediaState.microphone)
         );
 
-        ui.cameraButton.textContent = mediaState.camera
-            ? "Camera off"
-            : "Camera on";
+        const hasCamera = Boolean(
+            localStream?.getVideoTracks().length
+        );
+
+        ui.cameraButton.textContent = !hasCamera
+            ? "No camera"
+            : mediaState.camera
+                ? "Camera off"
+                : "Camera on";
+        ui.cameraButton.disabled = !hasCamera;
         ui.cameraButton.setAttribute(
             "aria-pressed",
             String(!mediaState.camera)
@@ -1233,6 +1658,16 @@
     }
 
     document.addEventListener("click", (event) => {
+        const settingsButton = event.target.closest(
+            "[data-player-call-settings]"
+        );
+
+        if (settingsButton) {
+            event.preventDefault();
+            openDeviceSettings().catch(() => {});
+            return;
+        }
+
         const startButton = event.target.closest(
             "[data-player-call-user][data-player-call-mode]"
         );
@@ -1269,6 +1704,12 @@
             toggleMicrophone();
         } else if (action === "camera") {
             toggleCamera();
+        } else if (action === "devices") {
+            openDeviceSettings().catch(() => {});
+        } else if (action === "close-devices") {
+            closeDeviceSettings();
+        } else if (action === "retry-microphone") {
+            retryMicrophonePermission();
         }
     });
 
@@ -1276,6 +1717,16 @@
 
     async function initialisePlayerCalls() {
         createCallUi();
+        installCallSettingsLaunch();
+
+        navigator.mediaDevices?.addEventListener?.(
+            "devicechange",
+            () => {
+                if (!ui.devicePanel.classList.contains("hidden")) {
+                    refreshMicrophoneDevices().catch(() => {});
+                }
+            }
+        );
 
         if (!window.RTCPeerConnection) {
             console.warn("This browser does not support WebRTC calls.");
@@ -1328,6 +1779,7 @@
     window.playerCalls = {
         start: startCall,
         end: () => endCurrentCall(false),
+        openSettings: () => openDeviceSettings(),
         get activeCall() {
             return currentCall;
         }

@@ -794,7 +794,7 @@
         ) {
             const link = document.createElement("link");
             link.rel = "stylesheet";
-            link.href = "player-calls.css?v=1";
+            link.href = "player-calls.css?v=2";
             link.dataset.playerCalls = "true";
             document.head.append(link);
         }
@@ -808,7 +808,7 @@
         }
 
         const script = document.createElement("script");
-        script.src = "player-calls.js?v=1";
+        script.src = "player-calls.js?v=2";
         script.dataset.playerCalls = "true";
         script.addEventListener("error", () => {
             console.warn(

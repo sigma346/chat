@@ -98,7 +98,8 @@
 .player-call-button,
 .player-call-control,
 .friend-call-action,
-.profile-call-button {
+.profile-call-button,
+.player-call-settings-launch {
     min-height: 36px;
     padding: 8px 12px;
     border: 1px solid rgba(255, 255, 255, 0.14);
@@ -114,7 +115,8 @@
 .player-call-button:hover,
 .player-call-control:hover,
 .friend-call-action:hover,
-.profile-call-button:hover {
+.profile-call-button:hover,
+.player-call-settings-launch:hover {
     border-color: rgba(167, 242, 217, 0.55);
     background: rgba(167, 242, 217, 0.12);
 }
@@ -140,6 +142,10 @@
 .profile-call-button:disabled {
     cursor: wait;
     opacity: 0.55;
+}
+
+.player-call-settings-launch {
+    margin-top: 0.8rem;
 }
 
 .player-call-stage {
@@ -282,6 +288,124 @@
     background: rgba(18, 26, 38, 0.98);
 }
 
+.player-call-device-panel {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    z-index: 4;
+
+    display: grid;
+    gap: 14px;
+    width: min(430px, calc(100vw - 24px));
+    max-height: calc(100vh - 36px);
+    padding: 16px;
+    overflow-y: auto;
+
+    border: 1px solid rgba(100, 213, 173, 0.35);
+    border-radius: 16px;
+    background: rgba(13, 20, 30, 0.985);
+    box-shadow: 0 26px 90px rgba(0, 0, 0, 0.62);
+    color: var(--text, #f5f7fa);
+    pointer-events: auto;
+}
+
+.player-call-device-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.player-call-device-header h2 {
+    margin: 2px 0 0;
+    font-size: 1.2rem;
+}
+
+.player-call-device-close {
+    display: grid;
+    place-items: center;
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    color: #c8d2df;
+    font: inherit;
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+html.ui-overhaul .player-call-device-close {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.player-call-device-field {
+    display: grid;
+    gap: 6px;
+    color: #cfd8e4;
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.player-call-device-field select {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 10px;
+    background: #111b28;
+    color: #f5f7fa;
+    font: inherit;
+}
+
+.player-call-device-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.player-call-device-status {
+    min-height: 20px;
+    margin: 0;
+    color: #a7f2d9;
+    font-size: 0.76rem;
+    line-height: 1.45;
+}
+
+.player-call-device-status.error {
+    color: #ffb7c2;
+}
+
+.player-call-permission-help {
+    padding: 11px 12px;
+    border: 1px solid rgba(255, 193, 92, 0.28);
+    border-radius: 11px;
+    background: rgba(120, 77, 18, 0.18);
+    color: #f5e5c1;
+    font-size: 0.74rem;
+    line-height: 1.5;
+}
+
+.player-call-permission-help strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.player-call-permission-help ol {
+    margin: 0;
+    padding-left: 1.15rem;
+}
+
 .player-call-control {
     min-width: 92px;
 }
@@ -314,6 +438,11 @@
     color: #ffc2ca;
 }
 
+.player-call-toast.warning {
+    border-color: rgba(255, 193, 92, 0.42);
+    color: #ffe7b5;
+}
+
 .friend-call-action,
 .profile-call-button {
     text-decoration: none;
@@ -336,6 +465,13 @@
         right: 8px;
         bottom: 8px;
         width: calc(100vw - 16px);
+    }
+
+    .player-call-device-panel {
+        right: 8px;
+        bottom: 8px;
+        width: calc(100vw - 16px);
+        max-height: calc(100vh - 16px);
     }
 
     .player-call-stage {
