@@ -101,6 +101,12 @@
                     files: ["friends.html"]
                 },
                 {
+                    label: "Messages",
+                    href: "messages.html",
+                    files: ["messages.html"],
+                    messageBadge: true
+                },
+                {
                     label: "Profile",
                     href: "profile.html",
                     files: ["profile.html"]
@@ -300,7 +306,17 @@
             const link = document.createElement("a");
             link.href = child.href;
             link.className = "nav-dropdown-item";
-            link.textContent = child.label;
+            const label = document.createElement("span");
+            label.textContent = child.label;
+            link.append(label);
+
+            if (child.messageBadge) {
+                const badge = document.createElement("span");
+                badge.id = "navbar-direct-message-count";
+                badge.className = "navbar-direct-message-count";
+                badge.hidden = true;
+                link.append(badge);
+            }
             link.setAttribute("role", "menuitem");
 
             if (itemIsActive(child)) {
@@ -579,6 +595,25 @@
                 display: none !important;
             }
 
+            .navbar-direct-message-count {
+                display: inline-grid;
+                place-items: center;
+                min-width: 1.25rem;
+                height: 1.25rem;
+                margin-left: 0.35rem;
+                padding: 0 0.28rem;
+                border-radius: 999px;
+                background: #52d9ad;
+                color: #06130f;
+                font-size: 0.68rem;
+                font-weight: 900;
+                line-height: 1;
+            }
+
+            .navbar-direct-message-count[hidden] {
+                display: none !important;
+            }
+
             @media (prefers-reduced-motion: reduce) {
                 .nav-dropdown-toggle,
                 .nav-dropdown-arrow,
@@ -671,7 +706,7 @@
             + ".draw-layout, .hearts-layout, .blackjack-layout, "
             + ".disclaimer-layout, .horse-racing-layout, "
             + ".community-roulette-layout, .penguin-cross-layout, .leaderboards-layout, "
-            + ".donation-layout, .profile-layout, .friends-layout, "
+            + ".donation-layout, .profile-layout, .friends-layout, .direct-messages-layout, "
             + ".challenges-layout"
         )
         || document.querySelector("main > div")
@@ -813,6 +848,27 @@
         script.addEventListener("error", () => {
             console.warn(
                 "The player call system could not be loaded."
+            );
+        });
+
+        document.body.append(script);
+    }
+
+    function loadDesktopNotifications() {
+        if (
+            document.querySelector(
+                'script[data-desktop-notifications="true"]'
+            )
+        ) {
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = "desktop-notifications.js?v=1";
+        script.dataset.desktopNotifications = "true";
+        script.addEventListener("error", () => {
+            console.warn(
+                "Desktop notifications could not be loaded."
             );
         });
 
@@ -1107,6 +1163,7 @@
         loadUiOverhaulStyles();
         installDropdownDismissHandlers();
         mountNavbar();
+        window.dispatchEvent(new CustomEvent("shared-navbar-mounted"));
 
         const heartsSafeMode =
             currentFile === "hearts-table.html";
@@ -1134,6 +1191,7 @@
 
         loadCardBotSystem();
         loadCardGameGuide();
+        loadDesktopNotifications();
         loadPlayerCallSystem();
         loadUiOverhaulScript();
         loadLevelProgress();

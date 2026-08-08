@@ -1509,7 +1509,9 @@
 }
 
 .profile-friend-button,
-.profile-friends-link {
+.profile-friends-link,
+.profile-message-button,
+#profile-message-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1540,8 +1542,13 @@
 .profile-friend-button:hover,
 .profile-friend-button:focus-visible,
 .profile-friends-link:hover,
-.profile-friends-link:focus-visible {
+.profile-friends-link:focus-visible,
+.profile-message-button:hover,
+.profile-message-button:focus-visible,
+#profile-message-button:hover,
+#profile-message-button:focus-visible {
     border-color: rgba(98, 230, 189, 0.52);
+    background: rgba(98, 230, 189, 0.08);
     color: #ffffff;
 }
 
@@ -1568,7 +1575,9 @@
     }
 
     .profile-friend-button,
-    .profile-friends-link {
+    .profile-friends-link,
+    .profile-message-button,
+    #profile-message-button {
         width: 100%;
     }
 }
@@ -2011,4 +2020,40 @@
 .achievement-reward-preview[data-frame="frame_diamond_hands"] {
     border-color: #d8fbff;
     background: conic-gradient(#ffffff, #65e7ff, #7d78ff, #d67cff, #ffffff);
+}
+
+
+/* ============================================================
+   Profile action row sizing
+   Keep friend, call, message and friends-link controls aligned.
+   ============================================================ */
+
+.profile-friend-buttons > button,
+.profile-friend-buttons > a,
+html.ui-overhaul .profile-friend-buttons > button,
+html.ui-overhaul .profile-friend-buttons > a {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 48px;
+    min-height: 48px;
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+
+    line-height: 1;
+    vertical-align: middle;
+}
+
+@media (max-width: 620px) {
+    .profile-friend-buttons > button,
+    .profile-friend-buttons > a,
+    html.ui-overhaul .profile-friend-buttons > button,
+    html.ui-overhaul .profile-friend-buttons > a {
+        width: 100%;
+        height: 48px;
+        min-height: 48px;
+    }
 }

@@ -36,6 +36,7 @@
     let pendingLocalCandidates = [];
     let pendingRemoteCandidates = [];
     let pendingSignals = [];
+    const notifiedIncomingCallIds = new Set();
     let selectedMicrophoneId = loadSelectedMicrophone();
     let cameraWarning = "";
     let mediaState = {
@@ -367,6 +368,35 @@
             && currentUser
             && call.caller_id === currentUser.id
         );
+    }
+
+    function notifyIncomingCall(call) {
+        if (
+            !call?.id
+            || isCaller(call)
+            || notifiedIncomingCallIds.has(call.id)
+        ) {
+            return;
+        }
+
+        notifiedIncomingCallIds.add(call.id);
+        const mode = call.call_mode === "video" ? "video" : "audio";
+        const detail = {
+            title: `Incoming ${mode} call`,
+            body: `${peerName(call)} is calling you.`,
+            tag: `player-call-${call.id}`,
+            url: window.location.href,
+            requireInteraction: true
+        };
+
+        if (window.siteDesktopNotifications) {
+            window.siteDesktopNotifications.show(detail);
+        } else {
+            window.dispatchEvent(new CustomEvent(
+                "site-desktop-notification",
+                { detail }
+            ));
+        }
     }
 
     function showToast(message, type = "") {
@@ -1491,6 +1521,7 @@
         currentCall = call;
 
         if (call.status === "ringing") {
+            notifyIncomingCall(call);
             showCallCard(isCaller(call) ? "outgoing" : "incoming");
             scheduleRingExpiry();
             return;

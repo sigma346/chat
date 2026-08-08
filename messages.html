@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Direct Messages</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="direct-messages.css?v=1">
+</head>
+<body>
+    <main class="page direct-messages-page">
+        <div class="direct-messages-layout">
+            <div id="site-navbar"></div>
+
+            <section class="panel direct-messages-hero">
+                <div>
+                    <p class="eyebrow">SOCIAL</p>
+                    <h1>Direct messages</h1>
+                    <p class="description">
+                        Private conversations with your accepted friends.
+                    </p>
+                </div>
+
+                <div class="desktop-notification-controls">
+                    <button
+                        type="button"
+                        class="notification-permission-button"
+                        data-enable-desktop-notifications
+                    >
+                        Enable desktop notifications
+                    </button>
+                    <span data-desktop-notification-status>
+                        Loading notification status...
+                    </span>
+                </div>
+            </section>
+
+            <p
+                id="direct-message-status"
+                class="form-message direct-message-status"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+            <section class="panel direct-message-shell">
+                <aside class="conversation-sidebar">
+                    <div class="conversation-sidebar-heading">
+                        <div>
+                            <p class="eyebrow">INBOX</p>
+                            <h2>Conversations</h2>
+                        </div>
+
+                        <a class="find-friends-link" href="friends.html">
+                            Find friends
+                        </a>
+                    </div>
+
+                    <label class="conversation-filter-label">
+                        <span class="sr-only">Filter conversations</span>
+                        <input
+                            id="conversation-filter"
+                            type="search"
+                            maxlength="30"
+                            autocomplete="off"
+                            placeholder="Search conversations..."
+                        >
+                    </label>
+
+                    <div
+                        id="conversation-list"
+                        class="conversation-list"
+                    >
+                        <p class="direct-message-empty">
+                            Loading conversations...
+                        </p>
+                    </div>
+                </aside>
+
+                <div id="message-thread" class="message-thread empty">
+                    <div id="message-thread-empty" class="thread-empty-state">
+                        <strong>Select a conversation</strong>
+                        <span>
+                            Open a friend from the list, or start one from their
+                            profile.
+                        </span>
+                    </div>
+
+                    <div id="message-thread-active" class="thread-active" hidden>
+                        <header class="thread-header">
+                            <div>
+                                <a
+                                    id="thread-profile-link"
+                                    class="thread-profile-link"
+                                    href="profile.html"
+                                >
+                                    <strong id="thread-username">Player</strong>
+                                </a>
+                                <span id="thread-friend-state">
+                                    Accepted friend
+                                </span>
+                            </div>
+
+                            <div class="thread-call-actions">
+                                <button
+                                    id="thread-audio-call"
+                                    type="button"
+                                    data-player-call-mode="audio"
+                                >
+                                    Audio call
+                                </button>
+                                <button
+                                    id="thread-video-call"
+                                    type="button"
+                                    data-player-call-mode="video"
+                                >
+                                    Video call
+                                </button>
+                            </div>
+                        </header>
+
+                        <div
+                            id="message-list"
+                            class="message-list"
+                            aria-live="polite"
+                        ></div>
+
+                        <button
+                            id="load-older-messages"
+                            type="button"
+                            class="load-older-messages"
+                            hidden
+                        >
+                            Load older messages
+                        </button>
+
+                        <form id="direct-message-form" class="message-composer">
+                            <label class="sr-only" for="direct-message-input">
+                                Message
+                            </label>
+                            <textarea
+                                id="direct-message-input"
+                                rows="2"
+                                maxlength="1000"
+                                placeholder="Write a message..."
+                                required
+                            ></textarea>
+                            <div class="message-composer-footer">
+                                <span id="message-character-count">0 / 1000</span>
+                                <button id="send-direct-message" type="submit">
+                                    Send
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="direct-messages.js?v=1"></script>
+</body>
+</html>

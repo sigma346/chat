@@ -277,7 +277,15 @@ function createFriendCard(
             )
         );
     } else if (mode === "friend") {
+        const messageLink = document.createElement("a");
+        messageLink.className = "friend-profile-link";
+        messageLink.href = `messages.html?user=${encodeURIComponent(
+            player.user_id
+        )}`;
+        messageLink.textContent = "Message";
+
         actions.append(
+            messageLink,
             createCallButton(
                 "Audio call",
                 player,

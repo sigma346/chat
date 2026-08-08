@@ -34,6 +34,9 @@ const profileAudioCallButton = document.querySelector(
 const profileVideoCallButton = document.querySelector(
     "#profile-video-call-button"
 );
+const profileMessageButton = document.querySelector(
+    "#profile-message-button"
+);
 const profileFriendsLink = document.querySelector(
     "#profile-friends-link"
 );
@@ -294,6 +297,7 @@ function renderFriendRelationship(data) {
     profileFriendSecondaryButton.classList.add("hidden");
     profileAudioCallButton.classList.add("hidden");
     profileVideoCallButton.classList.add("hidden");
+    profileMessageButton.classList.add("hidden");
     profileFriendPrimaryButton.disabled = false;
     profileFriendSecondaryButton.disabled = false;
     profileFriendsLink.textContent = loadedProfile?.is_self
@@ -331,6 +335,10 @@ function renderFriendRelationship(data) {
             callButton.dataset.playerCallName = loadedProfile.username;
             callButton.classList.remove("hidden");
         }
+
+        profileMessageButton.href =
+            `messages.html?user=${encodeURIComponent(loadedProfile.id)}`;
+        profileMessageButton.classList.remove("hidden");
         return;
     }
 
