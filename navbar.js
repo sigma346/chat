@@ -10,6 +10,7 @@
         "blackjack-table.html",
         "five-card-draw-table.html",
         "hearts-table.html",
+        "shithead-table.html",
         "solitaire-table.html"
     ]);
 
@@ -83,6 +84,26 @@
             ]
         },
         {
+            label: "Markets",
+            children: [
+                {
+                    label: "Fictional Market",
+                    href: "stocks.html",
+                    files: ["stocks.html"]
+                },
+                {
+                    label: "Real Market",
+                    href: "real-stocks.html",
+                    files: ["real-stocks.html"]
+                },
+                {
+                    label: "Crypto",
+                    href: "crypto.html",
+                    files: ["crypto.html"]
+                }
+            ]
+        },
+        {
             label: "Challenges",
             href: "challenges.html",
             files: ["challenges.html"]
@@ -122,6 +143,11 @@
             label: "More",
             children: [
                 {
+                    label: "World News",
+                    href: "news.html",
+                    files: ["news.html"]
+                },
+                {
                     label: "Donate",
                     href: "donate.html",
                     files: ["donate.html"]
@@ -130,6 +156,12 @@
                     label: "Account",
                     href: "account.html",
                     files: ["account.html"]
+                },
+                {
+                    label: "Admin",
+                    href: "admin-users.html",
+                    files: ["admin-users.html"],
+                    adminOnly: true
                 },
                 {
                     label: "Disclaimer",
@@ -317,6 +349,12 @@
                 badge.hidden = true;
                 link.append(badge);
             }
+
+            if (child.adminOnly) {
+                link.hidden = true;
+                link.dataset.adminOnly = "true";
+            }
+
             link.setAttribute("role", "menuitem");
 
             if (itemIsActive(child)) {
@@ -535,6 +573,10 @@
                 background: rgba(98, 230, 189, 0.14);
                 color: #ffffff;
                 font-weight: 700;
+            }
+
+            .nav-dropdown-item[hidden] {
+                display: none !important;
             }
 
             @media (max-width: 860px) {
@@ -1187,10 +1229,74 @@
         }
     }
 
+    async function updateAdminNavigation() {
+        const adminLinks = Array.from(
+            document.querySelectorAll(
+                '[data-admin-only="true"]'
+            )
+        );
+
+        if (!adminLinks.length) {
+            return;
+        }
+
+        adminLinks.forEach((link) => {
+            link.hidden = true;
+        });
+
+        if (!window.supabaseClient) {
+            return;
+        }
+
+        try {
+            const {
+                data: { user },
+                error: userError
+            } = await window.supabaseClient
+                .auth
+                .getUser();
+
+            if (userError || !user) {
+                return;
+            }
+
+            const {
+                data: profile,
+                error: profileError
+            } = await window.supabaseClient
+                .from("profiles")
+                .select("is_admin")
+                .eq("id", user.id)
+                .maybeSingle();
+
+            if (profileError) {
+                console.warn(
+                    "Admin navigation visibility could not be checked:",
+                    profileError
+                );
+                return;
+            }
+
+            const showAdmin =
+                profile?.is_admin === true;
+
+            adminLinks.forEach((link) => {
+                link.hidden = !showAdmin;
+            });
+        } catch (error) {
+            console.warn(
+                "Admin navigation visibility could not be checked:",
+                error
+            );
+        }
+    }
+
+
     function initialiseSharedNavbar() {
         loadUiOverhaulStyles();
         installDropdownDismissHandlers();
         mountNavbar();
+        updateAdminNavigation().catch(() => {});
         window.dispatchEvent(new CustomEvent("shared-navbar-mounted"));
 
         const heartsSafeMode =
