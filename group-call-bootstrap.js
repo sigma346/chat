@@ -8,7 +8,7 @@
 
     window.__groupCallBootstrapV4 = true;
 
-    const ENGINE_VERSION = "4";
+    const ENGINE_VERSION = "5";
     const ENGINE_SCRIPT =
         `group-call-engine.js?v=${ENGINE_VERSION}`;
     const ENGINE_STYLE =

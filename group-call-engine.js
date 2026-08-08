@@ -6,7 +6,7 @@
         return;
     }
 
-    const VERSION = "4";
+    const VERSION = "5";
     const HEARTBEAT_MS = 45_000;
     const STATE_POLL_MS = 2_500;
     const SIGNAL_POLL_MS = 2_000;
@@ -667,6 +667,19 @@
             handleRootClick
         );
 
+        /*
+         * Some mobile browsers initially block remote audio autoplay.
+         * Any later tap/click is enough to unlock it, so retry playback on
+         * user interaction without interrupting the call.
+         */
+        document.addEventListener(
+            "pointerdown",
+            retryRemotePlayback,
+            {
+                passive: true
+            }
+        );
+
         ui.microphoneSelect
             .addEventListener(
                 "change",
@@ -1091,11 +1104,19 @@
         video.autoplay = true;
         video.playsInline = true;
 
+        /*
+         * Video tiles are always muted. Remote audio is played through a
+         * dedicated <audio> element owned by that peer connection. Muted
+         * video can autoplay reliably on desktop and mobile browsers, so a
+         * browser autoplay decision cannot make a valid remote camera look
+         * missing.
+         */
+        video.muted = true;
+
         if (
             participant.user_id
                 === currentUser.id
         ) {
-            video.muted = true;
             video.classList
                 .add("mirrored");
         }
@@ -1735,6 +1756,17 @@
                 cameraEnabled;
         }
 
+        /*
+         * Signals can arrive while getUserMedia is still waiting on a
+         * permission prompt. In that case createPeer() has already created
+         * senders with null tracks. Push the newly-acquired microphone and
+         * camera into every peer before continuing.
+         *
+         * Without this, a later-joining participant can receive everyone
+         * else while nobody receives that participant.
+         */
+        await syncAllSenders();
+
         await updateServerMedia();
 
         if (warnings.length) {
@@ -1804,6 +1836,28 @@
         );
     }
 
+    function retryRemotePlayback() {
+        for (
+            const record
+            of peers.values()
+        ) {
+            record.remoteAudio
+                ?.play()
+                .catch(
+                    () => {}
+                );
+
+            tileRecords
+                .get(
+                    record.remoteUserId
+                )?.video
+                ?.play()
+                .catch(
+                    () => {}
+                );
+        }
+    }
+
     async function createPeer(
         remoteUserId
     ) {
@@ -1848,10 +1902,28 @@
         const remoteStream =
             new MediaStream();
 
+        const remoteAudio =
+            document.createElement(
+                "audio"
+            );
+
+        remoteAudio.autoplay = true;
+        remoteAudio.playsInline = true;
+        remoteAudio.hidden = true;
+        remoteAudio.dataset.groupCallPeer =
+            remoteUserId;
+        remoteAudio.srcObject =
+            remoteStream;
+
+        ui.root.append(
+            remoteAudio
+        );
+
         const record = {
             remoteUserId,
             pc,
             remoteStream,
+            remoteAudio,
             audioSender:
                 audioTransceiver.sender,
             videoSender:
@@ -1943,7 +2015,22 @@
                         remoteUserId,
                         remoteStream
                     );
+
+                    record.remoteAudio
+                        ?.play()
+                        .catch(
+                            () => {}
+                        );
                 }
+
+                tileRecords
+                    .get(
+                        remoteUserId
+                    )?.video
+                    ?.play()
+                    .catch(
+                        () => {}
+                    );
             }
         );
 
@@ -2005,6 +2092,15 @@
             record.pc.close();
         } catch (error) {
             // Closing an already-closed peer is harmless.
+        }
+
+        try {
+            record.remoteAudio
+                ?.pause();
+            record.remoteAudio
+                ?.remove();
+        } catch (error) {
+            // The audio element may already be gone during page teardown.
         }
 
         peers.delete(
@@ -2381,24 +2477,59 @@
             signal.signal_type
                 === "rejoin_request"
         ) {
-            const record =
-                await resetPeer(
-                    remoteUserId,
-                    remoteSessionId
+            /*
+             * A peer-ready announcement is not proof that the browser page
+             * changed. V4 reset the RTCPeerConnection for every announcement,
+             * so three participants joining close together could repeatedly
+             * destroy one another's offers and ICE candidates.
+             *
+             * Only rebuild when the sender's page-session ID actually
+             * changed. Normal peer-ready / connection-restart requests keep
+             * the current connection and trigger deterministic renegotiation.
+             */
+            let record =
+                await createPeer(
+                    remoteUserId
                 );
+
+            const sessionChanged =
+                Boolean(
+                    remoteSessionId
+                    && record.remoteSessionId
+                    && record.remoteSessionId
+                        !== remoteSessionId
+                );
+
+            if (sessionChanged) {
+                record =
+                    await resetPeer(
+                        remoteUserId,
+                        remoteSessionId
+                    );
+            } else if (
+                remoteSessionId
+            ) {
+                record.remoteSessionId =
+                    remoteSessionId;
+            }
 
             if (
                 shouldOffer(
                     remoteUserId
                 )
             ) {
+                const shouldRestartIce =
+                    sessionChanged
+                    || payload.reason
+                        === "connection_restart";
+
                 window.setTimeout(
                     () => {
                         makeOffer(
                             remoteUserId,
                             {
                                 iceRestart:
-                                    true
+                                    shouldRestartIce
                             }
                         ).catch(
                             (error) => {
