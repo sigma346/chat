@@ -1200,29 +1200,6 @@
         );
     }
 
-    function loadGroupCallSystem() {
-        if (!document.querySelector('link[data-group-calls="true"]')) {
-            const link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.href = "group-calls.css?v=1";
-            link.dataset.groupCalls = "true";
-            document.head.append(link);
-        }
-
-        if (document.querySelector('script[data-group-calls="true"]')) {
-            return;
-        }
-
-        const script = document.createElement("script");
-        script.src = "group-calls.js?v=1";
-        script.async = false;
-        script.dataset.groupCalls = "true";
-        script.addEventListener("error", () => {
-            console.warn("The group call system could not be loaded.");
-        });
-        document.body.append(script);
-    }
-
     installCrossPageCallPersistence();
     installPeerConnectionTracking();
     installCameraConstraintFix();
@@ -1238,5 +1215,4 @@
         });
 
     maintainCallUi();
-    loadGroupCallSystem();
 })();

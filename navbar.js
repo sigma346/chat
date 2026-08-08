@@ -848,7 +848,7 @@
                 document.createElement("script");
 
             videoFitScript.src =
-                "player-call-video-fit.js?v=1";
+                "player-call-video-fit.js?v=2";
             videoFitScript.async = false;
             videoFitScript.dataset.playerCallVideoFit = "true";
 
