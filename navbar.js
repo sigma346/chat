@@ -848,7 +848,7 @@
                 document.createElement("script");
 
             videoFitScript.src =
-                "player-call-video-fit.js?v=2";
+                "player-call-video-fit.js?v=3";
             videoFitScript.async = false;
             videoFitScript.dataset.playerCallVideoFit = "true";
 
@@ -870,7 +870,7 @@
         }
 
         const script = document.createElement("script");
-        script.src = "player-calls.js?v=2";
+        script.src = "player-calls.js?v=3";
         script.async = false;
         script.dataset.playerCalls = "true";
         script.addEventListener("error", () => {
