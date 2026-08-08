@@ -6,7 +6,7 @@
         return;
     }
 
-    const VERSION = "5";
+    const VERSION = "6";
     const HEARTBEAT_MS = 45_000;
     const STATE_POLL_MS = 2_500;
     const SIGNAL_POLL_MS = 2_000;
@@ -1765,7 +1765,17 @@
          * Without this, a later-joining participant can receive everyone
          * else while nobody receives that participant.
          */
-        await syncAllSenders();
+        const mediaDirectionChanged =
+            await syncAllSenders();
+
+        if (
+            peers.size
+            && mediaDirectionChanged
+        ) {
+            await renegotiateAllPeers({
+                force: true
+            });
+        }
 
         await updateServerMedia();
 
@@ -1798,42 +1808,234 @@
         );
     }
 
+    function directionCanSend(direction) {
+        return (
+            direction === "sendrecv"
+            || direction === "sendonly"
+        );
+    }
+
     async function syncPeerSenders(
         record
     ) {
         if (!record) {
-            return;
+            return false;
+        }
+
+        let negotiationNeeded = false;
+
+        const desiredAudioTrack =
+            localAudioTrack
+            ?? null;
+
+        const desiredAudioDirection =
+            desiredAudioTrack
+                ? "sendrecv"
+                : "recvonly";
+
+        if (
+            record.audioTransceiver
+            && record.audioTransceiver.direction
+                !== desiredAudioDirection
+        ) {
+            record.audioTransceiver.direction =
+                desiredAudioDirection;
+
+            negotiationNeeded = true;
+        }
+
+        /*
+         * currentDirection describes what the last completed SDP exchange
+         * actually negotiated. If it is recvonly and a microphone now exists,
+         * replaceTrack() by itself is not enough. A new offer/answer is needed.
+         */
+        if (
+            desiredAudioTrack
+            && record.audioTransceiver
+                ?.currentDirection
+            && !directionCanSend(
+                record.audioTransceiver
+                    .currentDirection
+            )
+        ) {
+            negotiationNeeded = true;
         }
 
         await record.audioSender
             ?.replaceTrack(
-                localAudioTrack
-                ?? null
+                desiredAudioTrack
             );
 
         if (
             record.videoSender
+            && record.videoTransceiver
         ) {
+            const desiredVideoTrack =
+                outgoingVideoTrack();
+
+            const desiredVideoDirection =
+                desiredVideoTrack
+                    ? "sendrecv"
+                    : "recvonly";
+
+            if (
+                record.videoTransceiver
+                    .direction
+                    !== desiredVideoDirection
+            ) {
+                record.videoTransceiver
+                    .direction =
+                    desiredVideoDirection;
+
+                negotiationNeeded = true;
+            }
+
+            if (
+                desiredVideoTrack
+                && record.videoTransceiver
+                    .currentDirection
+                && !directionCanSend(
+                    record.videoTransceiver
+                        .currentDirection
+                )
+            ) {
+                negotiationNeeded = true;
+            }
+
             await record.videoSender
                 .replaceTrack(
-                    outgoingVideoTrack()
+                    desiredVideoTrack
+                    ?? null
                 );
         }
+
+        return negotiationNeeded;
     }
 
     async function syncAllSenders() {
-        await Promise.all(
-            Array.from(
-                peers.values()
-            ).map(
-                (record) =>
-                    syncPeerSenders(
-                        record
-                    ).catch(
-                        () => {}
+        const results =
+            await Promise.all(
+                Array.from(
+                    peers.values()
+                ).map(
+                    (record) =>
+                        syncPeerSenders(
+                            record
+                        ).catch(
+                            () => false
+                        )
+                )
+            );
+
+        return results.some(Boolean);
+    }
+
+    async function renegotiatePeer(
+        remoteUserId,
+        {
+            iceRestart = false,
+            delay = 0
+        } = {}
+    ) {
+        if (delay > 0) {
+            await new Promise(
+                (resolve) =>
+                    window.setTimeout(
+                        resolve,
+                        delay
                     )
-            )
-        );
+            );
+        }
+
+        const record =
+            peers.get(
+                remoteUserId
+            );
+
+        if (
+            !record
+            || record.pc.signalingState
+                === "closed"
+        ) {
+            return;
+        }
+
+        const needsDirectionUpdate =
+            await syncPeerSenders(
+                record
+            );
+
+        /*
+         * We deliberately allow either side to offer here. The engine already
+         * uses the perfect-negotiation polite/impolite collision handling.
+         * This matters when the participant who gained a late camera is not
+         * the deterministic offerer for that pair.
+         */
+        if (
+            needsDirectionUpdate
+            || iceRestart
+        ) {
+            await makeOffer(
+                remoteUserId,
+                {
+                    iceRestart
+                }
+            );
+        }
+    }
+
+    async function renegotiateAllPeers(
+        {
+            force = false,
+            staggerMs = 80
+        } = {}
+    ) {
+        let index = 0;
+
+        for (
+            const remoteUserId
+            of peers.keys()
+        ) {
+            const record =
+                peers.get(
+                    remoteUserId
+                );
+
+            if (!record) {
+                continue;
+            }
+
+            const needsDirectionUpdate =
+                await syncPeerSenders(
+                    record
+                );
+
+            if (
+                force
+                || needsDirectionUpdate
+            ) {
+                const delay =
+                    index * staggerMs;
+
+                index += 1;
+
+                window.setTimeout(
+                    () => {
+                        makeOffer(
+                            remoteUserId
+                        ).catch(
+                            (error) => {
+                                console.warn(
+                                    "Group-call media renegotiation failed:",
+                                    error
+                                );
+                            }
+                        );
+                    },
+                    delay
+                );
+            }
+        }
     }
 
     function retryRemotePlayback() {
@@ -1883,7 +2085,9 @@
                 "audio",
                 {
                     direction:
-                        "sendrecv"
+                        localAudioTrack
+                            ? "sendrecv"
+                            : "recvonly"
                 }
             );
 
@@ -1894,7 +2098,9 @@
                     "video",
                     {
                         direction:
-                            "sendrecv"
+                            outgoingVideoTrack()
+                                ? "sendrecv"
+                                : "recvonly"
                     }
                 )
                 : null;
@@ -1924,6 +2130,8 @@
             pc,
             remoteStream,
             remoteAudio,
+            audioTransceiver,
+            videoTransceiver,
             audioSender:
                 audioTransceiver.sender,
             videoSender:
@@ -3361,9 +3569,21 @@
             setError("");
             renderStage();
 
-            await startSignalSystem();
-
+            /*
+             * Acquire local media BEFORE we begin accepting SDP offers.
+             *
+             * V4/V5 started signalling first. A joining phone/laptop could
+             * therefore answer an offer while its permission prompt was still
+             * open. Chrome then generated a recvonly answer. Adding a camera
+             * later with replaceTrack() cannot change an already-negotiated
+             * recvonly transceiver into sendrecv without another SDP exchange.
+             *
+             * Starting media first guarantees the initial answer advertises
+             * the tracks that are actually available.
+             */
             await ensureLocalMedia();
+
+            await startSignalSystem();
 
             await reconcilePeers({
                 announceNew: true
@@ -3670,6 +3890,10 @@
 
                     await syncAllSenders();
 
+                    await renegotiateAllPeers({
+                        force: true
+                    });
+
                     installSpeakingDetector(
                         currentUser.id,
                         localStream
@@ -3752,6 +3976,10 @@
                         true;
 
                     await syncAllSenders();
+
+                    await renegotiateAllPeers({
+                        force: true
+                    });
                 }
             } catch (error) {
                 setError(

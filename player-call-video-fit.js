@@ -260,7 +260,7 @@
         }
 
         const script = document.createElement("script");
-        script.src = "group-call-bootstrap.js?v=5";
+        script.src = "group-call-bootstrap.js?v=6";
         script.async = true;
         script.dataset.groupCallBootstrapV4 = "true";
 
