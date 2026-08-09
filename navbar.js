@@ -1,5 +1,5 @@
 (() => {
-    const SITE_BUILD = "v8.1";
+    const SITE_BUILD = "v8.2";
     window.__SITE_BUILD__ = SITE_BUILD;
 
     const currentFile =
@@ -597,41 +597,87 @@
                 display: none !important;
             }
 
-            @media (max-width: 860px) {
+            @media (max-width: 1100px) {
+                /*
+                 * Mobile navigation must behave like an accordion in normal
+                 * document flow. ui-overhaul.css gives desktop dropdown
+                 * toggles height: 100%, which makes the toggle stretch over
+                 * its own expanded submenu on small screens. Override that
+                 * here so every submenu remains tappable.
+                 */
+                .shared-site-nav.ui-nav-open {
+                    max-height: calc(100dvh - 1rem);
+                    overflow-x: hidden;
+                    overflow-y: auto;
+                    overscroll-behavior: contain;
+                    -webkit-overflow-scrolling: touch;
+                    scrollbar-gutter: stable;
+                }
+
                 .shared-site-nav .site-nav-links {
                     align-items: stretch;
+                    min-height: 0;
                 }
 
-                .nav-dropdown {
-                    width: 100%;
+                .shared-site-nav.ui-nav-open .site-nav-links {
+                    overflow: visible;
+                }
+
+                .shared-site-nav .nav-dropdown {
                     display: block;
+                    width: 100%;
+                    height: auto !important;
+                    min-height: 0;
+                    align-self: auto !important;
                 }
 
-                .nav-dropdown-toggle {
+                .shared-site-nav .nav-dropdown > .nav-dropdown-toggle {
                     width: 100%;
+                    height: auto !important;
+                    min-height: 44px;
+                    position: relative;
+                    z-index: 1;
                 }
 
-                .nav-dropdown-menu {
-                    position: static;
-                    min-width: 0;
-                    width: 100%;
-                    margin-top: 0.3rem;
-                    box-shadow: none;
-                    transform: none;
+                .shared-site-nav .nav-dropdown-menu {
+                    position: static !important;
+                    inset: auto !important;
                     display: none;
-                    opacity: 1;
-                    visibility: visible;
+                    width: calc(100% - 0.65rem);
+                    min-width: 0;
+                    max-height: none;
+                    margin: 0.3rem 0 0 0.65rem;
+                    padding: 0.3rem;
+                    overflow: visible;
+                    border-radius: 0.75rem;
+                    box-shadow: none;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                    transform: none !important;
                     pointer-events: auto;
                 }
 
-                .nav-dropdown.open .nav-dropdown-menu,
-                .nav-dropdown:focus-within .nav-dropdown-menu {
-                    display: grid;
-                    transform: none;
+                /* On touch layouts only the explicit .open state controls a
+                   submenu. Focus alone must not keep an old menu expanded. */
+                .shared-site-nav .nav-dropdown:not(.open) > .nav-dropdown-menu,
+                .shared-site-nav .nav-dropdown:focus-within:not(.open) > .nav-dropdown-menu {
+                    display: none !important;
                 }
 
-                .nav-dropdown-item {
+                .shared-site-nav .nav-dropdown.open > .nav-dropdown-menu {
+                    display: grid !important;
+                    gap: 0.15rem;
+                }
+
+                .shared-site-nav .nav-dropdown-item {
+                    min-height: 40px;
+                    padding: 0.62rem 0.72rem;
                     white-space: normal;
+                }
+
+                .shared-site-nav.ui-nav-open > .site-nav-account {
+                    flex: 0 0 auto;
+                    padding-bottom: max(0.15rem, env(safe-area-inset-bottom));
                 }
             }
 
@@ -674,7 +720,7 @@
                 display: none !important;
             }
 
-            @media (max-width: 860px) {
+            @media (max-width: 1100px) {
                 .site-build-version {
                     margin: 0 0.05rem;
                     font-size: 0.53rem;
