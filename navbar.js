@@ -1,4 +1,7 @@
 (() => {
+    const SITE_BUILD = "v8.1";
+    window.__SITE_BUILD__ = SITE_BUILD;
+
     const currentFile =
         window.location.pathname
             .split("/")
@@ -455,6 +458,21 @@
                 align-items: center;
             }
 
+            .site-build-version {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 0.15rem;
+                color: rgba(203, 213, 225, 0.48);
+                font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+                font-size: 0.58rem;
+                font-weight: 650;
+                line-height: 1;
+                letter-spacing: 0.045em;
+                white-space: nowrap;
+                user-select: text;
+            }
+
             .nav-dropdown {
                 position: relative;
                 display: flex;
@@ -656,6 +674,14 @@
                 display: none !important;
             }
 
+            @media (max-width: 860px) {
+                .site-build-version {
+                    margin: 0 0.05rem;
+                    font-size: 0.53rem;
+                    opacity: 0.82;
+                }
+            }
+
             @media (prefers-reduced-motion: reduce) {
                 .nav-dropdown-toggle,
                 .nav-dropdown-arrow,
@@ -693,6 +719,12 @@
 
         const accountControls = document.createElement("div");
         accountControls.className = "site-nav-account";
+
+        const buildVersion = document.createElement("span");
+        buildVersion.className = "site-build-version";
+        buildVersion.textContent = SITE_BUILD;
+        buildVersion.title = `Site version ${SITE_BUILD}`;
+        buildVersion.setAttribute("aria-label", `Site version ${SITE_BUILD}`);
 
         const levelLink = document.createElement("a");
         levelLink.id = "navbar-level-link";
@@ -732,7 +764,7 @@
             }
         });
 
-        accountControls.append(levelLink, logoutButton);
+        accountControls.append(buildVersion, levelLink, logoutButton);
         navbar.append(links, accountControls);
 
         return navbar;
@@ -890,7 +922,7 @@
                 document.createElement("script");
 
             videoFitScript.src =
-                "player-call-video-fit.js?v=8.0";
+                "player-call-video-fit.js?v=8.1";
             videoFitScript.async = false;
             videoFitScript.dataset.playerCallVideoFit = "true";
 

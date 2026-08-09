@@ -1,7 +1,7 @@
 (() => {
     if (window.groupCallEngineV8 || !window.supabaseClient) return;
 
-    const BUILD = "PUSH V8.0";
+    const BUILD = "PUSH V8.1";
     const HEARTBEAT_MS = 45000;
     const STATE_POLL_MS = 2500;
     const SIGNAL_POLL_MS = 1800;
@@ -169,7 +169,7 @@
             <aside class="gcv4-incoming hidden">
                 <div class="gcv4-incoming-icon">◉</div>
                 <div class="gcv4-incoming-copy">
-                    <span class="gcv4-kicker">GROUP CALL · ${BUILD}</span>
+                    <span class="gcv4-kicker">GROUP CALL</span>
                     <strong class="gcv4-incoming-title"></strong>
                     <span class="gcv4-incoming-detail"></span>
                 </div>
@@ -187,7 +187,7 @@
                     </div>
 
                     <div class="gcv4-header-meta">
-                        <span class="gcv7-push">${BUILD}</span>
+                        
                         <span class="gcv4-count">0/0</span>
                         <span class="gcv4-duration">00:00</span>
                         <button type="button" class="gcv4-size-button" data-gcv7-action="expand">Expand</button>
@@ -211,7 +211,7 @@
             <section class="gcv4-composer hidden" role="dialog" aria-modal="true">
                 <header class="gcv4-dialog-header">
                     <div>
-                        <span class="gcv4-kicker">GROUP CALL · ${BUILD}</span>
+                        <span class="gcv4-kicker">GROUP CALL</span>
                         <h2 class="gcv7-composer-title">Start a group call</h2>
                     </div>
                     <button type="button" class="gcv4-close" data-gcv7-action="close-composer">×</button>
@@ -239,7 +239,7 @@
             <section class="gcv4-device-panel hidden" role="dialog">
                 <header class="gcv4-dialog-header">
                     <div>
-                        <span class="gcv4-kicker">CALL SETTINGS · ${BUILD}</span>
+                        <span class="gcv4-kicker">CALL SETTINGS</span>
                         <h2>Microphone</h2>
                     </div>
                     <button type="button" class="gcv4-close" data-gcv7-action="close-devices">×</button>

@@ -2,7 +2,7 @@
     if (window.__playerCallVideoFitV8) return;
     window.__playerCallVideoFitV8 = true;
 
-    const BUILD = "PUSH V8.0";
+    const BUILD = "PUSH V8.1";
     window.__CALL_PUSH_LOADER__ = BUILD;
 
     function installCameraConstraintFix() {
@@ -111,7 +111,7 @@
         }
 
         const script = document.createElement("script");
-        script.src = "group-call-bootstrap.js?v=8.0";
+        script.src = "group-call-bootstrap.js?v=8.1";
         script.async = true;
         script.dataset.groupCallBootstrapV8 = "true";
 

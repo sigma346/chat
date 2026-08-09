@@ -3,9 +3,9 @@
 
     window.__groupCallBootstrapV8 = true;
 
-    const BUILD = "PUSH V8.0";
-    const ENGINE_SCRIPT = "group-call-engine.js?v=8.0";
-    const ENGINE_STYLE = "group-call-engine.css?v=8.0";
+    const BUILD = "PUSH V8.1";
+    const ENGINE_SCRIPT = "group-call-engine.js?v=8.1";
+    const ENGINE_STYLE = "group-call-engine.css?v=8.1";
 
     let currentUser = null;
     let participantChannel = null;
@@ -78,7 +78,7 @@
         button.className =
             "secondary-button group-call-launch-v8";
         button.dataset.groupCallLaunchV8 = "true";
-        button.textContent = `Start group call · ${BUILD}`;
+        button.textContent = "Start group call";
 
         button.addEventListener("click", async () => {
             button.disabled = true;
@@ -132,7 +132,7 @@
                 } else {
                     reject(
                         new Error(
-                            "V7 engine loaded without registering."
+                            "V8 engine loaded without registering."
                         )
                     );
                 }
@@ -141,7 +141,7 @@
             script.addEventListener("error", () => {
                 reject(
                     new Error(
-                        "V7 group-call engine could not be downloaded."
+                        "V8 group-call engine could not be downloaded."
                     )
                 );
             });
