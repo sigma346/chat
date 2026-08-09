@@ -1,0 +1,334 @@
+.admin-games-layout {
+    display: grid;
+    gap: 1rem;
+    width: 100%;
+}
+
+.admin-games-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.2rem;
+}
+
+.admin-games-hero h1,
+.inactivity-policy-card h2 {
+    margin: 0;
+}
+
+.admin-games-description {
+    max-width: 68ch;
+    margin: 0.65rem 0 0;
+    color: var(--muted, #9aa8bc);
+    line-height: 1.55;
+}
+
+.admin-games-hero-actions {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.admin-game-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.admin-game-stat {
+    display: grid;
+    gap: 0.3rem;
+    padding: 1rem;
+}
+
+.admin-game-stat span {
+    color: var(--muted, #9aa8bc);
+    font-size: 0.76rem;
+    font-weight: 750;
+}
+
+.admin-game-stat strong {
+    font-size: clamp(1.35rem, 3vw, 2rem);
+}
+
+.admin-game-stat-warning strong {
+    color: #f3c56b;
+}
+
+.inactivity-policy-card {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.65fr) minmax(0, 1.35fr);
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+}
+
+.inactivity-policy-card p:last-child {
+    margin: 0;
+    color: var(--muted, #9aa8bc);
+    line-height: 1.55;
+}
+
+.game-admin-message {
+    padding: 0.8rem 0.95rem;
+    border: 1px solid rgba(98, 230, 189, 0.28);
+    border-radius: 0.8rem;
+    background: rgba(98, 230, 189, 0.08);
+    color: #dffff5;
+}
+
+.game-admin-message[data-tone="error"] {
+    border-color: rgba(255, 143, 163, 0.34);
+    background: rgba(126, 43, 62, 0.22);
+    color: #ffd0d8;
+}
+
+.admin-game-directory {
+    min-width: 0;
+    padding: 1rem;
+}
+
+.admin-game-toolbar {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(150px, 0.35fr));
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+.admin-game-toolbar label {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--muted, #9aa8bc);
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.admin-game-toolbar input,
+.admin-game-toolbar select,
+.admin-game-dialog textarea {
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 0.72rem;
+    background: rgba(8, 13, 21, 0.88);
+    color: #f2f6fb;
+    font: inherit;
+}
+
+.admin-game-toolbar input,
+.admin-game-toolbar select {
+    min-height: 2.55rem;
+    padding: 0.6rem 0.7rem;
+}
+
+.admin-game-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+#games-table {
+    width: 100%;
+    min-width: 880px;
+    border-collapse: collapse;
+}
+
+#games-table th,
+#games-table td {
+    padding: 0.75rem 0.7rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    text-align: left;
+    vertical-align: middle;
+}
+
+#games-table th {
+    color: var(--muted, #9aa8bc);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.game-identity {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 170px;
+}
+
+.game-identity small,
+.game-time-detail {
+    color: var(--muted, #9aa8bc);
+    font-size: 0.7rem;
+}
+
+.game-status-pill {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 0.28rem 0.48rem;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.game-status-pill.playing {
+    border-color: rgba(98, 230, 189, 0.3);
+    background: rgba(98, 230, 189, 0.09);
+    color: #bdf7e4;
+}
+
+.game-status-pill.waiting {
+    border-color: rgba(115, 169, 255, 0.28);
+    background: rgba(115, 169, 255, 0.08);
+    color: #c9dcff;
+}
+
+.game-auto-close.soon {
+    color: #f3c56b;
+    font-weight: 800;
+}
+
+.game-auto-close.overdue {
+    color: #ff9cad;
+    font-weight: 850;
+}
+
+.game-actions {
+    display: flex;
+    gap: 0.45rem;
+    white-space: nowrap;
+}
+
+.game-actions a,
+.game-actions button {
+    min-height: 2.2rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.65rem;
+    font-size: 0.72rem;
+}
+
+.game-actions a {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(148, 163, 184, 0.06);
+    color: #dce6f5;
+    text-decoration: none;
+}
+
+.games-loading,
+.games-empty {
+    margin: 1rem 0;
+    color: var(--muted, #9aa8bc);
+    text-align: center;
+}
+
+.admin-game-dialog {
+    width: min(520px, calc(100vw - 1.2rem));
+    padding: 0;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 1rem;
+    background: #0d141e;
+    color: #f2f6fb;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+}
+
+.admin-game-dialog::backdrop {
+    background: rgba(3, 7, 12, 0.72);
+    backdrop-filter: blur(5px);
+}
+
+.admin-game-dialog form {
+    position: relative;
+    display: grid;
+    gap: 0.85rem;
+    padding: 1.2rem;
+}
+
+.admin-game-dialog h2,
+.admin-game-dialog p {
+    margin: 0;
+}
+
+.admin-game-dialog label {
+    display: grid;
+    gap: 0.35rem;
+    color: #d3dce9;
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.admin-game-dialog textarea {
+    min-height: 7rem;
+    padding: 0.7rem;
+    resize: vertical;
+}
+
+.close-game-warning {
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 143, 163, 0.24);
+    border-radius: 0.7rem;
+    background: rgba(126, 43, 62, 0.15);
+    color: #ffc9d2;
+    line-height: 1.5;
+}
+
+.admin-game-dialog-close {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    width: 2.2rem;
+    min-height: 2.2rem;
+    padding: 0;
+}
+
+.admin-game-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.55rem;
+}
+
+@media (max-width: 820px) {
+    .admin-games-hero,
+    .inactivity-policy-card {
+        align-items: stretch;
+        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+
+    .admin-games-hero-actions {
+        justify-content: stretch;
+    }
+
+    .admin-games-hero-actions > * {
+        flex: 1 1 10rem;
+    }
+
+    .admin-game-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-game-toolbar {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .admin-game-summary {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.45rem;
+    }
+
+    .admin-game-stat {
+        padding: 0.75rem;
+    }
+
+    .admin-game-dialog-actions {
+        flex-direction: column-reverse;
+    }
+
+    .admin-game-dialog-actions > * {
+        width: 100%;
+    }
+}

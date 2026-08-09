@@ -1,5 +1,5 @@
 (() => {
-    const SITE_BUILD = "v8.2";
+    const SITE_BUILD = "v8.3";
     window.__SITE_BUILD__ = SITE_BUILD;
 
     const currentFile =
@@ -164,6 +164,12 @@
                     label: "Admin",
                     href: "admin-users.html",
                     files: ["admin-users.html"],
+                    adminOnly: true
+                },
+                {
+                    label: "Game Admin",
+                    href: "admin-games.html",
+                    files: ["admin-games.html"],
                     adminOnly: true
                 },
                 {

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Administration</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin-games.css">
+    <link
+        rel="stylesheet"
+        href="ui-overhaul.css?v=35"
+        data-ui-overhaul="true"
+    >
+</head>
+<body>
+    <main class="page admin-games-page" id="main-content">
+        <div class="admin-games-layout">
+            <div id="site-navbar"></div>
+
+            <section class="panel admin-games-hero">
+                <div>
+                    <p class="eyebrow">ADMIN CONTROL</p>
+                    <h1>Game management</h1>
+                    <p class="admin-games-description">
+                        Inspect active card games, close broken or abandoned
+                        tables, and monitor the automatic inactivity cleanup.
+                    </p>
+                </div>
+
+                <div class="admin-games-hero-actions">
+                    <button id="run-cleanup-button" type="button">
+                        Run inactivity cleanup
+                    </button>
+                    <button id="refresh-games-button" type="button">
+                        Refresh games
+                    </button>
+                </div>
+            </section>
+
+            <section
+                id="game-admin-message"
+                class="game-admin-message"
+                role="status"
+                aria-live="polite"
+                hidden
+            ></section>
+
+            <section class="admin-game-summary" aria-label="Game summary">
+                <article class="panel admin-game-stat">
+                    <span>Open games</span>
+                    <strong id="open-game-count">—</strong>
+                </article>
+                <article class="panel admin-game-stat">
+                    <span>Playing</span>
+                    <strong id="playing-game-count">—</strong>
+                </article>
+                <article class="panel admin-game-stat">
+                    <span>Waiting</span>
+                    <strong id="waiting-game-count">—</strong>
+                </article>
+                <article class="panel admin-game-stat admin-game-stat-warning">
+                    <span>Closing within 6h</span>
+                    <strong id="closing-soon-count">—</strong>
+                </article>
+            </section>
+
+            <section class="panel inactivity-policy-card">
+                <div>
+                    <p class="eyebrow">AUTOMATIC CLEANUP</p>
+                    <h2>48-hour inactivity limit</h2>
+                </div>
+                <p>
+                    Any persistent player game with no meaningful activity for
+                    48 hours is automatically closed. Card tables track joins,
+                    bets, actions and moves; Penguin Cross uses its last step/action.
+                    Cleanup runs every 15 minutes.
+                </p>
+            </section>
+
+            <section class="panel admin-game-directory">
+                <div class="admin-game-toolbar">
+                    <label class="admin-game-search" for="game-search-input">
+                        <span>Search games</span>
+                        <input
+                            id="game-search-input"
+                            type="search"
+                            placeholder="Game name or host"
+                            autocomplete="off"
+                        >
+                    </label>
+
+                    <label for="game-type-filter">
+                        <span>Game</span>
+                        <select id="game-type-filter">
+                            <option value="all">All games</option>
+                            <option value="poker">Texas Hold'em</option>
+                            <option value="blackjack">Blackjack</option>
+                            <option value="five_card_draw">Five Card Draw</option>
+                            <option value="hearts">Hearts</option>
+                            <option value="shithead">Shithead</option>
+                            <option value="penguin_cross">Penguin Cross</option>
+                            <option value="solitaire_klondike">Klondike</option>
+                            <option value="solitaire_spider">Spider</option>
+                        </select>
+                    </label>
+
+                    <label for="game-status-filter">
+                        <span>Status</span>
+                        <select id="game-status-filter">
+                            <option value="all">All statuses</option>
+                            <option value="playing">Playing</option>
+                            <option value="waiting">Waiting</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div id="games-loading" class="games-loading">
+                    Loading active games…
+                </div>
+
+                <div class="admin-game-table-wrap">
+                    <table id="games-table" hidden>
+                        <thead>
+                            <tr>
+                                <th scope="col">Game</th>
+                                <th scope="col">Host</th>
+                                <th scope="col">Players</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Last activity</th>
+                                <th scope="col">Auto close</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="games-table-body"></tbody>
+                    </table>
+                </div>
+
+                <p id="games-empty" class="games-empty" hidden>
+                    No active games match those filters.
+                </p>
+            </section>
+        </div>
+    </main>
+
+    <dialog id="close-game-dialog" class="admin-game-dialog">
+        <form id="close-game-form" method="dialog">
+            <button
+                class="admin-game-dialog-close"
+                type="button"
+                id="close-game-dialog-x"
+                aria-label="Close"
+            >×</button>
+
+            <p class="eyebrow">CLOSE GAME</p>
+            <h2>Close <span id="close-game-name"></span></h2>
+
+            <input id="close-game-id" type="hidden">
+
+            <p class="close-game-warning">
+                The game will immediately stop. Real player table stacks and
+                chips committed to an unfinished Poker, Draw, or Blackjack
+                round are refunded before the table is closed.
+            </p>
+
+            <label for="close-game-reason">
+                Reason
+                <textarea
+                    id="close-game-reason"
+                    maxlength="300"
+                    rows="4"
+                    required
+                >Closed by an administrator.</textarea>
+            </label>
+
+            <div class="admin-game-dialog-actions">
+                <button id="cancel-close-game-button" type="button">
+                    Cancel
+                </button>
+                <button
+                    id="confirm-close-game-button"
+                    class="danger-button"
+                    type="submit"
+                >
+                    Close game
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="navbar.js"></script>
+    <script src="admin-games.js?v=1"></script>
+    <script src="ui-overhaul.js?v=35"></script>
+</body>
+</html>
